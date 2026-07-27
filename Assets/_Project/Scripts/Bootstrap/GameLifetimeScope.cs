@@ -100,7 +100,7 @@ namespace CrateExpectations.Bootstrap
             // Доска и HUD
             builder.RegisterComponentInHierarchy<ContractBoard>();
             builder.RegisterComponentInHierarchy<BalanceView>();
-            builder.RegisterComponentInHierarchy<ContractStatusView>();
+            builder.RegisterComponentInHierarchy<ContractViewer>();
             builder.RegisterComponentInHierarchy<CargoSummaryView>();
             builder.RegisterComponentInHierarchy<SaveStatusView>();
 
@@ -117,7 +117,7 @@ namespace CrateExpectations.Bootstrap
                 container.Resolve<InspectorAI>();
                 container.Resolve<ContractBoard>();
                 container.Resolve<BalanceView>();
-                container.Resolve<ContractStatusView>();
+                container.Resolve<ContractViewer>();
                 container.Resolve<CargoSummaryView>();
                 container.Resolve<SaveStatusView>();
 

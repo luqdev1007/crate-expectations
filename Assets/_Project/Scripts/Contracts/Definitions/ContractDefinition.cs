@@ -12,6 +12,9 @@ namespace CrateExpectations.Contracts
         [field: SerializeField] public string DisplayName { get; private set; } = "Заказ";
         [field: SerializeField, TextArea(2, 4)] public string Description { get; private set; } = string.Empty;
 
+        [Tooltip("Картинка товара на листке заказа")]
+        [field: SerializeField] public Sprite Icon { get; private set; }
+
         [Header("Груз")]
         [Tooltip("Что везём на самом деле. Именно по этому типу сдача засчитывается в контракт")]
         [field: SerializeField] public CargoTypeDefinition Cargo { get; private set; }

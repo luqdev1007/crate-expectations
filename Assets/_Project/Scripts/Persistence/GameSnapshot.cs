@@ -8,7 +8,8 @@ namespace CrateExpectations.Persistence
     [Serializable]
     public sealed class GameSnapshot
     {
-        public const int CurrentVersion = 1;
+        // 2: в снимок заказов добавлен список уже снятых с доски листков
+        public const int CurrentVersion = 2;
 
         public int Version;
 

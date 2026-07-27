@@ -18,6 +18,11 @@ namespace CrateExpectations.Contracts
         private readonly ICargoInventory _inventory;
         private readonly IEventBus _bus;
 
+        /// <summary>Заказы, листки которых уже сняли с доски. Пополняется, но не чистится.</summary>
+        private readonly HashSet<string> _taken = new();
+
+        private readonly List<ContractDefinition> _onBoard = new();
+
         private ContractProgress _active;
 
         public ContractManager(
@@ -38,18 +43,40 @@ namespace CrateExpectations.Contracts
 
         public ContractProgress Active => _active;
 
-        public IReadOnlyList<ContractDefinition> Available =>
-            _catalog != null ? _catalog.Contracts : Array.Empty<ContractDefinition>();
+        /// <summary>Что ещё висит на доске: каталог за вычетом уже взятых заказов.</summary>
+        public IReadOnlyList<ContractDefinition> Available
+        {
+            get
+            {
+                _onBoard.Clear();
+
+                if (_catalog == null)
+                    return _onBoard;
+
+                IReadOnlyList<ContractDefinition> all = _catalog.Contracts;
+
+                for (int i = 0; i < all.Count; i++)
+                    if (all[i] != null && !IsTaken(all[i]))
+                        _onBoard.Add(all[i]);
+
+                return _onBoard;
+            }
+        }
 
         public void Dispose() => _bus.Unsubscribe<CargoInspected>(OnCargoInspected);
 
+        public bool IsTaken(ContractDefinition contract) =>
+            contract != null && _taken.Contains(contract.name);
+
         public bool CanAccept(ContractDefinition contract) =>
-            contract != null && contract.IsPlayable && !_active.IsActive;
+            contract != null && contract.IsPlayable && !_active.IsActive && !IsTaken(contract);
 
         public bool Accept(ContractDefinition contract)
         {
-            if (!CanAccept(contract)) 
+            if (!CanAccept(contract))
                 return false;
+
+            _taken.Add(contract.name);
 
             _active = new ContractProgress(contract);
             _bus.Publish(new ContractAccepted(_active));
@@ -57,15 +84,24 @@ namespace CrateExpectations.Contracts
             return true;
         }
 
-        public ContractSnapshot Capture() => new()
+        public ContractSnapshot Capture()
         {
-            ContractId = _active.IsActive ? _active.Contract.name : string.Empty,
-            Delivered = _active.Delivered,
-            Seized = _active.Seized,
-        };
+            var taken = new string[_taken.Count];
+            _taken.CopyTo(taken);
+
+            return new ContractSnapshot
+            {
+                ContractId = _active.IsActive ? _active.Contract.name : string.Empty,
+                Delivered = _active.Delivered,
+                Seized = _active.Seized,
+                TakenIds = taken,
+            };
+        }
 
         public void Restore(in ContractSnapshot snapshot)
         {
+            RestoreTaken(snapshot.TakenIds);
+
             ContractDefinition contract = FindById(snapshot.ContractId);
 
             if (contract == null)
@@ -82,19 +118,35 @@ namespace CrateExpectations.Contracts
                 return;
             }
 
+            // Активный заказ по определению уже снят с доски, даже если в списке его почему-то нет
+            _taken.Add(contract.name);
+
             _active = new ContractProgress(contract, snapshot.Delivered, snapshot.Seized);
         }
 
+        private void RestoreTaken(string[] takenIds)
+        {
+            _taken.Clear();
+
+            if (takenIds == null)
+                return;
+
+            for (int i = 0; i < takenIds.Length; i++)
+                if (!string.IsNullOrEmpty(takenIds[i]))
+                    _taken.Add(takenIds[i]);
+        }
+
+        /// <summary>Ищем по всему каталогу, а не по доске: активный заказ уже снят с неё.</summary>
         private ContractDefinition FindById(string contractId)
         {
-            if (string.IsNullOrEmpty(contractId)) 
+            if (string.IsNullOrEmpty(contractId) || _catalog == null)
                 return null;
 
-            IReadOnlyList<ContractDefinition> available = Available;
+            IReadOnlyList<ContractDefinition> all = _catalog.Contracts;
 
-            for (int i = 0; i < available.Count; i++)
-                if (available[i] != null && available[i].name == contractId) 
-                    return available[i];
+            for (int i = 0; i < all.Count; i++)
+                if (all[i] != null && all[i].name == contractId)
+                    return all[i];
 
             return null;
         }

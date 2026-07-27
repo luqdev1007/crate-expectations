@@ -165,6 +165,15 @@ namespace CrateExpectations.Player.Input
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""ViewContract"",
+                    ""type"": ""Button"",
+                    ""id"": ""3e2c4d77-bc51-4e31-ac2d-4c3f7b9a1d34"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -376,6 +385,17 @@ namespace CrateExpectations.Player.Input
                     ""action"": ""LoadGame"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""6a4c6e99-de72-4a52-cd4f-6e5b9dbc3f45"",
+                    ""path"": ""<Keyboard>/q"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ViewContract"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -392,6 +412,7 @@ namespace CrateExpectations.Player.Input
             m_Player_Throw = m_Player.FindAction("Throw", throwIfNotFound: true);
             m_Player_SaveGame = m_Player.FindAction("SaveGame", throwIfNotFound: true);
             m_Player_LoadGame = m_Player.FindAction("LoadGame", throwIfNotFound: true);
+            m_Player_ViewContract = m_Player.FindAction("ViewContract", throwIfNotFound: true);
         }
 
         ~@PlayerControls()
@@ -480,6 +501,7 @@ namespace CrateExpectations.Player.Input
         private readonly InputAction m_Player_Throw;
         private readonly InputAction m_Player_SaveGame;
         private readonly InputAction m_Player_LoadGame;
+        private readonly InputAction m_Player_ViewContract;
         /// <summary>
         /// Provides access to input actions defined in input action map "Player".
         /// </summary>
@@ -523,6 +545,10 @@ namespace CrateExpectations.Player.Input
             /// Provides access to the underlying input action "Player/LoadGame".
             /// </summary>
             public InputAction @LoadGame => m_Wrapper.m_Player_LoadGame;
+            /// <summary>
+            /// Provides access to the underlying input action "Player/ViewContract".
+            /// </summary>
+            public InputAction @ViewContract => m_Wrapper.m_Player_ViewContract;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -573,6 +599,9 @@ namespace CrateExpectations.Player.Input
                 @LoadGame.started += instance.OnLoadGame;
                 @LoadGame.performed += instance.OnLoadGame;
                 @LoadGame.canceled += instance.OnLoadGame;
+                @ViewContract.started += instance.OnViewContract;
+                @ViewContract.performed += instance.OnViewContract;
+                @ViewContract.canceled += instance.OnViewContract;
             }
 
             /// <summary>
@@ -608,6 +637,9 @@ namespace CrateExpectations.Player.Input
                 @LoadGame.started -= instance.OnLoadGame;
                 @LoadGame.performed -= instance.OnLoadGame;
                 @LoadGame.canceled -= instance.OnLoadGame;
+                @ViewContract.started -= instance.OnViewContract;
+                @ViewContract.performed -= instance.OnViewContract;
+                @ViewContract.canceled -= instance.OnViewContract;
             }
 
             /// <summary>
@@ -704,6 +736,13 @@ namespace CrateExpectations.Player.Input
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnLoadGame(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "ViewContract" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnViewContract(InputAction.CallbackContext context);
         }
     }
 }

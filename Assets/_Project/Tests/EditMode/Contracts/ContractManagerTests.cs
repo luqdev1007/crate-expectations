@@ -89,6 +89,86 @@ namespace CrateExpectations.Contracts.Tests
         }
 
         [Test]
+        public void A_taken_paper_leaves_the_board_for_good()
+        {
+            _manager.Accept(_rumRun);
+
+            Assert.That(_manager.Available, Has.No.Member(_rumRun));
+            Assert.That(_manager.IsTaken(_rumRun), Is.True);
+            Assert.That(_manager.Available.Count, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void A_completed_contract_does_not_come_back_to_the_board()
+        {
+            _manager.Accept(_rumRun);
+            Deliver(Crate(_rum), Cleared());
+            Deliver(Crate(_rum), Cleared());
+
+            Assert.That(_completed.Count, Is.EqualTo(1), "заказ должен закрыться");
+            Assert.That(_manager.Available, Has.No.Member(_rumRun));
+            Assert.That(_manager.CanAccept(_rumRun), Is.False);
+        }
+
+        [Test]
+        public void A_failed_contract_does_not_come_back_to_the_board()
+        {
+            _manager.Accept(_rumRun);
+            Deliver(Crate(_rum), Busted());
+
+            Assert.That(_failed.Count, Is.EqualTo(1), "заказ должен провалиться");
+            Assert.That(_manager.Available, Has.No.Member(_rumRun));
+            Assert.That(_manager.CanAccept(_rumRun), Is.False);
+        }
+
+        [Test]
+        public void The_board_empties_out_once_every_paper_is_gone()
+        {
+            _manager.Accept(_rumRun);
+            Deliver(Crate(_rum), Busted());
+            _manager.Accept(_spiceRun);
+            Deliver(Crate(_spices), Cleared());
+
+            Assert.That(_manager.Available, Is.Empty);
+            Assert.That(_manager.Active.IsActive, Is.False);
+        }
+
+        [Test]
+        public void Taken_papers_survive_save_and_load()
+        {
+            _manager.Accept(_rumRun);
+            Deliver(Crate(_rum), Busted());
+
+            ContractSnapshot snapshot = _manager.Capture();
+
+            var reloaded = new ContractManager(
+                _catalog, new PayoutCalculator(), _economy, _inventory, _bus);
+            reloaded.Restore(snapshot);
+
+            Assert.That(reloaded.Available, Has.No.Member(_rumRun));
+            Assert.That(reloaded.Available.Count, Is.EqualTo(1));
+            Assert.That(reloaded.CanAccept(_rumRun), Is.False);
+
+            reloaded.Dispose();
+        }
+
+        [Test]
+        public void An_active_contract_stays_off_the_board_after_loading()
+        {
+            _manager.Accept(_spiceRun);
+            ContractSnapshot snapshot = _manager.Capture();
+
+            var reloaded = new ContractManager(
+                _catalog, new PayoutCalculator(), _economy, _inventory, _bus);
+            reloaded.Restore(snapshot);
+
+            Assert.That(reloaded.Active.Contract, Is.EqualTo(_spiceRun));
+            Assert.That(reloaded.Available, Has.No.Member(_spiceRun));
+
+            reloaded.Dispose();
+        }
+
+        [Test]
         public void Accepting_a_contract_announces_it_and_makes_it_active()
         {
             Assert.That(_manager.Accept(_rumRun), Is.True);
@@ -297,6 +377,8 @@ namespace CrateExpectations.Contracts.Tests
             string name, CargoTypeDefinition cargo, int crates, int allowedSeizures)
         {
             var contract = ScriptableObject.CreateInstance<ContractDefinition>();
+            contract.name = name;   // по имени ассета менеджер помнит, какие листки уже сняли
+
             var so = new SerializedObject(contract);
             so.FindProperty("<DisplayName>k__BackingField").stringValue = name;
             so.FindProperty("<Cargo>k__BackingField").objectReferenceValue = cargo;

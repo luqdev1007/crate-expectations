@@ -18,6 +18,7 @@ namespace CrateExpectations.Player
         public event Action Interact;
         public event Action Grab;
         public event Action Throw;
+        public event Action ViewContract;
         public event Action SaveGame;
         public event Action LoadGame;
 
@@ -57,6 +58,12 @@ namespace CrateExpectations.Player
         {
             if (context.performed) 
                 Throw?.Invoke();
+        }
+
+        void PlayerControls.IPlayerActions.OnViewContract(InputAction.CallbackContext context)
+        {
+            if (context.performed)
+                ViewContract?.Invoke();
         }
 
         void PlayerControls.IPlayerActions.OnSaveGame(InputAction.CallbackContext context)

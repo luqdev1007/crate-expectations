@@ -10,5 +10,11 @@ namespace CrateExpectations.Contracts
         public int Delivered;
 
         public int Seized;
+
+        /// <summary>
+        /// Заказы, листки которых уже сняли с доски. Обратно они не возвращаются никогда,
+        /// поэтому список переживает сохранение наравне с активным заказом.
+        /// </summary>
+        public string[] TakenIds;
     }
 }

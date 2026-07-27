@@ -13,6 +13,9 @@ namespace CrateExpectations.Core.Input
         event Action Grab;
         event Action Throw;
 
+        /// <summary>Достать/убрать листок текущего заказа.</summary>
+        event Action ViewContract;
+
         event Action SaveGame;
         event Action LoadGame;
     }
