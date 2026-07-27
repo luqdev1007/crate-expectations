@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Cargo
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: Cargo
+  m_GUID: 7424e59b986d57e43af43434e96b7cf9
+  m_SerializeEntries:
+  - m_GUID: 3ee1e0c39c94e2348b7e171b6ee5fab6
+    m_Address: Cargo/Crate/Gunpowder
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 451724260145f0a43a881fa63d153d2e
+    m_Address: Cargo/Crate/Rum
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9ba3e79df6da37e41806126df2b63f00
+    m_Address: Cargo/Crate/Spices
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 186a3683f757f5244a8fe6b12b8546e1, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 18fe1953d829721449d724b5206da005, type: 2}
+    - {fileID: 11400000, guid: 3213399c37056104ebffcff4155e8047, type: 2}

@@ -1,0 +1,28 @@
+{
+    "name": "CrateExpectations.Bootstrap",
+    "rootNamespace": "CrateExpectations.Bootstrap",
+    "references": [
+        "CrateExpectations.Core",
+        "CrateExpectations.Platform",
+        "CrateExpectations.Player",
+        "CrateExpectations.Interaction",
+        "CrateExpectations.Cargo",
+        "CrateExpectations.Inspection",
+        "CrateExpectations.Inventory",
+        "CrateExpectations.Economy",
+        "CrateExpectations.Contracts",
+        "CrateExpectations.Persistence",
+        "CrateExpectations.UI",
+        "VContainer",
+        "UniTask"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

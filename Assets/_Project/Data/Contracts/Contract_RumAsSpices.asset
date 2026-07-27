@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94c3813c959183d40a54a2eccf0d1601, type: 3}
+  m_Name: Contract_RumAsSpices
+  m_EditorClassIdentifier: CrateExpectations.Contracts::CrateExpectations.Contracts.ContractDefinition
+  <DisplayName>k__BackingField: "\u0420\u043E\u043C \u043F\u043E\u0434 \u0432\u0438\u0434\u043E\u043C
+    \u0441\u043F\u0435\u0446\u0438\u0439"
+  <Description>k__BackingField: "\u0414\u0432\u0430 \u044F\u0449\u0438\u043A\u0430
+    \u0440\u043E\u043C\u0430. \u0412 \u0434\u0435\u043A\u043B\u0430\u0440\u0430\u0446\u0438\u0438
+    - \u0441\u043F\u0435\u0446\u0438\u0438. \u041F\u0435\u0440\u0435\u043B\u0435\u0439,
+    \u043F\u043E\u043A\u0440\u0430\u0441\u044C, \u043F\u043E\u0441\u0442\u0430\u0432\u044C
+    \u043F\u043B\u043E\u043C\u0431\u0443 \u0438 \u043D\u0435 \u0442\u0440\u044F\u0441\u0438\u0441\u044C
+    \u043D\u0430 \u0434\u043E\u0441\u043C\u043E\u0442\u0440\u0435."
+  <Cargo>k__BackingField: {fileID: 11400000, guid: 9416aacde97c47942b995cc287bcc0e3, type: 2}
+  <DeclaredAs>k__BackingField: {fileID: 11400000, guid: 8cc607fcbc2f616488f8bea5f7dd55bb, type: 2}
+  <Crates>k__BackingField: 2
+  <AllowedSeizures>k__BackingField: 0
+  <RewardPerCrate>k__BackingField: 320
+  <CleanBonus>k__BackingField: 80
+  <Penalty>k__BackingField: 220

@@ -1,0 +1,17 @@
+{
+    "name": "CrateExpectations.Inventory",
+    "rootNamespace": "CrateExpectations.Inventory",
+    "references": [
+        "CrateExpectations.Core",
+        "CrateExpectations.Cargo"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

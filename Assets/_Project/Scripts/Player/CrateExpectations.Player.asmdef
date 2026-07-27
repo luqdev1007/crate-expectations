@@ -1,0 +1,20 @@
+{
+    "name": "CrateExpectations.Player",
+    "rootNamespace": "CrateExpectations.Player",
+    "references": [
+        "CrateExpectations.Core",
+        "Unity.InputSystem",
+        "Unity.Cinemachine",
+        "VContainer",
+        "UniTask"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

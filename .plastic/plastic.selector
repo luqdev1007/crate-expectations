@@ -1,0 +1,4 @@
+repository "Unity6_3DTemplate_UniTaskUniRXZenject/Unity6_3DTemplate_UniTaskUniRXZenject@10170756515017@cloud"
+  path "/"
+    br "/main"
+    co "/main"

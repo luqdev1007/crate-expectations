@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9d7f47c112631445a7f459ca6f0b282, type: 3}
+  m_Name: Recipe_PaintNavy
+  m_EditorClassIdentifier: CrateExpectations.Cargo::CrateExpectations.Cargo.DisguiseRecipe
+  <Action>k__BackingField: 0
+  <Paint>k__BackingField: {fileID: 11400000, guid: d66d6a60c5c95624f958b38c17849348, type: 2}
+  <Stamp>k__BackingField: {fileID: 0}
+  <DeclaredType>k__BackingField: {fileID: 0}
+  <RequiredPaint>k__BackingField: {fileID: 0}
+  <ActionLabel>k__BackingField: "\u041F\u043E\u043A\u0440\u0430\u0441\u0438\u0442\u044C
+    \u0432"

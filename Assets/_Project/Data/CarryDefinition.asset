@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6bd0a947cdd2a2e4c8546381d1e5c3ca, type: 3}
+  m_Name: CarryDefinition
+  m_EditorClassIdentifier: CrateExpectations.Interaction::CrateExpectations.Interaction.CarryDefinition
+  <HoldDistance>k__BackingField: 1.8
+  <MinHoldDistance>k__BackingField: 0.6
+  <HoldBlockingMask>k__BackingField:
+    serializedVersion: 2
+    m_Bits: 1847
+  <GrabDistance>k__BackingField: 3
+  <BreakDistance>k__BackingField: 2.5
+  <FollowSpeed>k__BackingField: 12
+  <MaxVelocity>k__BackingField: 8
+  <ThrowForce>k__BackingField: 7
+  <CarriedAngularDamping>k__BackingField: 8
+  <HoldMode>k__BackingField: 1
+  <JointSpring>k__BackingField: 1500
+  <JointDamper>k__BackingField: 80
+  <CarriableMask>k__BackingField:
+    serializedVersion: 2
+    m_Bits: 1024
+  <CarriedLayer>k__BackingField: 12

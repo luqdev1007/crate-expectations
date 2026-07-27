@@ -1,0 +1,20 @@
+{
+    "name": "CrateExpectations.Inspection",
+    "rootNamespace": "CrateExpectations.Inspection",
+    "references": [
+        "CrateExpectations.Core",
+        "CrateExpectations.Cargo",
+        "VContainer",
+        "UniTask",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

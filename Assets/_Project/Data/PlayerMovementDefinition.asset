@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b654be5d9400c6a49b73137a75176c80, type: 3}
+  m_Name: PlayerMovementDefinition
+  m_EditorClassIdentifier: CrateExpectations.Player::CrateExpectations.Player.PlayerMovementDefinition
+  <MoveSpeed>k__BackingField: 4.5
+  <Acceleration>k__BackingField: 45
+  <JumpHeight>k__BackingField: 1.1
+  <LookSensitivity>k__BackingField: 0.12
+  <PitchMin>k__BackingField: -85
+  <PitchMax>k__BackingField: 85
+  <WallNormalMaxY>k__BackingField: 0.4
+  <GroundCheckRadius>k__BackingField: 0.3
+  <GroundCheckDistance>k__BackingField: 0.15
+  <GroundMask>k__BackingField:
+    serializedVersion: 2
+    m_Bits: 256

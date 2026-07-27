@@ -1,0 +1,23 @@
+{
+    "name": "CrateExpectations.Cargo",
+    "rootNamespace": "CrateExpectations.Cargo",
+    "references": [
+        "CrateExpectations.Core",
+        "CrateExpectations.Interaction",
+        "VContainer",
+        "UniTask",
+        "UniTask.Addressables",
+        "Unity.Addressables",
+        "Unity.ResourceManager",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

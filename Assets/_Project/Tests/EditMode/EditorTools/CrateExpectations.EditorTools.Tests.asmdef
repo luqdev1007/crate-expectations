@@ -1,0 +1,29 @@
+{
+    "name": "CrateExpectations.EditorTools.Tests",
+    "rootNamespace": "CrateExpectations.EditorTools.Tests",
+    "references": [
+        "CrateExpectations.Editor",
+        "CrateExpectations.Cargo",
+        "CrateExpectations.Inspection",
+        "CrateExpectations.Contracts",
+        "CrateExpectations.Economy",
+        "CrateExpectations.Core",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

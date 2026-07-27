@@ -1,0 +1,17 @@
+{
+    "name": "CrateExpectations.Platform",
+    "rootNamespace": "CrateExpectations.Platform",
+    "references": [
+        "CrateExpectations.Core",
+        "UniTask"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

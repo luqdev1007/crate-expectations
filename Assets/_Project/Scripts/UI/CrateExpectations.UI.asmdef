@@ -1,0 +1,24 @@
+{
+    "name": "CrateExpectations.UI",
+    "rootNamespace": "CrateExpectations.UI",
+    "references": [
+        "CrateExpectations.Core",
+        "CrateExpectations.Cargo",
+        "CrateExpectations.Contracts",
+        "CrateExpectations.Economy",
+        "CrateExpectations.Interaction",
+        "CrateExpectations.Inventory",
+        "CrateExpectations.Persistence",
+        "VContainer",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

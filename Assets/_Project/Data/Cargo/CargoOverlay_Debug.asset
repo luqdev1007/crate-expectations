@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 49e62d7c47c562c4d9a84a722518bace, type: 3}
+  m_Name: CargoOverlay_Debug
+  m_EditorClassIdentifier: CrateExpectations.Cargo::CrateExpectations.Cargo.CargoOverlayDefinition
+  <Enabled>k__BackingField: 1
+  <MaxDistance>k__BackingField: 4
+  <CargoMask>k__BackingField:
+    serializedVersion: 2
+    m_Bits: 5120
+  <Format>k__BackingField: "<b>\u0418\u0441\u0442\u0438\u043D\u0430:</b> {0}\n<b>\u041E\u043A\u0440\u0430\u0441\u043A\u0430:</b>
+    {1}\n<b>\u041F\u0435\u0447\u0430\u0442\u044C:</b> {2}\n<b>\u0417\u0430\u044F\u0432\u043B\u0435\u043D\u043E:</b>
+    {3}\n<b>\u0420\u0430\u0441\u0445\u043E\u0436\u0434\u0435\u043D\u0438\u0435:</b>
+    {4}"
+  <NoneLabel>k__BackingField: '-'
+  <DivergedLabel>k__BackingField: "<color=#FF7A5A>\u0434\u0430</color>"
+  <MatchesLabel>k__BackingField: "\u043D\u0435\u0442"

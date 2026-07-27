@@ -1,0 +1,21 @@
+{
+    "name": "CrateExpectations.Contracts",
+    "rootNamespace": "CrateExpectations.Contracts",
+    "references": [
+        "CrateExpectations.Core",
+        "CrateExpectations.Cargo",
+        "CrateExpectations.Inspection",
+        "CrateExpectations.Inventory",
+        "CrateExpectations.Economy",
+        "UniTask"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

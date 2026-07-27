@@ -1,0 +1,19 @@
+{
+    "name": "CrateExpectations.Interaction",
+    "rootNamespace": "CrateExpectations.Interaction",
+    "references": [
+        "CrateExpectations.Core",
+        "VContainer",
+        "UniTask",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

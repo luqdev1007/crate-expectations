@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd95f283a93917a43a8b8dc07174ccc4, type: 3}
+  m_Name: InspectorLines_Bored
+  m_EditorClassIdentifier: CrateExpectations.Inspection::CrateExpectations.Inspection.InspectorLinesDefinition
+  <Greeting>k__BackingField: "\u0410\u0433\u0430. \u0414\u0430\u0432\u0430\u0439\u0442\u0435
+    \u0431\u044B\u0441\u0442\u0440\u0435\u0435 \u0443 \u043C\u0435\u043D\u044F \u043E\u0431\u0435\u0434."
+  _probes:
+  - Aspect: 0
+    Line: "\u0411\u0443\u043C\u0430\u0433\u0438... \u043D\u0443 \u043B\u0430\u0434\u043D\u043E."
+  - Aspect: 1
+    Line: "\u0426\u0432\u0435\u0442 \u043A\u0430\u043A \u0446\u0432\u0435\u0442."
+  - Aspect: 2
+    Line: "\u041F\u043B\u043E\u043C\u0431\u0443 \u043F\u043E\u043A\u0430\u0436\u0438\u0442\u0435
+      \u0438 \u0441\u0432\u043E\u0431\u043E\u0434\u043D\u044B."
+  - Aspect: 3
+    Line: "\u0412\u043D\u0443\u0442\u0440\u044C \u043B\u0435\u0437\u0442\u044C? \u0414\u0430
+      \u0447\u0435\u0442 \u043D\u0435 \u043E\u0445\u043E\u0442\u0430..."
+  _reasons:
+  - Clue: 0
+    Line: "\u0422\u0443\u0442 \u0436\u0435 \u0447\u0451\u0440\u043D\u044B\u043C \u043F\u043E
+      \u0431\u0435\u043B\u043E\u043C\u0443: \u0432\u0435\u0437\u0442\u0438 \u043D\u0435\u043B\u044C\u0437\u044F."
+  - Clue: 1
+    Line: "\u041E\u0439. \u042D\u0442\u043E \u0436\u0435 \u0441\u043E\u0432\u0441\u0435\u043C
+      \u043D\u0435 \u0442\u043E."
+  - Clue: 2
+    Line: "\u0426\u0432\u0435\u0442, \u043A\u043E\u043D\u0435\u0447\u043D\u043E,
+      \u0441\u0442\u0440\u0430\u043D\u043D\u044B\u0439..."
+  - Clue: 3
+    Line: "\u0410 \u043F\u043B\u043E\u043C\u0431\u0430 \u0433\u0434\u0435? \u041D\u0435\u0442\u0443
+      \u043F\u043B\u043E\u043C\u0431\u044B."
+  - Clue: 4
+    Line: "\u041F\u043B\u043E\u043C\u0431\u0430 \u043A\u0430\u043A\u0430\u044F-\u0442\u043E
+      \u043D\u0435 \u043D\u0430\u0448\u0430."
+  - Clue: 5
+    Line: "\u041D\u0435 \u043A\u0440\u0430\u0448\u0435\u043D\u044B\u0439 \u044F\u0449\u0438\u043A,
+      \u043D\u0430\u0434\u043E \u0436\u0435..."
+  <PassHeadline>k__BackingField: "\u041F\u0420\u041E\u041F\u0423\u0429\u0415\u041D\u041E"
+  <BustHeadline>k__BackingField: "\u0417\u0410\u0414\u0415\u0420\u0416\u0410\u041D\u041E"
+  <PassLine>k__BackingField: "\u0414\u0430 \u043F\u0440\u043E\u0435\u0437\u0436\u0430\u0439\u0442\u0435
+    \u0443\u0436\u0435."
+  <BustLine>k__BackingField: "\u041D\u0443 \u0432\u043E\u0442 \u0437\u0430\u0447\u0435\u043C
+    \u0432\u044B \u0442\u0430\u043A. \u041D\u0435 \u043F\u043E\u0435\u0434\u0435\u0442."
+  <CleanLine>k__BackingField: "\u0414\u0430 \u043D\u043E\u0440\u043C\u0430\u043B\u044C\u043D\u043E
+    \u0432\u0441\u0451."
+  <SuspicionFormat>k__BackingField: "\u043F\u043E\u0434\u043E\u0437\u0440\u0435\u043D\u0438\u0435
+    {0:0} \u0438\u0437 {1:0}"
+  <CluePrefix>k__BackingField: '* '
+  <PassColor>k__BackingField: {r: 0.078431375, g: 0.41960785, b: 0.13333334, a: 1}
+  <BustColor>k__BackingField: {r: 0.60784316, g: 0.07058824, b: 0.047058824, a: 1}
+  <MissingLine>k__BackingField: "\u2026"

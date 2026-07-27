@@ -1,0 +1,30 @@
+{
+    "name": "CrateExpectations.Persistence.Tests",
+    "rootNamespace": "CrateExpectations.Persistence.Tests",
+    "references": [
+        "CrateExpectations.Persistence",
+        "CrateExpectations.Cargo",
+        "CrateExpectations.Contracts",
+        "CrateExpectations.Economy",
+        "CrateExpectations.Inventory",
+        "CrateExpectations.Core",
+        "UniTask",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f18391c000bb0c1439fe4d1608b2000f, type: 3}
+  m_Name: CargoType_Spices
+  m_EditorClassIdentifier: CrateExpectations.Cargo::CrateExpectations.Cargo.CargoTypeDefinition
+  <DisplayName>k__BackingField: "\u0441\u043F\u0435\u0446\u0438\u0438"
+  <IsContraband>k__BackingField: 0
+  <LabelColor>k__BackingField: {r: 0.85, g: 0.7, b: 0.25, a: 1}
+  <BaseValue>k__BackingField: 120
+  <PrefabKey>k__BackingField: Cargo/Crate/Spices
+  <FactoryPaint>k__BackingField: {fileID: 11400000, guid: fc7af4a02d5985b428aa91b95e9a14fe, type: 2}

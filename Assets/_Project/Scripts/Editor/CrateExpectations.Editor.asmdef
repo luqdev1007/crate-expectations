@@ -1,0 +1,25 @@
+{
+    "name": "CrateExpectations.Editor",
+    "rootNamespace": "CrateExpectations.EditorTools",
+    "references": [
+        "CrateExpectations.Core",
+        "CrateExpectations.Cargo",
+        "CrateExpectations.Inspection",
+        "CrateExpectations.Contracts",
+        "CrateExpectations.Economy",
+        "Unity.Addressables",
+        "Unity.Addressables.Editor",
+        "Unity.ResourceManager"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 14f98faf358a92a4ba8a1eda02ee6e26, type: 3}
+  m_Name: CargoRegistry
+  m_EditorClassIdentifier: CrateExpectations.Cargo::CrateExpectations.Cargo.Catalog.CargoRegistryDefinition
+  _cargo:
+  - Key: Cargo/Type/Rum
+    Type: {fileID: 11400000, guid: 9416aacde97c47942b995cc287bcc0e3, type: 2}
+  - Key: Cargo/Type/Gunpowder
+    Type: {fileID: 11400000, guid: 4d9190222771d0548a3b762b4e003bc4, type: 2}
+  - Key: Cargo/Type/Spices
+    Type: {fileID: 11400000, guid: 8cc607fcbc2f616488f8bea5f7dd55bb, type: 2}
+  _paints:
+  - {fileID: 11400000, guid: 5c99065b519b793429f1e438f2336e83, type: 2}
+  - {fileID: 11400000, guid: d66d6a60c5c95624f958b38c17849348, type: 2}
+  - {fileID: 11400000, guid: fc7af4a02d5985b428aa91b95e9a14fe, type: 2}
+  - {fileID: 11400000, guid: 9c5ba2ce14d1bde41820a77d751c07e8, type: 2}
+  _stamps:
+  - {fileID: 11400000, guid: b4ca7ec5dbbcf264b932bd810bbbe47e, type: 2}
