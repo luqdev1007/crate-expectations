@@ -10,6 +10,7 @@ using CrateExpectations.Economy;
 using CrateExpectations.Inspection;
 using CrateExpectations.Inspection.AI;
 using CrateExpectations.Inspection.UI;
+using CrateExpectations.Inspection.View;
 using CrateExpectations.Interaction;
 using CrateExpectations.Interaction.UI;
 using CrateExpectations.Inventory;
@@ -85,8 +86,15 @@ namespace CrateExpectations.Bootstrap
             builder.RegisterComponentInHierarchy<InteractionPromptView>();
             builder.RegisterComponentInHierarchy<CargoSpawner>();
 
-            // Плашка досмотра
-            builder.RegisterComponentInHierarchy<InspectionResultView>().As<IInspectorVoice>();
+            // Голос инспектора: реплики идут в пузырь над головой, сводка вердикта - в плашку HUD
+            builder.RegisterComponentInHierarchy<InspectionResultView>();
+            builder.RegisterComponentInHierarchy<InspectorSpeechBubble>();
+            builder.Register<IInspectorVoice>(
+                resolver => new CompositeInspectorVoice(
+                    resolver.Resolve<InspectorSpeechBubble>(),
+                    resolver.Resolve<InspectionResultView>()),
+                Lifetime.Singleton);
+
             builder.RegisterComponentInHierarchy<InspectorAI>();
 
             // Доска и HUD

@@ -34,6 +34,13 @@ namespace CrateExpectations.Inspection
         [field: SerializeField][Min(0f)] public float VerdictHoldSeconds { get; private set; } = 6f;
         [field: SerializeField] public float CargoHandoffSeconds { get; private set; } = 6f;
 
+        [Header("Пузырь реплик")]
+        [Tooltip("Сколько плашка над головой проявляется")]
+        [field: SerializeField][Min(0f)] public float SpeechFadeInSeconds { get; private set; } = 0.15f;
+
+        [Tooltip("Сколько плашка над головой гаснет")]
+        [field: SerializeField][Min(0f)] public float SpeechFadeOutSeconds { get; private set; } = 0.3f;
+
         [Header("Отладка")]
         [Tooltip("Seed невнимательности инспектора. 0 - случайный при каждом запуске")]
         [field: SerializeField] public int OverlookSeed { get; private set; }

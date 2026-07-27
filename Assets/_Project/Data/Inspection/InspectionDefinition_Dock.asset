@@ -41,4 +41,6 @@ MonoBehaviour:
   <VerdictDelaySeconds>k__BackingField: 0.8
   <VerdictHoldSeconds>k__BackingField: 6
   <CargoHandoffSeconds>k__BackingField: 6
+  <SpeechFadeInSeconds>k__BackingField: 0.15
+  <SpeechFadeOutSeconds>k__BackingField: 0.3
   <OverlookSeed>k__BackingField: 0

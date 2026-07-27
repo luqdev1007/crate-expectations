@@ -6,9 +6,6 @@ namespace CrateExpectations.Inspection.UI
 {
     public sealed class InspectionResultView : MonoBehaviour, IInspectorVoice
     {
-        [Tooltip("Реплика инспектора. Видна и во время осмотра, и в вердикте")]
-        [SerializeField] private TMP_Text _speech;
-
         [Tooltip("Корень плашки с итогом: включается только на вердикте")]
         [SerializeField] private GameObject _verdictPanel;
 
@@ -35,18 +32,16 @@ namespace CrateExpectations.Inspection.UI
             Clear();
         }
 
+        /// <summary>
+        /// Реплики переехали в мировой пузырь над головой инспектора, плашка их не дублирует:
+        /// здесь остаётся только сводка по итогу досмотра.
+        /// </summary>
         public void Say(string line)
         {
-            if (_speech == null)
-                return;
-
-            _speech.text = line;
-            _speech.enabled = !string.IsNullOrEmpty(line);
         }
+
         public void ShowVerdict(in VerdictReport report)
         {
-            Say(report.Speech);
-
             _headline.text = report.Headline;
             _headline.color = report.Accent;
 
@@ -65,12 +60,11 @@ namespace CrateExpectations.Inspection.UI
                 return;
 
             _verdictPanel.SetActive(false);
-            Say(string.Empty);
         }
 
         private bool IsWiredUp()
         {
-            if (_speech != null && _verdictPanel != null && _headline != null &&
+            if (_verdictPanel != null && _headline != null &&
                 _clues != null && _suspicionFill != null && _suspicionLabel != null)
             {
                 return true;
