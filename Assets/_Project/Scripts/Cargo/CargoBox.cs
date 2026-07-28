@@ -14,6 +14,7 @@ namespace CrateExpectations.Cargo
     public sealed class CargoBox : MonoBehaviour
     {
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
+        private static readonly int BaseMapId = Shader.PropertyToID("_BaseMap");
 
         [Tooltip("Что внутри на самом деле. Станции это не меняют никогда")]
         [SerializeField] private CargoTypeDefinition _trueType;
@@ -25,8 +26,8 @@ namespace CrateExpectations.Cargo
         [Tooltip("Рендереры корпуса - им применяется окраска. Пусто - берётся рендерер объекта")]
         [SerializeField] private Renderer[] _bodyRenderers;
 
-        [Tooltip("Метка содержимого: красится в цвет заявленного типа груза (отклик на перелив)")]
-        [SerializeField] private Renderer _labelRenderer;
+        [Tooltip("Иконка содержимого на грани ящика: показывает заявленный тип груза (отклик на перелив)")]
+        [SerializeField] private Renderer _iconRenderer;
 
         [Tooltip("Куда станция печати вешает декаль-пломбу")]
         [SerializeField] private Transform _stampAnchor;
@@ -100,8 +101,25 @@ namespace CrateExpectations.Cargo
         {
             if (_state.Paint != null) SetColor(_bodyRenderers, _state.Paint.Color);
 
-            if (_labelRenderer != null && _state.DeclaredType != null)
-                SetColor(_labelRenderer, _state.DeclaredType.LabelColor);
+            ShowIcon(_state.DeclaredType);
+        }
+
+        /// <summary>
+        /// Иконка заявленного содержимого. Ящик без заявленного типа (или тип без картинки)
+        /// показывает пустую грань, а не случайную иконку от прошлого груза: рендерер гасится
+        /// </summary>
+        private void ShowIcon(CargoTypeDefinition declared)
+        {
+            if (_iconRenderer == null) return;
+
+            Texture2D icon = declared != null ? declared.Icon : null;
+            _iconRenderer.enabled = icon != null;
+
+            if (icon == null) return;
+
+            _iconRenderer.GetPropertyBlock(_propertyBlock);
+            _propertyBlock.SetTexture(BaseMapId, icon);
+            _iconRenderer.SetPropertyBlock(_propertyBlock);
         }
 
         private void SetColor(Renderer[] renderers, Color color)

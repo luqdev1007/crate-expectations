@@ -167,6 +167,15 @@ namespace CrateExpectations.EditorTools.Validation
                         "каталог не сможет создать ящик",
                         type));
                 }
+
+                if (type.Icon == null)
+                {
+                    issues.Add(ContentIssue.Warning(
+                        Title,
+                        $"Тип груза \"{type.DisplayName}\": не задана иконка - на ящике " +
+                        "будет пустая грань, и заявленное содержимое не прочитать",
+                        type));
+                }
             }
         }
 

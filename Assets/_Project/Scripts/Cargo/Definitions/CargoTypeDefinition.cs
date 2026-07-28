@@ -18,8 +18,10 @@ namespace CrateExpectations.Cargo
         [Tooltip("Контрабанда: за такой груз в порту прилетит штраф, если инспектор его узнает")]
         [field: SerializeField] public bool IsContraband { get; private set; }
 
-        [Tooltip("Цвет метки содержимого на ящике - визуальный отклик на \"перелив\"")]
-        [field: SerializeField] public Color LabelColor { get; private set; } = Color.white;
+        [Tooltip("Иконка товара на грани ящика - та же картинка, что и на листке заказа: " +
+                 "игрок узнаёт содержимое по одному значку и на доске, и на самом ящике. " +
+                 "Меняется при \"переливе\" вместе с заявленным типом")]
+        [field: SerializeField] public Texture2D Icon { get; private set; }
 
         [Tooltip("Базовая стоимость единицы груза")]
         [field: SerializeField] public int BaseValue { get; private set; } = 100;

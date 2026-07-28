@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: CrateExpectations.Cargo::CrateExpectations.Cargo.CargoTypeDefinition
   <DisplayName>k__BackingField: "\u0441\u043F\u0435\u0446\u0438\u0438"
   <IsContraband>k__BackingField: 0
-  <LabelColor>k__BackingField: {r: 0.85, g: 0.7, b: 0.25, a: 1}
+  <Icon>k__BackingField: {fileID: 2800000, guid: 17140e59711297c47b6438d2a2328e20, type: 3}
   <BaseValue>k__BackingField: 120
   <PrefabKey>k__BackingField: Cargo/Crate/Spices
   <FactoryPaint>k__BackingField: {fileID: 11400000, guid: fc7af4a02d5985b428aa91b95e9a14fe, type: 2}
