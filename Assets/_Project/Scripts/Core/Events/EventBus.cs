@@ -16,15 +16,10 @@ namespace CrateExpectations.Core.Events
         public void Unsubscribe<T>(Action<T> handler)
         {
             var t = typeof(T);
-            if (!_handlers.TryGetValue(t, out var d)) 
-                return;
-
+            if (!_handlers.TryGetValue(t, out var d)) return;
             var updated = Delegate.Remove(d, handler);
-
-            if (updated == null) 
-                _handlers.Remove(t);
-            else 
-                _handlers[t] = updated;
+            if (updated == null) _handlers.Remove(t);
+            else _handlers[t] = updated;
         }
 
         public void Publish<T>(T @event)

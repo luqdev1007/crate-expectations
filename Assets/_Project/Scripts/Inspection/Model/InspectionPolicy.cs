@@ -1,5 +1,10 @@
-namespace CrateExpectations.Inspection 
+namespace CrateExpectations.Inspection
 {
+    /// <summary>
+    /// Во сколько инспектор оценивает каждую улику. Поля именованные, а не словарь:
+    /// таблица маленькая и известна на этапе компиляции, а обращение к ней не должно
+    /// ни аллоцировать, ни зависеть от порядка элементов в ассете
+    /// </summary>
     public readonly struct ClueWeights
     {
         public ClueWeights(
@@ -25,6 +30,7 @@ namespace CrateExpectations.Inspection
         public float WrongStamp { get; }
         public float IncompleteDisguise { get; }
 
+        /// <summary>Вес улики этого типа</summary>
         public float Of(ClueType type) => type switch
         {
             ClueType.DeclaredContraband => DeclaredContraband,
@@ -37,6 +43,11 @@ namespace CrateExpectations.Inspection
         };
     }
 
+    /// <summary>
+    /// Правила досмотра в виде значения: что инспектор проверяет, как сильно нервничает
+    /// по каждому поводу, когда задерживает груз и насколько он невнимателен.
+    /// Снимается с <see cref="InspectorProfile"/> - ядро не зависит от ScriptableObject-обвязки
+    /// </summary>
     public readonly struct InspectionPolicy
     {
         public InspectionPolicy(
@@ -51,14 +62,19 @@ namespace CrateExpectations.Inspection
             OverlookChance = overlookChance;
         }
 
+        /// <summary>Какие проверки выполняются</summary>
         public ClueChecks Checks { get; }
 
+        /// <summary>Веса улик</summary>
         public ClueWeights Weights { get; }
 
+        /// <summary>С какого уровня подозрения груз задерживают</summary>
         public float SuspicionThreshold { get; }
 
+        /// <summary>Шанс пропустить отдельную улику, 0..1. Ноль - инспектор не ошибается</summary>
         public float OverlookChance { get; }
 
+        /// <summary>Выполняет ли инспектор такую проверку</summary>
         public bool Performs(ClueChecks check) => (Checks & check) != 0;
     }
 }

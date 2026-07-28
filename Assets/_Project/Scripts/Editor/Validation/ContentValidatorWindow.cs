@@ -4,6 +4,11 @@ using UnityEngine;
 
 namespace CrateExpectations.EditorTools.Validation
 {
+    /// <summary>
+    /// Окно валидатора контента: кнопка "проверить всё", счётчик находок и список проблем
+    /// с переходом к виновному ассету. Тонкий слой - вся логика в
+    /// <see cref="ContentValidator"/> и проверках, здесь только рисование.
+    /// </summary>
     public sealed class ContentValidatorWindow : EditorWindow
     {
         private readonly ContentValidator _validator = new();
@@ -55,6 +60,8 @@ namespace CrateExpectations.EditorTools.Validation
 
         private void RunValidation()
         {
+            // Список валидатора переиспользуется между прогонами - забираем копию,
+            // иначе следующая проверка перетёрла бы то, что нарисовано на экране
             _issues = new List<ContentIssue>(_validator.Validate(ProjectContentScanner.Scan()));
             _hasRun = true;
         }

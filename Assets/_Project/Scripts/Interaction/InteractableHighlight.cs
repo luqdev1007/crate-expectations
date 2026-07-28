@@ -2,12 +2,21 @@ using UnityEngine;
 
 namespace CrateExpectations.Interaction
 {
+    /// <summary>
+    /// Владелец цвета grey-box-объекта: хранит базовый цвет и подмешивает к нему хайлайт,
+    /// когда на объект наведён прицел (пишет через <see cref="MaterialPropertyBlock"/>,
+    /// поэтому не плодит инстансы материалов)
+    /// </summary>
     public sealed class InteractableHighlight : MonoBehaviour
     {
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
 
+        [Tooltip("Рендереры под управлением, пусто - берутся все рендереры в детях")]
         [SerializeField] private Renderer[] _renderers;
+
         [SerializeField] private Color _highlightTint = new(1f, 0.92f, 0.55f);
+
+        [Tooltip("Насколько сильно подмешивается хайлайт: 0 - базовый цвет, 1 - чистый оттенок")]
         [SerializeField][Range(0f, 1f)] private float _highlightBlend = 0.55f;
 
         private MaterialPropertyBlock _propertyBlock;
@@ -30,6 +39,7 @@ namespace CrateExpectations.Interaction
             Apply();
         }
 
+        /// <summary>Сменить собственный цвет объекта (хайлайт остаётся поверх)</summary>
         public void SetBaseColor(Color color)
         {
             _baseColor = color;

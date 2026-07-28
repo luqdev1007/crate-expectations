@@ -4,10 +4,17 @@ using CrateExpectations.Inspection;
 
 namespace CrateExpectations.EditorTools.Validation
 {
+    /// <summary>
+    /// Регламент требует того, чего в игре не существует: окраски или пломбы, которую не наносит
+    /// ни одна станция (такой груз нельзя привести в порядок в принципе, а узнать об этом иначе
+    /// как в игре было негде)
+    /// </summary>
     public sealed class RegulationsCoverageCheck : IContentCheck
     {
+        /// <inheritdoc />
         public string Title => "Регламент порта";
 
+        /// <inheritdoc />
         public void Run(ContentCatalog catalog, List<ContentIssue> issues)
         {
             List<DisguiseRecipe> recipes = catalog.ReachableRecipes();
@@ -19,6 +26,7 @@ namespace CrateExpectations.EditorTools.Validation
                 if (regulations == null) 
                     continue;
 
+                // Строка регламента без типа груза: TryGetRequirement по null находит именно её
                 if (regulations.TryGetRequirement(null, out _))
                 {
                     issues.Add(ContentIssue.Error(
@@ -66,6 +74,10 @@ namespace CrateExpectations.EditorTools.Validation
             ReportOrphanRecipes(catalog, issues);
         }
 
+        /// <summary>
+        /// Рецепт, не стоящий ни на одной станции, в игре не существует - применить его негде
+        /// (не ошибка, заготовка на будущее выглядит так же, но дизайнеру стоит знать)
+        /// </summary>
         private void ReportOrphanRecipes(ContentCatalog catalog, List<ContentIssue> issues)
         {
             List<DisguiseRecipe> reachable = catalog.ReachableRecipes();

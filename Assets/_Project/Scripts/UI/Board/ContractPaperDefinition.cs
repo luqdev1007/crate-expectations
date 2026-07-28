@@ -4,7 +4,7 @@ namespace CrateExpectations.UI
 {
     /// <summary>
     /// Шаблоны строк листка заказа. Одна вёрстка и один набор формулировок на все листки -
-    /// и на доске, и в руках.
+    /// и на доске, и в руках
     /// </summary>
     [CreateAssetMenu(
         fileName = "ContractPaper",

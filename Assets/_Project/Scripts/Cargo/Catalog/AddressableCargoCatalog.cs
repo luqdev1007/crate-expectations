@@ -7,6 +7,23 @@ using UnityEngine.AddressableAssets;
 
 namespace CrateExpectations.Cargo.Catalog
 {
+    /// <summary>
+    /// Реализация каталога на Addressables. Каждый созданный экземпляр учитывается, чтобы при
+    /// уничтожении владельца (scope контейнера) всё было освобождено: Addressables держит
+    /// контент, пока его явно не отпустят.
+    ///
+    /// <para><b>Что через Addressables идёт, а что нет.</b> Через бандлы едет только то, что
+    /// рисуется, - префабы ящиков. Типы груза приходят из
+    /// <see cref="CargoRegistryDefinition"/>, то есть из сборки игры, и существуют в
+    /// единственном экземпляре.</para>
+    ///
+    /// <para>Разделение не косметическое. Ассет, на который ссылается адресуемый префаб,
+    /// Unity кладёт <b>копию</b> в бандл, и эта копия - другой объект, чем оригинал в сборке.
+    /// Всё, что сравнивает определения по ссылке - "сдали ли груз по заказу", "та ли краска,
+    /// что требует регламент", "какой ящик писать в сохранение", - на такой копии молча
+    /// отвечает "нет". В редакторе этого не видно: там Addressables отдаёт тот же самый
+    /// ассет, и баг живёт до первого билда.</para>
+    /// </summary>
     public sealed class AddressableCargoCatalog : ICargoCatalog, IDisposable
     {
         private readonly CargoRegistryDefinition _registry;
@@ -16,6 +33,7 @@ namespace CrateExpectations.Cargo.Catalog
 
         public AddressableCargoCatalog(CargoRegistryDefinition registry) => _registry = registry;
 
+        /// <inheritdoc />
         public UniTask<CargoTypeDefinition> LoadTypeAsync(
             string cargoTypeKey, CancellationToken ct = default)
         {
@@ -24,9 +42,13 @@ namespace CrateExpectations.Cargo.Catalog
             if (string.IsNullOrEmpty(cargoTypeKey))
                 throw new ArgumentException("Пустой ключ типа груза.", nameof(cargoTypeKey));
 
+            // Ждать нечего: тип уже в памяти. Метод остаётся асинхронным, потому что это
+            // контракт каталога, а не свойство текущей реализации, - реализация, которая
+            // будет тянуть типы с сервера, встанет сюда без правок у вызывающих
             return UniTask.FromResult(_registry.CargoByKey(cargoTypeKey));
         }
 
+        /// <inheritdoc />
         public async UniTask<CargoBox> SpawnAsync(
             string cargoTypeKey, Vector3 position, Quaternion rotation, CancellationToken ct = default)
         {
@@ -52,6 +74,8 @@ namespace CrateExpectations.Cargo.Catalog
             if (instance == null) 
                 return null;
 
+            // Экземпляр уже создан: если запрос отменили ровно сейчас, его всё равно нужно вернуть,
+            // иначе Addressables останется с висящей ссылкой
             if (_disposed)
             {
                 Addressables.ReleaseInstance(instance);
@@ -66,11 +90,14 @@ namespace CrateExpectations.Cargo.Catalog
                 return null;
             }
 
+            // Истина ящика приходит из каталога: префаб-вариант отвечает за внешний вид,
+            // а за то, что внутри, - тип груза, по ключу которого его и запросили
             box.AssignIdentity(type);
 
             return box;
         }
 
+        /// <inheritdoc />
         public void Despawn(CargoBox box)
         {
             if (box == null) 
@@ -84,6 +111,7 @@ namespace CrateExpectations.Cargo.Catalog
                 UnityEngine.Object.Destroy(instance);
         }
 
+        /// <summary>Освободить все экземпляры и хендлы. Зовётся контейнером вместе со scope</summary>
         public void Dispose()
         {
             if (_disposed) 

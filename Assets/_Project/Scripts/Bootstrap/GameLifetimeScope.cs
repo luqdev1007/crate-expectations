@@ -22,6 +22,10 @@ using CrateExpectations.UI;
 
 namespace CrateExpectations.Bootstrap
 {
+    /// <summary>
+    /// Единственное место в проекте, где встречается код VContainer: composition root.
+    /// Игровые классы знают только про свои интерфейсы и <c>[Inject]</c>-метод
+    /// </summary>
     public sealed class GameLifetimeScope : LifetimeScope
     {
         [Tooltip("Стартовые деньги и предел долга")]
@@ -30,7 +34,6 @@ namespace CrateExpectations.Bootstrap
         [Tooltip("Заказы, которые висят на доске в этой смене")]
         [SerializeField] private ContractCatalogDefinition _contracts;
 
-        [Tooltip("Тайминги досмотра")]
         [SerializeField] private InspectionDefinition _inspection;
 
         [Tooltip("Куда игра сохраняется: ключ слота и его имя для игрока")]
@@ -126,10 +129,15 @@ namespace CrateExpectations.Bootstrap
                 container.Resolve<CargoSummaryView>();
                 container.Resolve<SaveStatusView>();
 
+                // Слушатели шины создаются сразу, а не при первом обращении: они должны
+                // успеть подписаться до того, как появится первый ящик
                 container.Resolve<CargoRegistrar>();
                 container.Resolve<IContractManager>();
                 container.Resolve<CargoHandoff>();
 
+                // Учётчик груза - тоже слушатель CargoSpawned: опоздай он с подпиской,
+                // стартовая партия прошла бы мимо сохранения. Горячие клавиши создаются
+                // сразу по той же причине - подписаться на ввод до первого нажатия
                 container.Resolve<CargoSceneKeeper>();
                 container.Resolve<SaveHotkeys>();
             });

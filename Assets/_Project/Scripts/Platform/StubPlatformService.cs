@@ -6,7 +6,7 @@ namespace CrateExpectations.Platform
 {
     public sealed class StubPlatformService : IPlatformService
     {
-        public bool IsAvailable => false; // Steam недоступен 
+        public bool IsAvailable => false; // Steam недоступен в MVP
 
         public UniTask UnlockAchievementAsync(string achievementId)
         {

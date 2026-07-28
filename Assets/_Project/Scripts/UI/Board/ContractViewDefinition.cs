@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace CrateExpectations.UI
 {
-    /// <summary>Как листок заказа лежит в руках: поза, тайминги, запаздывание при повороте камеры.</summary>
+    /// <summary>Как листок заказа лежит в руках: поза, тайминги, запаздывание при повороте камеры</summary>
     [CreateAssetMenu(
         fileName = "ContractView",
         menuName = "CrateExpectations/Contracts/Contract View")]

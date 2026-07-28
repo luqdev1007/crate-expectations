@@ -11,7 +11,7 @@ namespace CrateExpectations.Cargo.UI
     /// Пока ящик в руках, карточек нет вовсе - ни над несомым, ни над остальными. Своего луча
     /// не пускает: цель берёт у <see cref="Interactor"/>, поэтому карточка всегда одна.
     /// Текст пересобирается только на смене цели и по <see cref="CargoBox.StateChanged"/>,
-    /// в кадре остаются лишь позиция, масштаб и альфа.
+    /// в кадре остаются лишь позиция, масштаб и альфа
     /// </summary>
     [RequireComponent(typeof(Canvas))]
     [RequireComponent(typeof(CanvasGroup))]
@@ -66,7 +66,7 @@ namespace CrateExpectations.Cargo.UI
             Hide();
 
             // Карточка - инструмент разработчика: выключенная настройками, она не должна
-            // ни следить за прицелом, ни тратить кадр.
+            // ни следить за прицелом, ни тратить кадр
             if (!IsWiredUp() || !_definition.Enabled)
                 enabled = false;
         }
@@ -84,8 +84,8 @@ namespace CrateExpectations.Cargo.UI
         private void Update()
         {
             // Пока груз в руках, карточек нет: несомый ящик игрок уже осмотрел, когда брал,
-            // а соседние читать некогда - сначала освободи руки.
-            // Carrier о захвате не сигналит, поэтому спрашиваем его сами: это чтение флага, не аллокация.
+            // а соседние читать некогда (Carrier о захвате не сигналит, поэтому спрашиваем
+            // его сами - это чтение флага, не аллокация)
             bool handsFull = _carrier != null && _carrier.IsCarrying;
 
             Track(handsFull ? null : _aimed);
@@ -94,7 +94,7 @@ namespace CrateExpectations.Cargo.UI
         private void LateUpdate()
         {
             // Позицию гоним в LateUpdate: к этому моменту физика уже подвинула ящик за кадр,
-            // иначе карточка отставала бы и дрожала на том, что игрок несёт.
+            // иначе карточка отставала бы и дрожала на том, что игрок несёт
             if (_targetTransform != null)
                 Follow();
 
@@ -126,7 +126,7 @@ namespace CrateExpectations.Cargo.UI
             Redraw();
 
             // Новая цель - карточку сразу ставим на место и разворачиваем к игроку,
-            // иначе первый кадр проявления она проведёт над прошлым ящиком.
+            // иначе первый кадр проявления она проведёт над прошлым ящиком
             Follow();
             _billboard.FaceCamera();
         }
@@ -174,7 +174,7 @@ namespace CrateExpectations.Cargo.UI
             if (span <= Mathf.Epsilon || depth <= _definition.MinDistance)
                 return position;
 
-            // Шаг d по лучу на камеру умножает глубину на (1 - d/span), отсюда и предел.
+            // Шаг d по лучу на камеру умножает глубину на (1 - d/span), отсюда и предел
             float limit = span * (1f - _definition.MinDistance / depth);
             float pull = Mathf.Min(_targetRadius, limit);
 
@@ -184,7 +184,7 @@ namespace CrateExpectations.Cargo.UI
         /// <summary>
         /// Ящик в руках стоит почти вплотную к лицу, и честный подъём над ним уводит карточку
         /// за верхний край кадра. Прижимаем её ровно настолько, чтобы верхняя кромка осталась
-        /// видна: над ящиком карточка от этого быть не перестаёт.
+        /// видна: над ящиком карточка от этого быть не перестаёт
         /// </summary>
         private Vector3 KeepInFrame(Camera eye, Vector3 position)
         {
@@ -206,7 +206,7 @@ namespace CrateExpectations.Cargo.UI
         /// <summary>
         /// Держит карточку постоянного размера на экране. В мире цель бывает и в двух шагах,
         /// и вплотную к лицу: с фиксированным масштабом карточка была бы то нечитаемой,
-        /// то на весь кадр - и тогда никакой запас по высоте её в кадре не удержал бы.
+        /// то на весь кадр - и тогда никакой запас по высоте её в кадре не удержал бы
         /// </summary>
         private void Resize(Camera eye, Vector3 position)
         {
@@ -271,7 +271,7 @@ namespace CrateExpectations.Cargo.UI
         /// <see cref="_targetReach"/> - наибольший габарит, на него поднимаем карточку:
         /// по высоте мало, потому что ящик в руках крутится и подставляет узкую сторону.
         /// <see cref="_targetRadius"/> - радиус описанной сферы: на него выносим карточку вперёд,
-        /// и тогда ящик не срежет её ни при каком повороте.
+        /// и тогда ящик не срежет её ни при каком повороте
         /// </summary>
         private void Measure(CargoBox box)
         {

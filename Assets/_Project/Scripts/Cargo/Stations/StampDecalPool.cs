@@ -3,9 +3,16 @@ using UnityEngine;
 
 namespace CrateExpectations.Cargo.Stations
 {
+    /// <summary>
+    /// Пул декалей-пломб. Декали - общий ресурс сцены, а ящик - префаб, который про сцену
+    /// ничего не знает: поэтому владеет ими пул, а не <see cref="CargoBox"/>. Instantiate
+    /// случается только при разогреве (и при исчерпании пула), применение печати -
+    /// это переиспользование объекта, без создания и уничтожения
+    /// </summary>
     public sealed class StampDecalPool : MonoBehaviour
     {
         [SerializeField] private StampDecal _decalPrefab;
+        [Tooltip("Сколько декалей создать заранее")]
         [SerializeField] private int _prewarmCount = 4;
 
         private readonly Stack<StampDecal> _free = new();
@@ -23,6 +30,10 @@ namespace CrateExpectations.Cargo.Stations
                 _free.Push(Create());
         }
 
+        /// <summary>
+        /// Привести декаль ящика в соответствие его состоянию: поставить, заменить или снять.
+        /// Идемпотентно - вызывать можно после любого действия маскировки
+        /// </summary>
         public void Sync(CargoBox box, StampDefinition stamp)
         {
             if (box == null)
@@ -52,6 +63,7 @@ namespace CrateExpectations.Cargo.Stations
             decal.Show(stamp);
         }
 
+        /// <summary>Снять печать с ящика и вернуть декаль в пул (например, перед выгрузкой груза)</summary>
         public void Release(CargoBox box)
         {
             if (box == null) 

@@ -10,8 +10,14 @@ using Object = UnityEngine.Object;
 
 namespace CrateExpectations.EditorTools.Validation
 {
+    /// <summary>
+    /// Собирает <see cref="ContentCatalog"/> из проекта. Единственное место во всём
+    /// валидаторе, которое знает про <c>AssetDatabase</c> и Addressables, - поэтому
+    /// сами проверки остаются чистыми и тестируемыми
+    /// </summary>
     public static class ProjectContentScanner
     {
+        /// <summary>Просканировать проект целиком</summary>
         public static ContentCatalog Scan()
         {
             return new ContentCatalog(
@@ -27,6 +33,7 @@ namespace CrateExpectations.EditorTools.Validation
                 FindAll<CargoRegistryDefinition>());
         }
 
+        /// <summary>Все ассеты такого типа в проекте, по алфавиту - чтобы отчёт не "прыгал"</summary>
         public static List<T> FindAll<T>() where T : Object
         {
             string[] guids = AssetDatabase.FindAssets($"t:{typeof(T).Name}");
@@ -36,16 +43,18 @@ namespace CrateExpectations.EditorTools.Validation
             {
                 string path = AssetDatabase.GUIDToAssetPath(guids[i]);
                 var asset = AssetDatabase.LoadAssetAtPath<T>(path);
-
-                if (asset != null) 
-                    found.Add(asset);
+                if (asset != null) found.Add(asset);
             }
 
             found.Sort((a, b) => string.CompareOrdinal(a.name, b.name));
-
             return found;
         }
 
+        /// <summary>
+        /// Адреса Addressables и ассеты под ними. Если Addressables в проекте не настроены,
+        /// карта остаётся пустой - проверка ключей это понимает и молчит, а не заваливает
+        /// отчёт ложными ошибками
+        /// </summary>
         private static Dictionary<string, Object> ScanAddressables()
         {
             var entries = new Dictionary<string, Object>();
@@ -54,8 +63,7 @@ namespace CrateExpectations.EditorTools.Validation
                 ? AddressableAssetSettingsDefaultObject.Settings
                 : null;
 
-            if (settings == null) 
-                return entries;
+            if (settings == null) return entries;
 
             var all = new List<AddressableAssetEntry>();
             settings.GetAllAssets(all, includeSubObjects: false);
@@ -63,9 +71,7 @@ namespace CrateExpectations.EditorTools.Validation
             for (int i = 0; i < all.Count; i++)
             {
                 AddressableAssetEntry entry = all[i];
-
-                if (entry == null || string.IsNullOrEmpty(entry.address)) 
-                    continue;
+                if (entry == null || string.IsNullOrEmpty(entry.address)) continue;
 
                 entries[entry.address] = AssetDatabase.LoadAssetAtPath<Object>(entry.AssetPath);
             }

@@ -4,6 +4,12 @@ using UnityEngine;
 
 namespace CrateExpectations.Inspection
 {
+    /// <summary>
+    /// Как инспектор работает: с какой скоростью ходит, где останавливается и из каких шагов
+    /// складывается осмотр. Это процедура и тайминги, общие для всех инспекторов порта.
+    /// Строгость живёт в <see cref="InspectorProfile"/>, голос - в
+    /// <see cref="InspectorLinesDefinition"/>: три разных вопроса - три разных ассета.
+    /// </summary>
     [CreateAssetMenu(
         fileName = "InspectionDefinition",
         menuName = "CrateExpectations/Inspection/Inspection Definition")]
@@ -11,7 +17,9 @@ namespace CrateExpectations.Inspection
     {
         [Header("Перемещение")]
         [field: SerializeField] public float WalkSpeed { get; private set; } = 1.6f;
+        [Tooltip("Скорость разворота, град/с")]
         [field: SerializeField] public float TurnSpeed { get; private set; } = 270f;
+        [Tooltip("Радиус, в котором точка назначения считается достигнутой, м")]
         [field: SerializeField] public float StopDistance { get; private set; } = 0.12f;
 
         [Header("Патруль")]
@@ -26,7 +34,9 @@ namespace CrateExpectations.Inspection
 
         [Header("Осмотр")]
         [SerializeField] private ExamineStep[] _steps = Array.Empty<ExamineStep>();
+        [Tooltip("Пауза после чистого шага, с")]
         [field: SerializeField] public float StepPauseSeconds { get; private set; } = 0.3f;
+        [Tooltip("Сколько инспектор задерживается на найденной улике, с")]
         [field: SerializeField] public float ClueReactionSeconds { get; private set; } = 1.8f;
 
         [Header("Вердикт")]
@@ -45,6 +55,7 @@ namespace CrateExpectations.Inspection
         [Tooltip("Seed невнимательности инспектора. 0 - случайный при каждом запуске")]
         [field: SerializeField] public int OverlookSeed { get; private set; }
 
+        /// <summary>Шаги осмотра по порядку</summary>
         public IReadOnlyList<ExamineStep> Steps => _steps;
     }
 }

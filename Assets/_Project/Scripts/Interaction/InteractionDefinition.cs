@@ -22,10 +22,10 @@ namespace CrateExpectations.Interaction
                  "(обычно 'Carriable' и 'Carried'). Взаимодействие они не перехватывают")]
         [field: SerializeField] public LayerMask FocusMask { get; private set; }
 
-        /// <summary>Дальность одного общего луча: покрывает и взаимодействие, и взгляд.</summary>
+        /// <summary>Дальность одного общего луча: покрывает и взаимодействие, и взгляд</summary>
         public float ScanDistance => Mathf.Max(MaxDistance, FocusDistance);
 
-        /// <summary>Маска одного общего луча: покрывает и взаимодействие, и взгляд.</summary>
+        /// <summary>Маска одного общего луча: покрывает и взаимодействие, и взгляд</summary>
         public int ScanMask => InteractableMask.value | FocusMask.value;
     }
 }

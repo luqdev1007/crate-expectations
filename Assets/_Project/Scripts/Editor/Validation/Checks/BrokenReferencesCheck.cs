@@ -5,10 +5,16 @@ using CrateExpectations.Inspection;
 
 namespace CrateExpectations.EditorTools.Validation
 {
+    /// <summary>
+    /// Пустые и недозаполненные ассеты: то, что в игре превращается в молчаливый no-op
+    /// или в <c>NullReferenceException</c> на третьей минуте плейтеста
+    /// </summary>
     public sealed class BrokenReferencesCheck : IContentCheck
     {
+        /// <inheritdoc />
         public string Title => "Пустые ссылки";
 
+        /// <inheritdoc />
         public void Run(ContentCatalog catalog, List<ContentIssue> issues)
         {
             CheckContracts(catalog, issues);
@@ -75,6 +81,8 @@ namespace CrateExpectations.EditorTools.Validation
                 if (recipe == null) 
                     continue;
 
+                // Ровно та же развилка, по которой DisguiseProcessor отклоняет рецепт
+                // с DisguiseRejection.IncompleteRecipe - только здесь она видна до игры
                 bool complete = recipe.Action switch
                 {
                     DisguiseAction.Paint => recipe.Paint != null,

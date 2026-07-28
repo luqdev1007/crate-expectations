@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace CrateExpectations.Cargo
 {
+    /// <summary>Вариант окраски ящика. Сам ассет - и данные, и токен сравнения "чем покрашено"</summary>
     [CreateAssetMenu(
         fileName = "PaintDefinition",
         menuName = "CrateExpectations/Cargo/Paint")]

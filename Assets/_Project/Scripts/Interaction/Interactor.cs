@@ -26,7 +26,7 @@ namespace CrateExpectations.Interaction
 
         /// <summary>
         /// Предмет под прицелом - не обязательно интерактивный: так о нём узнают мировые плашки,
-        /// не пуская собственный луч. Пусто, когда игрок не смотрит ни на что из <see cref="InteractionDefinition.FocusMask"/>.
+        /// не пуская собственный луч. Пусто, когда игрок не смотрит ни на что из <see cref="InteractionDefinition.FocusMask"/>
         /// </summary>
         public event Action<Transform> FocusChanged;
 
@@ -67,7 +67,7 @@ namespace CrateExpectations.Interaction
         /// <summary>
         /// Один луч на двух потребителей: ближайший интерактивный объект для подсказки и
         /// ближайший предмет под прицелом для мировых плашек. Разбираем их по маскам раздельно,
-        /// поэтому ящик, попавший в кадр перед станцией, не отбирает у неё подсказку.
+        /// поэтому ящик, попавший в кадр перед станцией, не отбирает у неё подсказку
         /// </summary>
         private void Scan()
         {
@@ -114,7 +114,7 @@ namespace CrateExpectations.Interaction
 
         private void TakeInteractable(Collider collider)
         {
-            // Тот же коллайдер - тот же компонент: GetComponentInParent зовём только на смене цели.
+            // Тот же коллайдер - тот же компонент: GetComponentInParent зовём только на смене цели
             if (ReferenceEquals(collider, _interactableCollider))
                 return;
 

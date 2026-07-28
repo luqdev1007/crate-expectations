@@ -2,6 +2,10 @@ using UnityEngine;
 
 namespace CrateExpectations.Cargo
 {
+    /// <summary>
+    /// Настройка станции маскировки: какой рецепт она применяет и какими словами о себе говорит
+    /// (станции различаются данными, а не классами, - новый верстак заводится ассетом)
+    /// </summary>
     [CreateAssetMenu(
         fileName = "DisguiseStationDefinition",
         menuName = "CrateExpectations/Cargo/Disguise Station")]
@@ -27,7 +31,7 @@ namespace CrateExpectations.Cargo
         [Tooltip("Цвет вспышки зоны при срабатывании")]
         [field: SerializeField] public Color FeedbackColor { get; private set; } = new(1f, 1f, 1f, 1f);
 
-        [Tooltip("Длительность вспышки")]
+        [Tooltip("Длительность вспышки, секунды")]
         [field: SerializeField] public float FeedbackSeconds { get; private set; } = 0.2f;
     }
 }

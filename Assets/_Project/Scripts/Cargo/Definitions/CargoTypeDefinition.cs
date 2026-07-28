@@ -2,6 +2,11 @@ using UnityEngine;
 
 namespace CrateExpectations.Cargo
 {
+    /// <summary>
+    /// Тип груза. Один и тот же ассет играет две роли: он может быть истиной
+    /// (<see cref="CargoIdentity"/>) и может быть заявленным содержимым (<see cref="CargoState"/>) -
+    /// именно поэтому "ром, притворяющийся специями" описывается двумя ссылками на такие ассеты
+    /// </summary>
     [CreateAssetMenu(
         fileName = "CargoTypeDefinition",
         menuName = "CrateExpectations/Cargo/Cargo Type")]
@@ -13,13 +18,14 @@ namespace CrateExpectations.Cargo
         [Tooltip("Контрабанда: за такой груз в порту прилетит штраф, если инспектор его узнает")]
         [field: SerializeField] public bool IsContraband { get; private set; }
 
-        [Tooltip("Цвет метки содержимого на ящике - визуальный отклик на 'перелив'")]
+        [Tooltip("Цвет метки содержимого на ящике - визуальный отклик на \"перелив\"")]
         [field: SerializeField] public Color LabelColor { get; private set; } = Color.white;
 
         [Tooltip("Базовая стоимость единицы груза")]
         [field: SerializeField] public int BaseValue { get; private set; } = 100;
 
-        [Tooltip("Addressables-ключ префаб варианта ящика этого типа")]
+        [Tooltip("Addressables-ключ префаба-варианта ящика этого типа. " +
+                 "Ключи живут здесь, а не строками по коду.")]
         [field: SerializeField] public string PrefabKey { get; private set; } = string.Empty;
 
         [Tooltip("Заводская окраска ящика этого типа: как он выглядит до первой станции")]

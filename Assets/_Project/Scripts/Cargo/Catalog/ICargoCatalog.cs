@@ -4,6 +4,11 @@ using UnityEngine;
 
 namespace CrateExpectations.Cargo.Catalog
 {
+    /// <summary>
+    /// Каталог груза: отдаёт типы груза и создаёт ящики по ключу контента.
+    /// Игровой код знает только этот интерфейс - где лежит контент (Addressables, бандлы, ресурсы)
+    /// и как он освобождается, его не касается
+    /// </summary>
     public interface ICargoCatalog
     {
         /// <summary>Загрузить описание типа груза по ключу контента</summary>

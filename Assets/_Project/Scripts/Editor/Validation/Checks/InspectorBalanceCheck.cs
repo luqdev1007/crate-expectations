@@ -7,11 +7,25 @@ using Object = UnityEngine.Object;
 
 namespace CrateExpectations.EditorTools.Validation
 {
+    /// <summary>
+    /// Профили инспекторов на вменяемость: инспектор, чей порог не взять никакими уликами,
+    /// не поймает никого никогда, а инспектор с порогом ниже самой мелкой придирки задержит
+    /// вообще всё. И то и другое чинится числом в ассете - но заметить это можно было
+    /// только наигравшись.
+    ///
+    /// <para>Подозрение считает боевой <see cref="ClueEvaluator"/> на подставных ящиках,
+    /// а не сумма весов, переписанная сюда руками: таблица весов живёт в
+    /// <see cref="InspectionPolicy"/>, и знать её проверке незачем.</para>
+    /// </summary>
     public sealed class InspectorBalanceCheck : IContentCheck
     {
+        // Без источника случайности оценщик не проглядывает ни одной улики - ровно то,
+        // что нужно для оценки предельных значений
         private readonly ClueEvaluator _evaluator = new();
 
+        /// <inheritdoc />
         public string Title => "Профили инспекторов";
+        /// <inheritdoc />
         public void Run(ContentCatalog catalog, List<ContentIssue> issues)
         {
             if (catalog.InspectorProfiles.Count == 0) 
@@ -55,6 +69,7 @@ namespace CrateExpectations.EditorTools.Validation
                 return;
             }
 
+            // Самая мелкая придирка, на которую этот инспектор вообще способен
             float smallest = float.MaxValue;
             string smallestName = string.Empty;
 
@@ -81,6 +96,7 @@ namespace CrateExpectations.EditorTools.Validation
             }
         }
 
+        /// <summary>Одна одиночная придирка: что предъявляют и как это назвать в отчёте</summary>
         private readonly struct MinorFlaw
         {
             public MinorFlaw(string name, in InspectionSubject subject)
@@ -94,6 +110,10 @@ namespace CrateExpectations.EditorTools.Validation
             public InspectionSubject Subject { get; }
         }
 
+        /// <summary>
+        /// Подставной реквизит: пустые дефиниции, играющие роль "положенной краски",
+        /// "чужой пломбы" и так далее. Живут ровно на время прогона проверки
+        /// </summary>
         private sealed class Props
         {
             private readonly List<Object> _created = new(8);
@@ -116,10 +136,16 @@ namespace CrateExpectations.EditorTools.Validation
                 _requiredStamp = Create<StampDefinition>();
                 _wrongStamp = Create<StampDefinition>();
 
+                // Единственное поле реквизита, значение которого важно: без запрещённого
+                // груза проверка манифеста не сработала бы и максимум вышел бы заниженным
                 var so = new SerializedObject(_contraband);
                 so.FindProperty("<IsContraband>k__BackingField").boolValue = true;
                 so.ApplyModifiedPropertiesWithoutUndo();
 
+                // Взаимоисключающие изъяны: ящик не может быть одновременно некрашеным
+                // и покрашенным не в тот цвет. Поэтому "худший случай" - не одна сборка,
+                // а максимум по всем сочетаниям; иначе предел вышел бы заниженным
+                // (у профиля с дорогой "нет пломбы" и дешёвой "не та пломба" - вдвое)
                 WorstCases = new List<InspectionSubject>
                 {
                     Subject(_expectedPaint, _requiredStamp,
@@ -145,8 +171,10 @@ namespace CrateExpectations.EditorTools.Validation
                 };
             }
 
+            /// <summary>Одиночные придирки: в каждой ровно один изъян</summary>
             public List<MinorFlaw> MinorFlaws { get; }
 
+            /// <summary>Ящики, к которым не придраться только ленивому: сломано всё сразу</summary>
             public List<InspectionSubject> WorstCases { get; }
 
             public void Dispose()

@@ -5,9 +5,15 @@ using UnityEngine;
 
 namespace CrateExpectations.Cargo.Stations
 {
+    /// <summary>
+    /// Верстак маскировки: игрок ставит ящик в зону и жмёт "взаимодействовать" на самой станции.
+    /// Станция только оркестрирует - считает результат <see cref="DisguiseProcessor"/>,
+    /// записывает его в ящик, просит пул обновить декаль и даёт визуальный отклик.
+    /// Чем именно станция красит/штампует/переливает, решает ассет
+    /// <see cref="DisguiseStationDefinition"/>, а не отдельный класс на каждый тип.
+    /// </summary>
     public sealed class DisguiseStation : MonoBehaviour, IInteractable
     {
-        [Tooltip("Рецепт и тексты станции")]
         [SerializeField] private DisguiseStationDefinition _definition;
 
         [Tooltip("Зона размещения груза над рабочей поверхностью")]
@@ -26,8 +32,10 @@ namespace CrateExpectations.Cargo.Stations
         private bool _canInteract;
         private bool _feedbackRunning;
 
+        /// <inheritdoc />
         public string Prompt => _prompt;
 
+        /// <inheritdoc />
         public bool CanInteract => _canInteract;
 
         private void Awake()
@@ -65,16 +73,19 @@ namespace CrateExpectations.Cargo.Stations
             Observe(null);
         }
 
+        /// <inheritdoc />
         public void OnFocused()
         {
             if (_highlight != null) _highlight.SetHighlighted(true);
         }
 
+        /// <inheritdoc />
         public void OnUnfocused()
         {
             if (_highlight != null) _highlight.SetHighlighted(false);
         }
 
+        /// <inheritdoc />
         public void Interact(Interactor source)
         {
             CargoBox box = _zone.Occupant;
@@ -127,6 +138,11 @@ namespace CrateExpectations.Cargo.Stations
 
         private void OnCargoStateChanged(CargoBox box) => RefreshPrompt();
 
+        /// <summary>
+        /// Пересобрать подсказку и доступность. Дёргается только по событиям (сменился груз в зоне
+        /// или его состояние), а <see cref="Prompt"/> каждый кадр отдаёт готовую строку.
+        /// "Примерка" рецепта безопасна: процессор ничего не мутирует
+        /// </summary>
         private void RefreshPrompt()
         {
             CargoBox box = _zone.Occupant;
@@ -164,6 +180,7 @@ namespace CrateExpectations.Cargo.Stations
             }
         }
 
+        /// <summary>Короткая вспышка зоны: "сработало". UniTask, не корутина</summary>
         private async UniTaskVoid PlayFeedbackAsync()
         {
             if (_feedbackRunning) 

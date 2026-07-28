@@ -4,6 +4,13 @@ using UnityEngine.UI;
 
 namespace CrateExpectations.Inspection.UI
 {
+    /// <summary>
+    /// Экранная подача досмотра: реплики инспектора по ходу дела и плашка с итогом -
+    /// исход, причина, перечень улик и шкала подозрения. Тупой слой: ни одного решения
+    /// и ни одной своей строки - всё приходит готовым в <see cref="VerdictReport"/>.
+    /// За интерфейсом <see cref="IInspectorVoice"/>, поэтому финальный UI встанет
+    /// на её место без правок в FSM
+    /// </summary>
     public sealed class InspectionResultView : MonoBehaviour, IInspectorVoice
     {
         [Tooltip("Корень плашки с итогом: включается только на вердикте")]
@@ -12,7 +19,6 @@ namespace CrateExpectations.Inspection.UI
         [Tooltip("Исход одним словом")]
         [SerializeField] private TMP_Text _headline;
 
-        [Tooltip("Перечень найденных улик")]
         [SerializeField] private TMP_Text _clues;
 
         [Tooltip("Заполняемая полоса шкалы подозрения (fill type imgae)")]
@@ -34,12 +40,13 @@ namespace CrateExpectations.Inspection.UI
 
         /// <summary>
         /// Реплики переехали в мировой пузырь над головой инспектора, плашка их не дублирует:
-        /// здесь остаётся только сводка по итогу досмотра.
+        /// здесь остаётся только сводка по итогу досмотра
         /// </summary>
         public void Say(string line)
         {
         }
 
+        /// <inheritdoc />
         public void ShowVerdict(in VerdictReport report)
         {
             _headline.text = report.Headline;
@@ -54,6 +61,7 @@ namespace CrateExpectations.Inspection.UI
 
             _verdictPanel.SetActive(true);
         }
+        /// <inheritdoc />
         public void Clear()
         {
             if (_verdictPanel == null) 

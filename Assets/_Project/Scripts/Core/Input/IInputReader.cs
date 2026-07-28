@@ -3,6 +3,10 @@ using UnityEngine;
 
 namespace CrateExpectations.Core.Input
 {
+    /// <summary>
+    /// Граница ввода: потребители (контроллер игрока, взаимодействие, перенос) зависят только
+    /// от этого контракта, а не от Unity Input System (реализация живёт в модуле Player)
+    /// </summary>
     public interface IInputReader
     {
         Vector2 MoveInput { get; }
@@ -13,7 +17,7 @@ namespace CrateExpectations.Core.Input
         event Action Grab;
         event Action Throw;
 
-        /// <summary>Достать/убрать листок текущего заказа.</summary>
+        /// <summary>Достать/убрать листок текущего заказа</summary>
         event Action ViewContract;
 
         event Action SaveGame;

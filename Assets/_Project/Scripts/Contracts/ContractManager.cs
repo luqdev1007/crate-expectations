@@ -10,6 +10,15 @@ using UnityEngine;
 
 namespace CrateExpectations.Contracts
 {
+    /// <summary>
+    /// Оркестратор игрового цикла: держит взятый заказ, слушает досмотры и превращает
+    /// вердикт в деньги и прогресс. Единственное место, где встречаются груз, инспекция
+    /// и кошелёк, - и именно поэтому ни один из них не знает про остальных.
+    ///
+    /// <para>Обычный C#-класс. Подписка живёт ровно столько же, сколько объект: заводится
+    /// в конструкторе, снимается в <see cref="Dispose"/>, - а время жизни объекта держит
+    /// DI-контейнер. Так подписку невозможно забыть снять.</para>
+    /// </summary>
     public sealed class ContractManager : IContractManager, IDisposable
     {
         private readonly ContractCatalogDefinition _catalog;
@@ -18,7 +27,7 @@ namespace CrateExpectations.Contracts
         private readonly ICargoInventory _inventory;
         private readonly IEventBus _bus;
 
-        /// <summary>Заказы, листки которых уже сняли с доски. Пополняется, но не чистится.</summary>
+        /// <summary>Заказы, листки которых уже сняли с доски. Пополняется, но не чистится</summary>
         private readonly HashSet<string> _taken = new();
 
         private readonly List<ContractDefinition> _onBoard = new();
@@ -41,9 +50,10 @@ namespace CrateExpectations.Contracts
             _bus.Subscribe<CargoInspected>(OnCargoInspected);
         }
 
+        /// <inheritdoc />
         public ContractProgress Active => _active;
 
-        /// <summary>Что ещё висит на доске: каталог за вычетом уже взятых заказов.</summary>
+        /// <inheritdoc />
         public IReadOnlyList<ContractDefinition> Available
         {
             get
@@ -63,14 +73,21 @@ namespace CrateExpectations.Contracts
             }
         }
 
+        /// <inheritdoc />
         public void Dispose() => _bus.Unsubscribe<CargoInspected>(OnCargoInspected);
 
         public bool IsTaken(ContractDefinition contract) =>
             contract != null && _taken.Contains(contract.name);
 
+        /// <summary>
+        /// Заказ берётся по одному. Несколько параллельных означали бы, что на каждый сданный
+        /// ящик нужно решать, в чей зачёт он идёт, - вопрос дизайна, на который MVP отвечать
+        /// не обязан, а цена ошибки в нём выше, чем польза
+        /// </summary>
         public bool CanAccept(ContractDefinition contract) =>
             contract != null && contract.IsPlayable && !_active.IsActive && !IsTaken(contract);
 
+        /// <inheritdoc />
         public bool Accept(ContractDefinition contract)
         {
             if (!CanAccept(contract))
@@ -98,6 +115,12 @@ namespace CrateExpectations.Contracts
             };
         }
 
+        /// <summary>
+        /// Заказ из сохранения. Имя разрешается по каталогу - если такого заказа в каталоге
+        /// больше нет (переименовали, выкинули из смены), игрок остаётся без активного заказа
+        /// и может взять новый. Это хуже, чем ничего не потерять, но лучше, чем упасть
+        /// на загрузке чужого сейва
+        /// </summary>
         public void Restore(in ContractSnapshot snapshot)
         {
             RestoreTaken(snapshot.TakenIds);
@@ -136,7 +159,7 @@ namespace CrateExpectations.Contracts
                     _taken.Add(takenIds[i]);
         }
 
-        /// <summary>Ищем по всему каталогу, а не по доске: активный заказ уже снят с неё.</summary>
+        /// <summary>Ищем по всему каталогу, а не по доске: активный заказ уже снят с неё</summary>
         private ContractDefinition FindById(string contractId)
         {
             if (string.IsNullOrEmpty(contractId) || _catalog == null)
@@ -151,11 +174,18 @@ namespace CrateExpectations.Contracts
             return null;
         }
 
+        /// <summary>
+        /// Груз прошёл досмотр. Дальше решается только одно: считается ли эта сдача
+        /// в текущий заказ, - и если да, во что она обходится
+        /// </summary>
         private void OnCargoInspected(CargoInspected inspected)
         {
             if (inspected.Cargo == null) 
                 return;
 
+            // Ящик, чья судьба уже решена, второй раз не считается. Инспектор смотрит всё,
+            // что попадает в зону, - в том числе груз, который он только что пропустил
+            // и который никто не унёс; платить за него дважды заказчик не станет
             int id = inspected.Cargo.GetInstanceID(); // fix
 
             if (_inventory.TryGet(id, out CargoRecord record) && !record.IsOnDock)
@@ -163,6 +193,8 @@ namespace CrateExpectations.Contracts
 
             bool seized = inspected.Verdict.IsBust;
 
+            // Реестр обновляется всегда: ящик прошёл досмотр независимо от того,
+            // засчитает его заказчик или нет
             _inventory.Settle(id, seized ? CargoStanding.Seized : CargoStanding.Delivered);
 
             if (!_active.IsActive) 
@@ -171,6 +203,7 @@ namespace CrateExpectations.Contracts
             if (!MatchesActiveContract(inspected.Cargo))
                 return;
 
+            // Перевод вердикта на язык денег: улики и пороги дальше не идут
             var delivery = new DeliveryReport(
                 seized ? DeliveryOutcome.Seized : DeliveryOutcome.Cleared,
                 spotless: inspected.Verdict.Clues.Count == 0);
@@ -186,6 +219,11 @@ namespace CrateExpectations.Contracts
                 Close(completed: false);
         }
 
+        /// <summary>
+        /// Сдали не то, что заказывали. Такое бывает: на доке лежит и посторонний груз,
+        /// а инспектор смотрит всё подряд. Заказчику до этого дела нет - ни платы,
+        /// ни штрафа, ни прогресса; ломаться тут нечему
+        /// </summary>
         private bool MatchesActiveContract(CargoBox cargo)
         {
             if (cargo == null) 

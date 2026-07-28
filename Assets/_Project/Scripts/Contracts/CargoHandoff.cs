@@ -9,12 +9,26 @@ using Cysharp.Threading.Tasks;
 
 namespace CrateExpectations.Contracts
 {
+    /// <summary>
+    /// Досмотренный груз увозят с причала: принятый - на корабль, изъятый - на склад порта.
+    /// Пока этого не делал никто, ящик оставался стоять в зоне, и инспектор принимался
+    /// осматривать его снова.
+    ///
+    /// <para>Отдельный класс, а не строчка в <see cref="ContractManager"/>: тот считает
+    /// деньги и прогресс и про Addressables знать не должен. И не в модуле досмотра -
+    /// <c>Inspection</c> сознательно не решает, что станет с ящиком, а только объявляет
+    /// вердикт (см. <c>InspectorAI.CloseCase</c>).</para>
+    ///
+    /// <para>Груз уезжает не сразу: игрок должен успеть увидеть вердикт над тем самым
+    /// ящиком, о котором он вынесен.</para>
+    /// </summary>
     public sealed class CargoHandoff : IDisposable
     {
         private readonly ICargoCatalog _catalog;
         private readonly InspectionDefinition _inspection;
         private readonly IEventBus _bus;
 
+        // Общий токен на все отложенные вывозы: со scope контейнера сворачиваются разом
         private readonly CancellationTokenSource _cts = new();
 
         public CargoHandoff(ICargoCatalog catalog, InspectionDefinition inspection, IEventBus bus)
@@ -26,6 +40,7 @@ namespace CrateExpectations.Contracts
             _bus.Subscribe<CargoInspected>(OnCargoInspected);
         }
 
+        /// <inheritdoc />
         public void Dispose()
         {
             _bus.Unsubscribe<CargoInspected>(OnCargoInspected);
@@ -36,8 +51,7 @@ namespace CrateExpectations.Contracts
 
         private void OnCargoInspected(CargoInspected inspected)
         {
-            if (inspected.Cargo != null) 
-                TakeAwayAsync(inspected.Cargo, _cts.Token).Forget();
+            if (inspected.Cargo != null) TakeAwayAsync(inspected.Cargo, _cts.Token).Forget();
         }
 
         private async UniTaskVoid TakeAwayAsync(CargoBox cargo, CancellationToken token)
@@ -46,11 +60,12 @@ namespace CrateExpectations.Contracts
                 .Delay(TimeSpan.FromSeconds(_inspection.CargoHandoffSeconds), cancellationToken: token)
                 .SuppressCancellationThrow();
 
-            if (cancelled) 
-                return;
+            // Сцену закрыли, пока груз ждал отправки, - это не ошибка
+            if (cancelled) return;
 
-            if (cargo != null) 
-                _catalog.Despawn(cargo);
+            // Ящик мог не дожить до отправки: смена закончилась, каталог всё отпустил.
+            // Despawn это переживает, но лишний раз его дёргать незачем
+            if (cargo != null) _catalog.Despawn(cargo);
         }
     }
 }

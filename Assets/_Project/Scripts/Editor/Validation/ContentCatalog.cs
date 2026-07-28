@@ -8,6 +8,12 @@ using Object = UnityEngine.Object;
 
 namespace CrateExpectations.EditorTools.Validation
 {
+    /// <summary>
+    /// Снимок контента проекта: все ассеты, которые интересны проверкам, плюс карта адресов
+    /// Addressables. Обычный контейнер без единого обращения к <c>AssetDatabase</c> -
+    /// собирает его <see cref="ProjectContentScanner"/>, а тест наполняет вручную
+    /// и гоняет проверки без папки <c>Assets</c> вообще
+    /// </summary>
     public sealed class ContentCatalog
     {
         private static readonly IReadOnlyDictionary<string, Object> NoEntries =
@@ -43,6 +49,7 @@ namespace CrateExpectations.EditorTools.Validation
 
         public IReadOnlyList<CargoTypeDefinition> CargoTypes { get; }
 
+        /// <summary>Все рецепты проекта, включая те, что не стоят ни на одной станции</summary>
         public IReadOnlyList<DisguiseRecipe> Recipes { get; }
 
         public IReadOnlyList<DisguiseStationDefinition> Stations { get; }
@@ -53,17 +60,25 @@ namespace CrateExpectations.EditorTools.Validation
 
         public IReadOnlyList<CargoManifestDefinition> Manifests { get; }
 
+        /// <summary>Адрес Addressables → ассет, который под ним лежит</summary>
         public IReadOnlyDictionary<string, Object> AddressableEntries { get; }
 
+        /// <summary>Реестры контента груза. Через них ключ манифеста превращается в тип</summary>
         public IReadOnlyList<CargoRegistryDefinition> Registries { get; }
 
+        /// <summary>Заведён ли такой адрес в группах</summary>
         public bool HasAddress(string key) =>
             !string.IsNullOrEmpty(key) && AddressableEntries.ContainsKey(key);
 
+        /// <summary>
+        /// Тип груза под этим ключом контента. Так манифест дока связан с типами.
+        ///
+        /// <para>Спрашиваем реестр, а не Addressables: в рантайме тип берётся именно оттуда,
+        /// и проверка обязана смотреть туда же, куда посмотрит игра.</para>
+        /// </summary>
         public CargoTypeDefinition CargoTypeAt(string key)
         {
-            if (string.IsNullOrEmpty(key))
-                return null;
+            if (string.IsNullOrEmpty(key)) return null;
 
             for (int i = 0; i < Registries.Count; i++)
             {
@@ -71,13 +86,16 @@ namespace CrateExpectations.EditorTools.Validation
                     ? Registries[i].CargoByKey(key)
                     : null;
 
-                if (type != null) 
-                    return type;
+                if (type != null) return type;
             }
 
             return null;
         }
 
+        /// <summary>
+        /// Рецепты, до которых игрок реально может дотянуться: те, что стоят на станциях.
+        /// Рецепт-ассет сам по себе в игре не существует - его негде применить
+        /// </summary>
         public List<DisguiseRecipe> ReachableRecipes()
         {
             var reachable = new List<DisguiseRecipe>(Stations.Count);
@@ -85,9 +103,7 @@ namespace CrateExpectations.EditorTools.Validation
             for (int i = 0; i < Stations.Count; i++)
             {
                 DisguiseRecipe recipe = Stations[i] != null ? Stations[i].Recipe : null;
-
-                if (recipe != null && !reachable.Contains(recipe)) 
-                    reachable.Add(recipe);
+                if (recipe != null && !reachable.Contains(recipe)) reachable.Add(recipe);
             }
 
             return reachable;

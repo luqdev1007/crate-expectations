@@ -6,11 +6,10 @@ namespace CrateExpectations.UI
 {
     /// <summary>
     /// Гвоздь на доске: держит листок и отдаёт его игроку. Сам ничего не рисует -
-    /// содержимое заказа целиком на <see cref="ContractPaperView"/>.
+    /// содержимое заказа целиком на <see cref="ContractPaperView"/>
     /// </summary>
     public sealed class ContractSlot : MonoBehaviour, IInteractable
     {
-        [Tooltip("Формулировки подсказок")]
         [SerializeField] private ContractBoardDefinition _definition;
 
         [Tooltip("Листок, висящий на этом гвозде")]
@@ -20,8 +19,10 @@ namespace CrateExpectations.UI
         private ContractDefinition _contract;
         private string _prompt = string.Empty;
 
+        /// <inheritdoc />
         public string Prompt => _prompt;
 
+        /// <inheritdoc />
         public bool CanInteract => _manager != null && _manager.CanAccept(_contract);
 
         private void Awake()
@@ -33,7 +34,7 @@ namespace CrateExpectations.UI
             enabled = false;
         }
 
-        /// <summary>Вешает заказ на гвоздь. <c>null</c> - гвоздь пуст, листка на нём нет.</summary>
+        /// <summary>Вешает заказ на гвоздь. <c>null</c> - гвоздь пуст, листка на нём нет</summary>
         public void Bind(ContractDefinition contract, IContractManager manager)
         {
             _contract = contract;
@@ -54,10 +55,13 @@ namespace CrateExpectations.UI
                 : _definition.BlockedPrompt;
         }
 
+        /// <inheritdoc />
         public void OnFocused() { }
 
+        /// <inheritdoc />
         public void OnUnfocused() { }
 
+        /// <inheritdoc />
         public void Interact(Interactor source)
         {
             if (_contract != null)

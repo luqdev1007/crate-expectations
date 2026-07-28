@@ -5,12 +5,19 @@ using CrateExpectations.Contracts;
 
 namespace CrateExpectations.EditorTools.Validation
 {
+    /// <summary>
+    /// Манифест дока против заказов: хватит ли на локации ящиков нужного типа, чтобы заказ вообще
+    /// можно было закрыть (ровно эта дыра всплыла в Фазе 4 - заказ на два ящика рома при манифесте
+    /// ровно на два: один потерял на досмотре, и заказ уже не сдать)
+    /// </summary>
     public sealed class DockSupplyCheck : IContentCheck
     {
         private readonly Dictionary<CargoTypeDefinition, int> _supply = new();
 
+        /// <inheritdoc />
         public string Title => "Груз на доке";
 
+        /// <inheritdoc />
         public void Run(ContentCatalog catalog, List<ContentIssue> issues)
         {
             if (catalog.Manifests.Count == 0 || catalog.Contracts.Count == 0) 
@@ -74,6 +81,8 @@ namespace CrateExpectations.EditorTools.Validation
                 return;
             }
 
+            // Изъятый ящик уезжает со склада порта и обратно не возвращается: запас должен
+            // покрывать и те, что заказчик готов простить
             int comfortable = contract.Crates + contract.AllowedSeizures;
 
             if (available < comfortable)

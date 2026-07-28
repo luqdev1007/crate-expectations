@@ -11,7 +11,7 @@ namespace CrateExpectations.UI
 {
     /// <summary>
     /// Доска заказов. Показывает только те листки, которые ещё никто не снимал:
-    /// взятый заказ уходит с доски навсегда - и после провала, и после загрузки сейва.
+    /// взятый заказ уходит с доски навсегда - и после провала, и после загрузки сейва
     /// </summary>
     public sealed class ContractBoard : MonoBehaviour
     {
@@ -26,7 +26,7 @@ namespace CrateExpectations.UI
 
         /// <summary>
         /// Какой заказ закреплён за каким гвоздём. Раскладку считаем один раз, чтобы снятый
-        /// листок оставлял после себя пустое место, а соседние не перепрыгивали.
+        /// листок оставлял после себя пустое место, а соседние не перепрыгивали
         /// </summary>
         private ContractDefinition[] _pinned;
 
@@ -45,7 +45,7 @@ namespace CrateExpectations.UI
             _bus.Subscribe<ContractFailed>(OnContractFailed);
             _bus.Subscribe<GameLoaded>(OnGameLoaded);
 
-            // Шапку пишем один раз: это вывеска над доской, а не строка состояния.
+            // Шапку пишем один раз: это вывеска над доской, а не строка состояния
             if (_header != null && _definition != null)
                 _header.SetText(_definition.Header);
 

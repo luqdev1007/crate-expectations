@@ -5,6 +5,11 @@ using VContainer;
 
 namespace CrateExpectations.UI
 {
+    /// <summary>
+    /// Сводка по грузу: сколько ящиков ещё на доке, сколько сдано и сколько изъято.
+    /// Читает <see cref="ICargoInventory"/> по его событию - сцену не сканирует и ящики
+    /// не ищет; всё, что нужно, реестр уже посчитал
+    /// </summary>
     public sealed class CargoSummaryView : MonoBehaviour
     {
         [SerializeField] private TMP_Text _summary;
@@ -22,8 +27,7 @@ namespace CrateExpectations.UI
 
         private void OnDestroy()
         {
-            if (_inventory != null) 
-                _inventory.Changed -= Refresh;
+            if (_inventory != null) _inventory.Changed -= Refresh;
         }
 
         private void Refresh() =>

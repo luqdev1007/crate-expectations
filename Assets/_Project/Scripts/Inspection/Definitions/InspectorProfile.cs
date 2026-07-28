@@ -2,22 +2,27 @@ using UnityEngine;
 
 namespace CrateExpectations.Inspection
 {
+    /// <summary>
+    /// Характер инспектора: что он проверяет, как сильно нервничает по каждому поводу,
+    /// когда задерживает груз и насколько он невнимателен. Строгость задаётся ассетом -
+    /// чтобы завести нового инспектора, код трогать не нужно
+    /// </summary>
     [CreateAssetMenu(
         fileName = "InspectorProfile",
         menuName = "CrateExpectations/Inspection/Inspector Profile")]
     public sealed class InspectorProfile : ScriptableObject
     {
-        [Tooltip("Имя инспектора")]
+        [Tooltip("Имя инспектора для реплик и UI")]
         [field: SerializeField] public string DisplayName { get; private set; } = "Инспектор";
 
         [Tooltip("Как он себя ведёт - заметка для дизайнера")]
         [field: SerializeField, TextArea(2, 4)] public string Description { get; private set; } = string.Empty;
 
-        [Tooltip("Голос инспектора: реплики осмотра и вердикта")]
+        [Tooltip("Голос инспектора: реплики осмотра и вердикта. Меняется вместе с профилем")]
         [field: SerializeField] public InspectorLinesDefinition Lines { get; private set; }
 
         [Header("Что проверяет")]
-        [Tooltip("Набор выполняемых проверок. Чего здесь нет, того он не заметит никогда")]
+        [Tooltip("Набор выполняемых проверок. Чего здесь нет - того он не заметит никогда")]
         [field: SerializeField] public ClueChecks Checks { get; private set; } = ClueChecks.All;
 
         [Header("Веса улик")]
@@ -47,6 +52,7 @@ namespace CrateExpectations.Inspection
         [Range(0f, 1f)]
         [field: SerializeField] public float OverlookChance { get; private set; }
 
+        /// <summary>Правила досмотра в виде значения - то, с чем работает <see cref="ClueEvaluator"/></summary>
         public InspectionPolicy Policy => new(
             Checks,
             new ClueWeights(

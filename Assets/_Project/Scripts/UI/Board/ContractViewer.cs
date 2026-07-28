@@ -11,11 +11,10 @@ namespace CrateExpectations.UI
     /// <summary>
     /// Листок текущего заказа в руках игрока. Тот же префаб, что висит на доске,
     /// только на слое FirstPersonItem - его рисует отдельная наложенная камера,
-    /// поэтому листок не проваливается в стены и не режется геометрией.
+    /// поэтому листок не проваливается в стены и не режется геометрией
     /// </summary>
     public sealed class ContractViewer : MonoBehaviour
     {
-        [Tooltip("Поза, тайминги и слой")]
         [SerializeField] private ContractViewDefinition _definition;
 
         [Tooltip("Экземпляр листка под камерой от первого лица")]
@@ -34,11 +33,11 @@ namespace CrateExpectations.UI
         private Quaternion _previousEyeRotation;
         private Quaternion _sway = Quaternion.identity;
 
-        /// <summary>0 - листок убран, 1 - поднят.</summary>
+        /// <summary>0 - листок убран, 1 - поднят</summary>
         private float _raise;
         private bool _wanted;
 
-        /// <summary>Листок сейчас в руках (или как раз поднимается).</summary>
+        /// <summary>Листок сейчас в руках (или как раз поднимается)</summary>
         public bool IsRaised => _wanted;
 
         [Inject]
@@ -145,7 +144,7 @@ namespace CrateExpectations.UI
                 _sway * Quaternion.Slerp(_stowedRotation, _heldRotation, eased));
         }
 
-        /// <summary>Двигает степень подъёма. Возвращает false, когда листок полностью убран.</summary>
+        /// <summary>Двигает степень подъёма. Возвращает false, когда листок полностью убран</summary>
         private bool Raise(float deltaTime)
         {
             float target = _wanted ? 1f : 0f;
@@ -169,7 +168,7 @@ namespace CrateExpectations.UI
         }
 
         /// <summary>
-        /// Листок догоняет камеру не мгновенно: копим поворот камеры за кадр и распускаем его обратно.
+        /// Листок догоняет камеру не мгновенно: копим поворот камеры за кадр и распускаем его обратно
         /// </summary>
         private void Sway(float deltaTime)
         {

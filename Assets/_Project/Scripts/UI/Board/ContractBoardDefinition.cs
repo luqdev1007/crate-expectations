@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace CrateExpectations.UI
 {
-    /// <summary>Что доска пишет в шапке и что подсказывает при наведении на листок.</summary>
+    /// <summary>Что доска пишет в шапке и что подсказывает при наведении на листок</summary>
     [CreateAssetMenu(
         fileName = "ContractBoard",
         menuName = "CrateExpectations/Contracts/Contract Board")]

@@ -5,7 +5,7 @@ namespace CrateExpectations.Inspection
 {
     /// <summary>
     /// Раздаёт одну и ту же реплику нескольким слушателям: пузырю над головой инспектора
-    /// и плашке досмотра в HUD. Текст по-прежнему выбирают состояния FSM, здесь он только ветвится.
+    /// и плашке досмотра в HUD. Текст по-прежнему выбирают состояния FSM, здесь он только ветвится
     /// </summary>
     public sealed class CompositeInspectorVoice : IInspectorVoice
     {

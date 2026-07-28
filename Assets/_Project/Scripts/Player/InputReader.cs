@@ -7,6 +7,11 @@ using VContainer.Unity;
 
 namespace CrateExpectations.Player
 {
+    /// <summary>
+    /// POCO-обёртка над сгенерированным <see cref="PlayerControls"/>: единственное место, где
+    /// Unity Input System встречается с игрой, наружу отдаётся только <see cref="IInputReader"/>
+    /// (в DI живёт как singleton entry point - включается на старте, освобождается со scope)
+    /// </summary>
     public sealed class InputReader : IInputReader, PlayerControls.IPlayerActions, IStartable, IDisposable
     {
         private readonly PlayerControls _controls;

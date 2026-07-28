@@ -9,7 +9,7 @@ namespace CrateExpectations.Inspection.View
     /// Реплика инспектора в мировом пространстве: плашка над головой, всегда развёрнутая к камере.
     /// Текст приходит по тому же каналу, что и раньше - через <see cref="IInspectorVoice"/>,
     /// а видимость решает фаза FSM: говорит только на осмотре и вердикте.
-    /// За разворот к игроку отвечает <see cref="CameraBillboard"/>.
+    /// За разворот к игроку отвечает <see cref="CameraBillboard"/>
     /// </summary>
     [RequireComponent(typeof(Canvas))]
     [RequireComponent(typeof(CanvasGroup))]
@@ -19,7 +19,6 @@ namespace CrateExpectations.Inspection.View
         [Tooltip("Чью фазу слушаем: в патруле и на подходе пузырь молчит")]
         [SerializeField] private InspectorAI _inspector;
 
-        [Tooltip("Поле реплики")]
         [SerializeField] private TMP_Text _line;
 
         private Canvas _canvas;

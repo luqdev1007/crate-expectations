@@ -8,6 +8,18 @@ using UnityEngine;
 
 namespace CrateExpectations.EditorTools.Authoring
 {
+    /// <summary>
+    /// Окно авторинга заказов: дизайнер собирает контракт целиком, ни разу не открыв инспектор
+    /// ассета. Типы груза выбираются списком из того, что в проекте реально есть, - перетащить
+    /// сюда не тот ассет физически нельзя.
+    ///
+    /// <para>Деньги в предпросмотре считает боевой <see cref="PayoutCalculator"/>. Это не
+    /// педантизм: формула, переписанная в тул, разъезжается с игрой на первой же правке
+    /// баланса, и дизайнер будет верить числу, которого в игре нет.</para>
+    ///
+    /// <para>IMGUI, а не UI Toolkit: окно - один файл без UXML/USS, и правится оно
+    /// в том же месте, где читается. Для инструмента такого размера это выигрыш.</para>
+    /// </summary>
     public sealed class ContractAuthoringWindow : EditorWindow
     {
         private const string ContractsFolder = "Assets/_Project/Data/Contracts";
@@ -43,6 +55,7 @@ namespace CrateExpectations.EditorTools.Authoring
 
         private void OnFocus() => Reload();
 
+        /// <summary>Перечитать проект: ассеты могли появиться или исчезнуть мимо окна</summary>
         private void Reload()
         {
             _contracts = ProjectContentScanner.FindAll<ContractDefinition>();
@@ -153,6 +166,8 @@ namespace CrateExpectations.EditorTools.Authoring
             DrawCargo();
             DrawTerms();
 
+            // ApplyModifiedProperties сам пишет запись в Undo и помечает ассет изменённым -
+            // ручной SetDirty здесь был бы лишним и только разошёлся бы с undo-стеком
             _serialized.ApplyModifiedProperties();
 
             DrawPayoutPreview();
@@ -222,6 +237,10 @@ namespace CrateExpectations.EditorTools.Authoring
             EditorGUILayout.Space(4f);
         }
 
+        /// <summary>
+        /// Выпадающий список реально существующих типов груза вместо поля-приёмника:
+        /// в такое поле нельзя перетащить ни чужой ассет, ни пустоту
+        /// </summary>
         private void CargoPopup(SerializedProperty property, GUIContent label, bool allowNone)
         {
             var current = property.objectReferenceValue as CargoTypeDefinition;
@@ -263,6 +282,10 @@ namespace CrateExpectations.EditorTools.Authoring
             EditorGUILayout.Space(4f);
         }
 
+        /// <summary>
+        /// Предпросмотр деньгами. Считается тем же <see cref="PayoutCalculator"/>, что и в игре:
+        /// число в окне и число на HUD не могут разойтись
+        /// </summary>
         private void DrawPayoutPreview()
         {
             var terms = new PayoutTerms(
@@ -306,6 +329,10 @@ namespace CrateExpectations.EditorTools.Authoring
             }
         }
 
+        /// <summary>
+        /// Заказ, которого нет в каталоге, на доску не попадёт. Кнопка избавляет дизайнера
+        /// от последнего похода в инспектор - ради одной строчки в массиве
+        /// </summary>
         private void DrawBoardRow()
         {
             if (_boards.Count == 0)
@@ -398,6 +425,10 @@ namespace CrateExpectations.EditorTools.Authoring
             Reload();
         }
 
+        /// <summary>
+        /// Путь к полю с автосвойством: у <c>[field: SerializeField]</c> сериализуется
+        /// скрытое backing-поле, и по человеческому имени его не найти
+        /// </summary>
         private SerializedProperty Property(string propertyName) =>
             _serialized.FindProperty($"<{propertyName}>k__BackingField");
     }

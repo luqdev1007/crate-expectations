@@ -4,9 +4,13 @@ using VContainer;
 
 namespace CrateExpectations.Interaction
 {
+    /// <summary>
+    /// Подъём, перенос и бросок физических объектов с <see cref="Carriable"/>: точка удержания
+    /// считается от прицела, а способ удержания задаётся <see cref="HoldMode"/>
+    /// в <see cref="CarryDefinition"/> (смена режима не требует правок кода)
+    /// </summary>
     public sealed class Carrier : MonoBehaviour
     {
-        [Tooltip("Числа захвата/переноса/броска")]
         [SerializeField] private CarryDefinition _definition;
 
         [Tooltip("Начало луча захвата и опора точки удержания (обычно камера)")]
@@ -20,8 +24,10 @@ namespace CrateExpectations.Interaction
         private Rigidbody _anchor;
         private ConfigurableJoint _joint;
 
+        // Режим фиксируется на момент захвата, чтобы правка ассета на лету не рассинхронила состояние
         private HoldMode _activeMode;
 
+        // Половина габарита груза: на столько точка удержания держится от препятствий
         private float _heldRadius;
 
         private CollisionDetectionMode _previousCollisionMode;
@@ -30,6 +36,7 @@ namespace CrateExpectations.Interaction
 
         public bool IsCarrying => _held != null;
 
+        /// <summary>Что именно в руках или <c>null</c> (нужен тем, кто показывает груз игроку)</summary>
         public Carriable Held => _held;
 
         [Inject]
@@ -43,6 +50,10 @@ namespace CrateExpectations.Interaction
             ValidateCarriedLayer();
         }
 
+        /// <summary>
+        /// Слой переноса бесполезен, если он не разведён с игроком в матрице коллизий: груз начнёт
+        /// толкать капсулу и трясти камеру, поэтому ругаемся сразу, а не «когда-нибудь заметим»
+        /// </summary>
         private void ValidateCarriedLayer()
         {
             int carried = _definition.CarriedLayer;
@@ -72,21 +83,21 @@ namespace CrateExpectations.Interaction
                 _input.Throw -= OnThrowPressed;
             }
 
-            if (_anchor != null) 
+            if (_anchor != null)
                 Destroy(_anchor.gameObject);
         }
 
         private void OnGrabPressed()
         {
-            if (IsCarrying) 
+            if (IsCarrying)
                 Release(Vector3.zero);
-            else 
+            else
                 TryGrab();
         }
 
         private void OnThrowPressed()
         {
-            if (!IsCarrying) 
+            if (!IsCarrying)
                 return;
 
             Release(_rayOrigin.forward * _definition.ThrowForce);
@@ -94,12 +105,13 @@ namespace CrateExpectations.Interaction
 
         private void FixedUpdate()
         {
-            if (!IsCarrying) 
+            if (!IsCarrying)
                 return;
 
             Vector3 holdPoint = GetHoldPoint();
             Vector3 toTarget = holdPoint - _heldBody.position;
 
+            // Объект застрял за геометрией или улетел - отпускаем, чтобы не тянуть его сквозь стены
             if (toTarget.sqrMagnitude > _definition.BreakDistance * _definition.BreakDistance)
             {
                 Release(Vector3.zero);
@@ -134,25 +146,29 @@ namespace CrateExpectations.Interaction
 
             for (int i = 0; i < count; i++)
             {
-                if (_hits[i].distance >= nearestDistance) 
+                if (_hits[i].distance >= nearestDistance)
                     continue;
 
                 Carriable candidate;
 
-                if (!TryResolveCarriable(_hits[i].collider, out candidate)) 
+                if (!TryResolveCarriable(_hits[i].collider, out candidate))
                     continue;
 
                 nearest = candidate;
                 nearestDistance = _hits[i].distance;
             }
 
-            if (nearest != null) 
+            if (nearest != null)
                 Attach(nearest);
         }
 
+        /// <summary>
+        /// Поднимать можно только помеченное <see cref="Carriable"/>: маска слоёв - лишь грубый
+        /// фильтр луча, решает наличие компонента (на самом коллайдере или выше по иерархии)
+        /// </summary>
         private static bool TryResolveCarriable(Collider hit, out Carriable carriable)
         {
-            if (hit.TryGetComponent(out carriable)) 
+            if (hit.TryGetComponent(out carriable))
                 return true;
 
             carriable = hit.GetComponentInParent<Carriable>();
@@ -160,6 +176,11 @@ namespace CrateExpectations.Interaction
             return carriable != null;
         }
 
+        /// <summary>
+        /// Точка удержания перед камерой, подтянутая до первого препятствия: без этой проверки
+        /// взгляд вниз уводит её под пол, груз получает вечную команду «вниз», упирается в землю
+        /// и дребезжит прямо посреди экрана
+        /// </summary>
         private Vector3 GetHoldPoint()
         {
             Vector3 origin = _rayOrigin.position;
@@ -172,22 +193,25 @@ namespace CrateExpectations.Interaction
                     origin, _heldRadius, direction, out hit, distance,
                     _definition.HoldBlockingMask, QueryTriggerInteraction.Ignore))
             {
+                // hit.distance - путь центра сферы, то есть ровно то место,
+                // где груз касается препятствия, но ещё не продавливает его
                 distance = Mathf.Max(hit.distance, _definition.MinHoldDistance);
             }
 
             return origin + direction * distance;
         }
 
+        /// <summary>Половина наименьшего габарита груза - радиус для проверки точки удержания</summary>
         private static float MeasureRadius(Carriable carriable)
         {
             Collider[] colliders = carriable.GetComponentsInChildren<Collider>();
 
-            if (colliders.Length == 0) 
+            if (colliders.Length == 0)
                 return 0f;
 
             Bounds bounds = colliders[0].bounds;
 
-            for (int i = 1; i < colliders.Length; i++) 
+            for (int i = 1; i < colliders.Length; i++)
                 bounds.Encapsulate(colliders[i].bounds);
 
             Vector3 extents = bounds.extents;
@@ -211,15 +235,19 @@ namespace CrateExpectations.Interaction
             _heldBody.angularVelocity = Vector3.zero;
             _heldBody.angularDamping = _definition.CarriedAngularDamping;
 
+            // Слой переноса разведён с игроком в матрице коллизий: груз физически не может толкнуть
+            // капсулу, сколько бы коллайдеров у него ни было и куда бы ни смотрел игрок
             carriable.OverrideLayers(_definition.CarriedLayer);
             carriable.MarkCarried(true);
 
-            if (_activeMode == HoldMode.ConfigurableJoint) 
+            if (_activeMode == HoldMode.ConfigurableJoint)
                 AttachJoint();
         }
 
         private void Release(Vector3 impulse)
         {
+            // Destroy отложен до конца кадра, поэтому якорь не выключаем и не двигаем:
+            // сустав должен дожить кадр со всё ещё валидным connectedBody
             if (_joint != null)
             {
                 Destroy(_joint);
@@ -233,7 +261,7 @@ namespace CrateExpectations.Interaction
             _heldBody.interpolation = _previousInterpolation;
             _heldBody.angularDamping = _previousAngularDamping;
 
-            if (impulse != Vector3.zero) 
+            if (impulse != Vector3.zero)
                 _heldBody.AddForce(impulse, ForceMode.Impulse);
 
             _held = null;
@@ -273,9 +301,13 @@ namespace CrateExpectations.Interaction
             _joint.targetRotation = Quaternion.identity;
         }
 
+        /// <summary>
+        /// Якорь сустава - голое кинематическое тело без коллайдеров: оно ведёт груз,
+        /// но само ни с чем не сталкивается и не может толкнуть игрока
+        /// </summary>
         private void EnsureAnchor()
         {
-            if (_anchor != null) 
+            if (_anchor != null)
                 return;
 
             var anchorObject = new GameObject($"{name}_CarryAnchor");

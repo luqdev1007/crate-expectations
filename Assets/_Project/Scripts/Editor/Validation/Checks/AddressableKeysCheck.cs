@@ -4,13 +4,26 @@ using CrateExpectations.Cargo.Catalog;
 
 namespace CrateExpectations.EditorTools.Validation
 {
+    /// <summary>
+    /// Ключи Addressables, которых нет в группах: ошибка тихая и коварная - тип груза выглядит
+    /// заполненным, а ящик просто не появляется на доке
+    /// <para>
+    /// Через Addressables едут только префабы, поэтому проверяется только
+    /// <see cref="CargoTypeDefinition.PrefabKey"/>: ключи манифеста - это ключи реестра груза,
+    /// и за них отвечает <see cref="DockSupplyCheck"/>
+    /// </para>
+    /// </summary>
     public sealed class AddressableKeysCheck : IContentCheck
     {
+        /// <inheritdoc />
         public string Title => "Ключи Addressables";
 
+        /// <inheritdoc />
         public void Run(ContentCatalog catalog, List<ContentIssue> issues)
         {
-            if (catalog.AddressableEntries.Count == 0) 
+            // Пустая карта адресов означает, что Addressables не настроены вовсе:
+            // ругаться на каждый ключ в такой ситуации - только шуметь
+            if (catalog.AddressableEntries.Count == 0)
                 return;
 
             for (int i = 0; i < catalog.CargoTypes.Count; i++)

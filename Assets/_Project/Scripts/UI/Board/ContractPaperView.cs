@@ -8,17 +8,15 @@ namespace CrateExpectations.UI
 {
     /// <summary>
     /// Листок заказа: единственная вьюха контракта в игре. Один и тот же префаб висит на доске
-    /// и поднимается к камере по Q, поэтому вся вёрстка живёт в префабе, а здесь только подстановка.
+    /// и поднимается к камере по Q, поэтому вся вёрстка живёт в префабе, а здесь только подстановка
     /// </summary>
     public sealed class ContractPaperView : MonoBehaviour
     {
         [Tooltip("Шаблоны строк листка")]
         [SerializeField] private ContractPaperDefinition _definition;
 
-        [Tooltip("Картинка товара")]
         [SerializeField] private Image _icon;
 
-        [Tooltip("Название заказа")]
         [SerializeField] private TMP_Text _title;
 
         [Tooltip("Краткое описание от заказчика")]
@@ -33,12 +31,12 @@ namespace CrateExpectations.UI
         [Tooltip("Под каким видом сдавать груз")]
         [SerializeField] private TMP_Text _declaredAs;
 
-        /// <summary>Заказ, который сейчас нарисован на листке.</summary>
+        /// <summary>Заказ, который сейчас нарисован на листке</summary>
         public ContractDefinition Contract { get; private set; }
 
         private void Awake() => IsWiredUp();
 
-        /// <summary>Перерисовывает листок. <c>null</c> очищает его.</summary>
+        /// <summary>Перерисовывает листок. <c>null</c> очищает его</summary>
         public void Bind(ContractDefinition contract)
         {
             Contract = contract;

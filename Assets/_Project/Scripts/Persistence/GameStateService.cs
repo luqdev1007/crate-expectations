@@ -12,6 +12,20 @@ using UnityEngine;
 
 namespace CrateExpectations.Persistence
 {
+    /// <summary>
+    /// Координатор сохранения. Спрашивает у каждой системы её снимок, складывает их в один
+    /// <see cref="GameSnapshot"/> и отдаёт <see cref="ISaveService"/>; при загрузке раздаёт
+    /// снимки обратно.
+    ///
+    /// <para><b>Во внутренности систем не лезет.</b> Кошелёк сам знает, что у него баланс,
+    /// менеджер заказов - что у него имя контракта и два счётчика, груз - что у него ящики.
+    /// Добавить систему в сохранение значит добавить сюда две строки, а не разобраться,
+    /// как эта система устроена.</para>
+    ///
+    /// <para>Где лежит файл - не знает никто из них, включая этот класс: за ключом слота
+    /// стоит <see cref="ISaveService"/>, и подменить диск на облако Steam можно, не тронув
+    /// ни строчки здесь.</para>
+    /// </summary>
     public sealed class GameStateService : IGameStateService
     {
         private readonly ISaveService _saves;
@@ -40,8 +54,10 @@ namespace CrateExpectations.Persistence
             _bus = bus;
         }
 
+        /// <inheritdoc />
         public bool IsBusy { get; private set; }
 
+        /// <inheritdoc />
         public async UniTask<bool> SaveAsync(CancellationToken ct = default)
         {
             if (IsBusy) 
@@ -71,6 +87,8 @@ namespace CrateExpectations.Persistence
             }
             catch (Exception exception)
             {
+                // Диск может быть недоступен, облако - отвалиться. Игру это ронять не должно:
+                // не сохранились - сказали об этом и играем дальше
                 Debug.LogError($"[Сохранение] Записать не вышло: {exception.Message}");
                 _bus.Publish(new GameStateFailed(wasSaving: true, "Сохранить не вышло"));
                 return false;
@@ -81,6 +99,7 @@ namespace CrateExpectations.Persistence
             }
         }
 
+        /// <inheritdoc />
         public async UniTask<bool> LoadAsync(CancellationToken ct = default)
         {
             if (IsBusy) 
@@ -98,6 +117,8 @@ namespace CrateExpectations.Persistence
                     return false;
                 }
 
+                // Чужая версия читается только до конца понятого места, а понятого места нет.
+                // Лучше отказаться целиком, чем восстановить половину мира
                 if (!snapshot.IsReadable)
                 {
                     Debug.LogWarning(
@@ -112,6 +133,8 @@ namespace CrateExpectations.Persistence
                 _economy.Restore(snapshot.Economy);
                 _contracts.Restore(snapshot.Contract);
 
+                // Реестр очищается до пересоздания груза: новые ящики объявятся в шину сами
+                // и встанут на учёт, а старые записи к тому моменту уже никого не касаются
                 _inventory.Clear();
                 await _cargo.RestoreAsync(snapshot.Cargo, ct);
 
@@ -134,6 +157,7 @@ namespace CrateExpectations.Persistence
             }
         }
 
+        /// <inheritdoc />
         public UniTask<bool> HasSaveAsync() => _saves.ExistsAsync(_slot.Key);
     }
 }
