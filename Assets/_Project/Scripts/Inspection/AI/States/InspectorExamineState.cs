@@ -33,7 +33,7 @@ namespace CrateExpectations.Inspection.AI
             }
 
             Verdict verdict = _context.OpenCase(_subject);
-            PlayAsync(_subject, verdict, _context.StateToken).Forget();
+            PlayAsync(verdict, _context.StateToken).Forget();
         }
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace CrateExpectations.Inspection.AI
         /// через <c>SuppressCancellationThrow</c>, поэтому забранный со стола груз не рождает
         /// ни исключения, ни "догоняющих" реплик
         /// </summary>
-        private async UniTaskVoid PlayAsync(CargoBox cargo, Verdict verdict, CancellationToken token)
+        private async UniTaskVoid PlayAsync(Verdict verdict, CancellationToken token)
         {
             IReadOnlyList<ExamineStep> steps = _context.Definition.Steps;
             ClueChecks performed = _context.Profile.Checks;
@@ -65,21 +65,19 @@ namespace CrateExpectations.Inspection.AI
                 ExamineStep step = steps[i];
                 if ((InspectionAspects.ChecksOf(step.Aspect) & performed) == 0) continue;
 
-                if (await PlayStepAsync(cargo, verdict, step, token)) return;
+                if (await PlayStepAsync(verdict, step, token)) return;
             }
 
-            _context.Focus.Hide();
             _context.GoTo(InspectorPhase.Verdict);
         }
 
-        /// <summary>Один шаг: посмотреть, показать, прокомментировать</summary>
+        /// <summary>Один шаг: посмотреть и прокомментировать</summary>
         /// <returns><c>true</c>, если осмотр отменили и продолжать нечего</returns>
         private async UniTask<bool> PlayStepAsync(
-            CargoBox cargo, Verdict verdict, ExamineStep step, CancellationToken token)
+            Verdict verdict, ExamineStep step, CancellationToken token)
         {
             bool suspicious = TryFindClue(verdict, step.Aspect, out Clue clue);
 
-            _context.Focus.Show(cargo.transform.TransformPoint(step.FocusOffset), suspicious);
             _context.Voice.Say(_context.Lines.Probe(step.Aspect));
 
             if (await Pause.ForAsync(step.Seconds, token)) return true;

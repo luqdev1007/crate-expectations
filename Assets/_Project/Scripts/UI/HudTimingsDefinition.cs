@@ -19,7 +19,14 @@ namespace CrateExpectations.UI
         [Tooltip("Сколько секунд держится строка «сохранено» / «загружено»")]
         [field: SerializeField][Min(0.5f)] public float SaveStatusSeconds { get; private set; } = 3.5f;
 
-        [Tooltip("Сколько секунд держится вспышка изменения баланса вместе со строкой разбивки")]
-        [field: SerializeField][Min(0.1f)] public float BalanceFlashSeconds { get; private set; } = 2.5f;
+        [Tooltip("Пауза между всплывшей суммой и началом прокрутки: сначала игрок читает «+N», " +
+                 "и только потом за ней трогается счётчик")]
+        [field: SerializeField][Min(0f)] public float BalanceLeadSeconds { get; private set; } = 0.2f;
+
+        [Tooltip("Сколько секунд счётчик кошелька прокручивается к новому значению")]
+        [field: SerializeField][Min(0.1f)] public float BalanceRollSeconds { get; private set; } = 0.8f;
+
+        [Tooltip("Сколько секунд живёт всплывающая сумма «+N» над кошельком, считая с появления")]
+        [field: SerializeField][Min(0.1f)] public float BalanceDeltaSeconds { get; private set; } = 1.6f;
     }
 }

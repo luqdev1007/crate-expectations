@@ -42,9 +42,6 @@ namespace CrateExpectations.Inspection.AI
         [Tooltip("Точки обхода поста по порядку. Пусто - инспектор просто стоит на посту")]
         [SerializeField] private Transform[] _patrolPoints = Array.Empty<Transform>();
 
-        [Tooltip("Указка: маркер осматриваемой грани")]
-        [SerializeField] private ExamineFocusMarker _focus;
-
         private readonly StateMachine _machine = new();
 
         private ClueEvaluator _evaluator;
@@ -94,9 +91,6 @@ namespace CrateExpectations.Inspection.AI
 
         /// <inheritdoc />
         public IInspectorVoice Voice => _voice;
-
-        /// <inheritdoc />
-        public ExamineFocusMarker Focus => _focus;
 
         /// <inheritdoc />
         public Transform Post => _post;
@@ -184,7 +178,6 @@ namespace CrateExpectations.Inspection.AI
             _machine.ChangeState(null);
 
             // Инспектора выключили посреди досмотра - сцену за собой прибираем сами
-            _focus.Hide();
             _zone.ClearColorOverride();
             _voice?.Clear();
         }
@@ -282,7 +275,6 @@ namespace CrateExpectations.Inspection.AI
             if (_zone == null) return Missing("зона досмотра (CargoPlacementZone)");
             if (_post == null) return Missing("пост (Post)");
             if (_examinePoint == null) return Missing("точка осмотра (ExaminePoint)");
-            if (_focus == null) return Missing("указка (ExamineFocusMarker)");
 
             return true;
         }

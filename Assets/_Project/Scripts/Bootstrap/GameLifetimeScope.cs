@@ -108,7 +108,6 @@ namespace CrateExpectations.Bootstrap
             builder.RegisterComponentInHierarchy<ContractBoard>();
             builder.RegisterComponentInHierarchy<BalanceView>();
             builder.RegisterComponentInHierarchy<ContractViewer>();
-            builder.RegisterComponentInHierarchy<CargoSummaryView>();
             builder.RegisterComponentInHierarchy<SaveStatusView>();
 
             builder.RegisterEntryPoint<GameFlow>();
@@ -126,7 +125,6 @@ namespace CrateExpectations.Bootstrap
                 container.Resolve<ContractBoard>();
                 container.Resolve<BalanceView>();
                 container.Resolve<ContractViewer>();
-                container.Resolve<CargoSummaryView>();
                 container.Resolve<SaveStatusView>();
 
                 // Слушатели шины создаются сразу, а не при первом обращении: они должны

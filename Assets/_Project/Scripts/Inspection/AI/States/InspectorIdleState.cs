@@ -3,7 +3,7 @@ using CrateExpectations.Core.StateMachine;
 namespace CrateExpectations.Inspection.AI
 {
     /// <summary>
-    /// Уборщик и стрелочник. Прибирает за предыдущим досмотром - экран, указку и подсветку
+    /// Уборщик и стрелочник. Прибирает за предыдущим досмотром - экран и подсветку
     /// зоны, - поэтому в Idle можно свалиться откуда угодно, в том числе из прерванного
     /// осмотра, и сцена всё равно останется чистой. Своего поведения у состояния нет:
     /// прибрав, оно тут же отправляет инспектора по делу или домой.
@@ -20,7 +20,6 @@ namespace CrateExpectations.Inspection.AI
         public void Enter()
         {
             _context.Voice.Clear();
-            _context.Focus.Hide();
             _context.Zone.ClearColorOverride();
         }
 

@@ -14,4 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: CrateExpectations.UI::CrateExpectations.UI.HudTimingsDefinition
   <ContractOutcomeSeconds>k__BackingField: 4
   <SaveStatusSeconds>k__BackingField: 3.5
-  <BalanceFlashSeconds>k__BackingField: 2.5
+  <BalanceLeadSeconds>k__BackingField: 0.2
+  <BalanceRollSeconds>k__BackingField: 0.8
+  <BalanceDeltaSeconds>k__BackingField: 1.6

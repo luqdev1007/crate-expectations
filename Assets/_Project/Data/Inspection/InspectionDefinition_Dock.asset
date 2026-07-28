@@ -25,16 +25,12 @@ MonoBehaviour:
   <NoticeCooldownSeconds>k__BackingField: 8
   _steps:
   - Aspect: 0
-    FocusOffset: {x: 0, y: 0.75, z: -0.35}
     Seconds: 1.4
   - Aspect: 1
-    FocusOffset: {x: 0.55, y: 0.25, z: 0.45}
     Seconds: 1.4
   - Aspect: 2
-    FocusOffset: {x: 0, y: 0.62, z: 0}
     Seconds: 1.4
   - Aspect: 3
-    FocusOffset: {x: 0, y: 1, z: 0}
     Seconds: 1.8
   <StepPauseSeconds>k__BackingField: 0.35
   <ClueReactionSeconds>k__BackingField: 1.8

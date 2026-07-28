@@ -32,9 +32,6 @@ namespace CrateExpectations.Inspection.AI
         /// <summary>Куда инспектор говорит</summary>
         IInspectorVoice Voice { get; }
 
-        /// <summary>Указка, которой он показывает осматриваемую грань</summary>
-        ExamineFocusMarker Focus { get; }
-
         /// <summary>Пост: место и поза, в которые инспектор возвращается между досмотрами</summary>
         Transform Post { get; }
 
