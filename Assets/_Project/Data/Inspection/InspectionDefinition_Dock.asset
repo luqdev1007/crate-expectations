@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb5a984cb6f2e0b4484d177c7450c9b9, type: 3}
   m_Name: InspectionDefinition_Dock
   m_EditorClassIdentifier: CrateExpectations.Inspection::CrateExpectations.Inspection.InspectionDefinition
-  <WalkSpeed>k__BackingField: 1.6
+  <WalkSpeed>k__BackingField: 1.9
   <TurnSpeed>k__BackingField: 270
   <StopDistance>k__BackingField: 0.12
-  <PatrolSpeed>k__BackingField: 0.45
+  <PatrolSpeed>k__BackingField: 0.95
   <PatrolDwellSeconds>k__BackingField: 2.5
   <NoticeRadius>k__BackingField: 4.5
   <CargoMask>k__BackingField:

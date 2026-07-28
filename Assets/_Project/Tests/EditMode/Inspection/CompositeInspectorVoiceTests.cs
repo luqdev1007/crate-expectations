@@ -22,8 +22,7 @@ namespace CrateExpectations.Inspection.Tests
         }
 
         private static VerdictReport Report() => new(
-            "ЗАДЕРЖАНО", "Никуда вы это не повезёте.", "> подмена", "подозрение 70 из 40",
-            Color.red, new Verdict(VerdictOutcome.Bust, 70f, 40f, null));
+            "Никуда вы это не повезёте.", Color.red, new Verdict(VerdictOutcome.Bust, 70f, 40f, null));
 
         [Test]
         public void EveryLine_ReachesEverySink()
@@ -49,7 +48,7 @@ namespace CrateExpectations.Inspection.Tests
             voice.ShowVerdict(Report());
 
             Assert.That(bubble.LastReport.Speech, Is.EqualTo("Никуда вы это не повезёте."));
-            Assert.That(hud.LastReport.Headline, Is.EqualTo("ЗАДЕРЖАНО"));
+            Assert.That(hud.LastReport.IsBust, Is.True);
         }
 
         [Test]

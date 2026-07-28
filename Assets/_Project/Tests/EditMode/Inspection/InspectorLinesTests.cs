@@ -27,9 +27,7 @@ namespace CrateExpectations.Inspection.Tests
         {
             VerdictReport report = _lines.Narrate(Clean());
 
-            Assert.That(report.Headline, Is.EqualTo("ПРОПУЩЕНО"));
             Assert.That(report.Speech, Is.EqualTo(CleanLine + " " + PassLine));
-            Assert.That(report.Clues, Is.Empty);
             Assert.That(report.IsBust, Is.False);
             Assert.That(report.Accent, Is.EqualTo(Pass));
         }
@@ -45,22 +43,8 @@ namespace CrateExpectations.Inspection.Tests
             VerdictReport report = _lines.Narrate(verdict);
 
             Assert.That(report.Speech, Is.EqualTo(Reason(ClueType.ContentMismatch) + " " + BustLine));
-            Assert.That(report.Headline, Is.EqualTo("ЗАДЕРЖАНО"));
+            Assert.That(report.IsBust, Is.True);
             Assert.That(report.Accent, Is.EqualTo(Bust));
-        }
-
-        [Test]
-        public void AllFoundClues_StayInTheOnScreenList()
-        {
-            Verdict verdict = Busted(
-                new Clue(ClueType.MissingStamp, 20f),
-                new Clue(ClueType.ContentMismatch, 70f));
-
-            VerdictReport report = _lines.Narrate(verdict);
-
-            Assert.That(report.Clues, Is.EqualTo(
-                "> " + Reason(ClueType.MissingStamp) + "\n" +
-                "> " + Reason(ClueType.ContentMismatch)));
         }
 
         [Test]
@@ -71,37 +55,8 @@ namespace CrateExpectations.Inspection.Tests
 
             VerdictReport report = _lines.Narrate(verdict);
 
-            Assert.That(report.Headline, Is.EqualTo("ПРОПУЩЕНО"));
+            Assert.That(report.IsBust, Is.False, "груз пропустили, хоть и поворчали");
             Assert.That(report.Speech, Is.EqualTo(Reason(ClueType.PaintMismatch) + " " + PassLine));
-            Assert.That(report.Clues, Is.Not.Empty);
-        }
-
-        [Test]
-        public void SuspicionScale_IsFilledRelativeToTheThreshold()
-        {
-            Assert.That(_lines.Narrate(Clean()).Pressure, Is.EqualTo(0f).Within(0.001f));
-
-            var half = new Verdict(VerdictOutcome.Pass, 20f, 40f, null);
-            Assert.That(_lines.Narrate(half).Pressure, Is.EqualTo(0.5f).Within(0.001f));
-
-            var over = new Verdict(VerdictOutcome.Bust, 115f, 40f, null);
-            Assert.That(_lines.Narrate(over).Pressure, Is.EqualTo(1f).Within(0.001f));
-        }
-
-        [Test]
-        public void ZeroThreshold_DoesNotDivideByZero()
-        {
-            var verdict = new Verdict(VerdictOutcome.Bust, 0f, 0f, null);
-
-            Assert.That(_lines.Narrate(verdict).Pressure, Is.EqualTo(0f).Within(0.001f));
-        }
-
-        [Test]
-        public void ScaleCaption_ShowsSuspicionAgainstThreshold()
-        {
-            var verdict = new Verdict(VerdictOutcome.Bust, 115f, 40f, null);
-
-            Assert.That(_lines.Narrate(verdict).Scale, Is.EqualTo("подозрение 115 из 40"));
         }
 
         [Test]
@@ -160,13 +115,9 @@ namespace CrateExpectations.Inspection.Tests
                 entry.FindPropertyRelative("Line").stringValue = Reason(withReasons[i]);
             }
 
-            SetString(serialized, "PassHeadline", "ПРОПУЩЕНО");
-            SetString(serialized, "BustHeadline", "ЗАДЕРЖАНО");
             SetString(serialized, "PassLine", PassLine);
             SetString(serialized, "BustLine", BustLine);
             SetString(serialized, "CleanLine", CleanLine);
-            SetString(serialized, "SuspicionFormat", "подозрение {0:0} из {1:0}");
-            SetString(serialized, "CluePrefix", "> ");
             SetString(serialized, "MissingLine", Placeholder);
 
             serialized.FindProperty("<PassColor>k__BackingField").colorValue = Pass;

@@ -73,14 +73,24 @@ namespace CrateExpectations.Inspection.UI
 
         /// <summary>
         /// Инспектор закончил - экран пустеет сразу. Досмотр может оборваться на любом кадре
-        /// удара, и оттиск не должен пережить ящик, о котором он был
+        /// удара, и оттиск не должен пережить ящик, о котором он был.
+        ///
+        /// <para>Проверки на живость - не перестраховка: убирать за собой инспектор зовёт нас
+        /// и в <c>OnDisable</c>, а при выгрузке сцены оснастка с оттиском могут не дожить
+        /// до этого вызова</para>
         /// </summary>
         public void Clear()
         {
             CancelPlayback();
 
-            _press.localPosition = _hiddenPosition;
-            _press.gameObject.SetActive(false);
+            if (_press != null)
+            {
+                _press.localPosition = _hiddenPosition;
+                _press.gameObject.SetActive(false);
+            }
+
+            if (_imprint == null)
+                return;
 
             _imprint.rectTransform.localScale = _imprintScale;
             _imprint.color = Fade(_imprint.color, 0f);

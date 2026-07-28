@@ -2610,6 +2610,7 @@ GameObject:
   - component: {fileID: 327847862}
   - component: {fileID: 327847861}
   - component: {fileID: 327847860}
+  - component: {fileID: 327847863}
   m_Layer: 0
   m_Name: PlacementZone
   m_TagString: Untagged
@@ -2668,6 +2669,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 739046495}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &327847863
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 327847859}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63b212816690ae3458ea535ef854ad02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CrateExpectations.Cargo::CrateExpectations.Cargo.Stations.CargoSnap
+  _snapSeconds: 0.18
+  _restSpeed: 0.3
+  _settleSeconds: 0.15
 --- !u!1001 &348998611
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7256,6 +7272,7 @@ GameObject:
   - component: {fileID: 1074379430}
   - component: {fileID: 1074379429}
   - component: {fileID: 1074379428}
+  - component: {fileID: 1074379431}
   m_Layer: 0
   m_Name: PlacementZone
   m_TagString: Untagged
@@ -7314,6 +7331,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1754420369}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1074379431
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1074379427}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63b212816690ae3458ea535ef854ad02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CrateExpectations.Cargo::CrateExpectations.Cargo.Stations.CargoSnap
+  _snapSeconds: 0.18
+  _restSpeed: 0.3
+  _settleSeconds: 0.15
 --- !u!1001 &1076603523
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8679,6 +8711,7 @@ GameObject:
   - component: {fileID: 1241485284}
   - component: {fileID: 1241485285}
   - component: {fileID: 1241485286}
+  - component: {fileID: 1241485287}
   m_Layer: 0
   m_Name: PlacementZone
   m_TagString: Untagged
@@ -8737,6 +8770,21 @@ MonoBehaviour:
   _highlight: {fileID: 1220399712}
   _emptyColor: {r: 0.9, g: 0.85, b: 0.4, a: 1}
   _occupiedColor: {r: 0.4, g: 0.85, b: 0.45, a: 1}
+--- !u!114 &1241485287
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1241485283}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63b212816690ae3458ea535ef854ad02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CrateExpectations.Cargo::CrateExpectations.Cargo.Stations.CargoSnap
+  _snapSeconds: 0.18
+  _restSpeed: 0.3
+  _settleSeconds: 0.15
 --- !u!1 &1244493998
 GameObject:
   m_ObjectHideFlags: 0
@@ -13683,6 +13731,7 @@ GameObject:
   - component: {fileID: 1720279062}
   - component: {fileID: 1720279061}
   - component: {fileID: 1720279060}
+  - component: {fileID: 1720279063}
   m_Layer: 0
   m_Name: PlacementZone
   m_TagString: Untagged
@@ -13741,6 +13790,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 654029583}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1720279063
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1720279059}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63b212816690ae3458ea535ef854ad02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CrateExpectations.Cargo::CrateExpectations.Cargo.Stations.CargoSnap
+  _snapSeconds: 0.18
+  _restSpeed: 0.3
+  _settleSeconds: 0.15
 --- !u!1 &1724381735
 GameObject:
   m_ObjectHideFlags: 0
