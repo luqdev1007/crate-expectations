@@ -17,7 +17,8 @@ namespace CrateExpectations.UI
         [SerializeField] private HudTimingsDefinition _timings;
         [SerializeField] private float _punchScale = 1.35f;
 
-        [SerializeField] private Color _idleColor = new(0.92f, 0.88f, 0.72f);
+        [Tooltip("Цвет суммы в покое: золото самой монетки-иконки, чтобы число и спрайт читались одним")]
+        [SerializeField] private Color _idleColor = new(0.94f, 0.81f, 0.16f);
         [SerializeField] private Color _gainColor = new(0.45f, 0.85f, 0.45f);
         [SerializeField] private Color _lossColor = new(0.90f, 0.35f, 0.30f);
         [SerializeField] private Color _debtColor = new(0.90f, 0.55f, 0.25f);

@@ -1,3 +1,4 @@
+using CrateExpectations.Core.View;
 using CrateExpectations.Inspection.AI;
 using TMPro;
 using UnityEngine;
@@ -8,9 +9,11 @@ namespace CrateExpectations.Inspection.View
     /// Реплика инспектора в мировом пространстве: плашка над головой, всегда развёрнутая к камере.
     /// Текст приходит по тому же каналу, что и раньше - через <see cref="IInspectorVoice"/>,
     /// а видимость решает фаза FSM: говорит только на осмотре и вердикте.
+    /// За разворот к игроку отвечает <see cref="CameraBillboard"/>.
     /// </summary>
     [RequireComponent(typeof(Canvas))]
     [RequireComponent(typeof(CanvasGroup))]
+    [RequireComponent(typeof(CameraBillboard))]
     public sealed class InspectorSpeechBubble : MonoBehaviour, IInspectorVoice
     {
         [Tooltip("Чью фазу слушаем: в патруле и на подходе пузырь молчит")]
@@ -19,11 +22,6 @@ namespace CrateExpectations.Inspection.View
         [Tooltip("Поле реплики")]
         [SerializeField] private TMP_Text _line;
 
-        [Tooltip("Камера игрока. Пусто - возьмём Camera.main один раз в Awake")]
-        [SerializeField] private Camera _camera;
-
-        private Transform _transform;
-        private Transform _eye;
         private Canvas _canvas;
         private CanvasGroup _group;
 
@@ -34,7 +32,6 @@ namespace CrateExpectations.Inspection.View
 
         private void Awake()
         {
-            _transform = transform;
             _canvas = GetComponent<Canvas>();
             _group = GetComponent<CanvasGroup>();
 
@@ -44,7 +41,6 @@ namespace CrateExpectations.Inspection.View
                 return;
             }
 
-            _eye = _camera.transform;
             _speechColor = _line.color;
             _ready = true;
 
@@ -90,27 +86,16 @@ namespace CrateExpectations.Inspection.View
         /// <inheritdoc />
         public void Clear() => Say(string.Empty);
 
-        private void LateUpdate()
-        {
-            // Догоняем камеру именно в LateUpdate: к этому моменту Cinemachine уже подвинул её
-            // за этот кадр, иначе пузырь отставал бы на кадр и дрожал при повороте головы.
-            if (Fade(Time.deltaTime) <= 0f)
-                return;
+        private void LateUpdate() => Fade(Time.deltaTime);
 
-            // Не LookAt: тот целится осью Z в точку и оставляет up мировым, поэтому при взгляде
-            // снизу или сверху плашку кренит, а над головой инспектора - переворачивает.
-            // Копия ориентации камеры держит пузырь строго параллельным экрану с любого ракурса.
-            _transform.rotation = _eye.rotation;
-        }
-
-        private float Fade(float deltaTime)
+        private void Fade(float deltaTime)
         {
             bool visible = _hasLine && _phaseSpeaks;
             float target = visible ? 1f : 0f;
             float alpha = _group.alpha;
 
             if (alpha == target)
-                return alpha;
+                return;
 
             InspectionDefinition definition = _inspector.Definition;
 
@@ -124,8 +109,6 @@ namespace CrateExpectations.Inspection.View
 
             _group.alpha = alpha;
             _canvas.enabled = alpha > 0f;
-
-            return alpha;
         }
 
         private void OnPhaseChanged(InspectorPhase phase) =>
@@ -148,12 +131,6 @@ namespace CrateExpectations.Inspection.View
 
             if (_line == null)
                 return Missing("поле реплики (TMP_Text)");
-
-            if (_camera == null)
-                _camera = Camera.main;
-
-            if (_camera == null)
-                return Missing("камера игрока, и Camera.main тоже не нашлась");
 
             return true;
         }

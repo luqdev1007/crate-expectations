@@ -16,3 +16,7 @@ MonoBehaviour:
   <InteractableMask>k__BackingField:
     serializedVersion: 2
     m_Bits: 512
+  <FocusDistance>k__BackingField: 4
+  <FocusMask>k__BackingField:
+    serializedVersion: 2
+    m_Bits: 5120

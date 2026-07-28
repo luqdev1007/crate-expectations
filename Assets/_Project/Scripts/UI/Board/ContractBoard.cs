@@ -45,6 +45,10 @@ namespace CrateExpectations.UI
             _bus.Subscribe<ContractFailed>(OnContractFailed);
             _bus.Subscribe<GameLoaded>(OnGameLoaded);
 
+            // Шапку пишем один раз: это вывеска над доской, а не строка состояния.
+            if (_header != null && _definition != null)
+                _header.SetText(_definition.Header);
+
             Refresh();
         }
 
@@ -75,8 +79,6 @@ namespace CrateExpectations.UI
             if (_pinned == null)
                 Pin();
 
-            int left = 0;
-
             for (int i = 0; i < _slots.Length; i++)
             {
                 if (_slots[i] == null)
@@ -85,16 +87,8 @@ namespace CrateExpectations.UI
                 ContractDefinition pinned = _pinned[i];
                 bool hangs = pinned != null && !_manager.IsTaken(pinned);
 
-                if (hangs)
-                    left++;
-
                 _slots[i].Bind(hangs ? pinned : null, _manager);
             }
-
-            if (_header == null || _definition == null)
-                return;
-
-            _header.SetText(Headline(_manager.Active.Contract, left));
         }
 
         private void Pin()
@@ -105,14 +99,6 @@ namespace CrateExpectations.UI
 
             for (int i = 0; i < _pinned.Length && i < onBoard.Count; i++)
                 _pinned[i] = onBoard[i];
-        }
-
-        private string Headline(ContractDefinition active, int papersLeft)
-        {
-            if (active != null)
-                return string.Format(_definition.HeaderActive, active.DisplayName);
-
-            return papersLeft > 0 ? _definition.HeaderIdle : _definition.HeaderEmpty;
         }
     }
 }

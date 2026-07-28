@@ -9,14 +9,9 @@ namespace CrateExpectations.UI
     public sealed class ContractBoardDefinition : ScriptableObject
     {
         [Header("Шапка доски")]
-        [Tooltip("Заказы есть, игрок свободен")]
-        [field: SerializeField] public string HeaderIdle { get; private set; } = "ЗАКАЗЫ ПОРТА - выберите заказ";
-
-        [Tooltip("Заказ на руках. {0} - его название")]
-        [field: SerializeField] public string HeaderActive { get; private set; } = "ЗАКАЗЫ ПОРТА - выполняется '{0}'";
-
-        [Tooltip("Все листки разобраны, доска пуста")]
-        [field: SerializeField] public string HeaderEmpty { get; private set; } = "ЗАКАЗЫ ПОРТА - листков больше нет";
+        [Tooltip("Надпись на доске. Статичная: доска - это вывеска, а не строка состояния, " +
+                 "что происходит с заказом, игрок читает на самих листках и в HUD")]
+        [field: SerializeField] public string Header { get; private set; } = "ЗАКАЗЫ";
 
         [Header("Подсказки")]
         [Tooltip("Листок можно снять. {0} - название заказа")]

@@ -2,6 +2,7 @@ using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 using CrateExpectations.Cargo.Catalog;
+using CrateExpectations.Cargo.UI;
 using CrateExpectations.Contracts;
 using CrateExpectations.Core.Events;
 using CrateExpectations.Core.Input;
@@ -86,6 +87,9 @@ namespace CrateExpectations.Bootstrap
             builder.RegisterComponentInHierarchy<InteractionPromptView>();
             builder.RegisterComponentInHierarchy<CargoSpawner>();
 
+            // Карточка груза: цель ей даёт Interactor, поэтому своего луча она не пускает
+            builder.RegisterComponentInHierarchy<CargoInfoCard>();
+
             // Голос инспектора: реплики идут в пузырь над головой, сводка вердикта - в плашку HUD
             builder.RegisterComponentInHierarchy<InspectionResultView>();
             builder.RegisterComponentInHierarchy<InspectorSpeechBubble>();
@@ -114,6 +118,7 @@ namespace CrateExpectations.Bootstrap
                 container.Resolve<Carrier>();
                 container.Resolve<InteractionPromptView>();
                 container.Resolve<CargoSpawner>();
+                container.Resolve<CargoInfoCard>();
                 container.Resolve<InspectorAI>();
                 container.Resolve<ContractBoard>();
                 container.Resolve<BalanceView>();
