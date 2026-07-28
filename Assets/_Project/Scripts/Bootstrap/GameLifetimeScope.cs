@@ -93,13 +93,14 @@ namespace CrateExpectations.Bootstrap
             // Карточка груза: цель ей даёт Interactor, поэтому своего луча она не пускает
             builder.RegisterComponentInHierarchy<CargoInfoCard>();
 
-            // Голос инспектора: реплики идут в пузырь над головой, сводка вердикта - в плашку HUD
-            builder.RegisterComponentInHierarchy<InspectionResultView>();
+            // Голос инспектора: реплики идут в пузырь над головой, а исход досмотра -
+            // в удар печатью на весь экран
+            builder.RegisterComponentInHierarchy<VerdictStampView>();
             builder.RegisterComponentInHierarchy<InspectorSpeechBubble>();
             builder.Register<IInspectorVoice>(
                 resolver => new CompositeInspectorVoice(
                     resolver.Resolve<InspectorSpeechBubble>(),
-                    resolver.Resolve<InspectionResultView>()),
+                    resolver.Resolve<VerdictStampView>()),
                 Lifetime.Singleton);
 
             builder.RegisterComponentInHierarchy<InspectorAI>();
