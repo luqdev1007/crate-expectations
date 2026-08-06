@@ -11,6 +11,7 @@ namespace CrateExpectations.Platform
         public UniTask UnlockAchievementAsync(string achievementId)
         {
             Debug.Log($"[Platform:Stub] Achievement -> {achievementId}");
+
             return UniTask.CompletedTask;
         }
     }

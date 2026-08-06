@@ -11,7 +11,7 @@ namespace CrateExpectations.Inspection
     /// Главное правило модели: <b>инспектор не рентген</b>. Подмену содержимого
     /// (<see cref="ClueType.ContentMismatch"/>) он находит только тогда, когда внешность
     /// дала повод вскрыть ящик. Поэтому доведённая до конца маскировка проходит даже
-    /// дотошного инспектора - иначе игру нельзя было бы выиграть
+    /// дотошного инспектора, иначе игру нельзя было бы выиграть
     /// </summary>
     public sealed class ClueEvaluator
     {
@@ -22,14 +22,14 @@ namespace CrateExpectations.Inspection
 
         /// <param name="chance">
         /// Источник случайности для "невнимательности". Без него инспектор не пропускает
-        /// ни одной улики - детерминированный режим, удобный для тестов
+        /// ни одной улики. Детерминированный режим, удобный для тестов
         /// </param>
         public ClueEvaluator(IChanceSource chance = null) => _chance = chance;
 
         /// <summary>
         /// Осмотреть груз по правилам инспектора
         /// </summary>
-        /// <param name="subject">Заявленное, истина и требования порта. Только чтение</param>
+        /// <param name="subject">Заявленное, истина и требования порта</param>
         /// <param name="policy">Что инспектор проверяет и как оценивает найденное</param>
         public Verdict Evaluate(in InspectionSubject subject, in InspectionPolicy policy)
         {
@@ -58,6 +58,7 @@ namespace CrateExpectations.Inspection
             // Наружу отдаётся снимок: вердикт живёт дольше вызова - его показывает UI
             // и разносит событие, а буфер к следующему досмотру уже перезаписан
             Clue[] clues = _found.Count > 0 ? _found.ToArray() : Array.Empty<Clue>();
+
             return new Verdict(outcome, suspicion, policy.SuspicionThreshold, clues);
         }
 
@@ -98,16 +99,20 @@ namespace CrateExpectations.Inspection
         /// </summary>
         private float TryAdd(ClueType type, in InspectionPolicy policy)
         {
-            if (IsOverlooked(policy)) return 0f;
+            if (IsOverlooked(policy))
+                return 0f;
 
             float weight = policy.Weights.Of(type);
             _found.Add(new Clue(type, weight));
+
             return weight;
         }
 
         private bool IsOverlooked(in InspectionPolicy policy)
         {
-            if (_chance == null || policy.OverlookChance <= 0f) return false;
+            if (_chance == null || policy.OverlookChance <= 0f) 
+                return false;
+
             return _chance.NextUnit() < policy.OverlookChance;
         }
     }

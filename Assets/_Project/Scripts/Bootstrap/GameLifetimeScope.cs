@@ -22,10 +22,6 @@ using CrateExpectations.UI;
 
 namespace CrateExpectations.Bootstrap
 {
-    /// <summary>
-    /// Единственное место в проекте, где встречается код VContainer: composition root.
-    /// Игровые классы знают только про свои интерфейсы и <c>[Inject]</c>-метод
-    /// </summary>
     public sealed class GameLifetimeScope : LifetimeScope
     {
         [Tooltip("Стартовые деньги и предел долга")]
@@ -34,13 +30,13 @@ namespace CrateExpectations.Bootstrap
         [Tooltip("Заказы, которые висят на доске в этой смене")]
         [SerializeField] private ContractCatalogDefinition _contracts;
 
-        [SerializeField] private InspectionDefinition _inspection;
-
         [Tooltip("Куда игра сохраняется: ключ слота и его имя для игрока")]
         [SerializeField] private SaveSlotDefinition _saveSlot;
 
         [Tooltip("Стабильные идентификаторы контента груза")]
         [SerializeField] private CargoRegistryDefinition _cargoRegistry;
+
+        [SerializeField] private InspectionDefinition _inspection;
 
         protected override void Configure(IContainerBuilder builder)
         {
@@ -63,6 +59,7 @@ namespace CrateExpectations.Bootstrap
             builder.RegisterInstance(_contracts);
             builder.RegisterInstance(_inspection);
             builder.Register<PayoutCalculator>(Lifetime.Singleton);
+
             builder.Register<IEconomyService>(
                 resolver => new EconomyService(_economy.Rules, resolver.Resolve<IEventBus>()),
                 Lifetime.Singleton);

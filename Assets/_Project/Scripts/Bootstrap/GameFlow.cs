@@ -4,7 +4,7 @@ using CrateExpectations.Core.Services;
 
 namespace CrateExpectations.Bootstrap
 {
-    /// <summary>Точка входа. Пока просто подтверждает, что DI собрался. Расширится в след. фазах</summary>
+    // в дальнейшем расширение под мету: меню, игра, пауза
     public sealed class GameFlow : IStartable
     {
         private readonly IPlatformService _platform;

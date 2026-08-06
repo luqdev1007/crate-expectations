@@ -71,7 +71,7 @@ namespace CrateExpectations.Interaction
                 Debug.LogError(
                     $"Слой переноса '{LayerMask.LayerToName(carried)}' не исключён из столкновений " +
                     $"со слоем игрока '{LayerMask.LayerToName(playerLayer)}'. Гружёный объект будет " +
-                    "толкать игрока - поправь матрицу в Project Settings → Physics.", this);
+                    "толкать игрока - исправить матрицу в Project Settings → Physics.", this);
             }
         }
 
@@ -137,6 +137,7 @@ namespace CrateExpectations.Interaction
         private void TryGrab()
         {
             var ray = new Ray(_rayOrigin.position, _rayOrigin.forward);
+
             int count = Physics.RaycastNonAlloc(
                 ray, _hits, _definition.GrabDistance,
                 _definition.CarriableMask, QueryTriggerInteraction.Ignore);

@@ -14,7 +14,7 @@ namespace CrateExpectations.Inspection.AI
 {
     /// <summary>
     /// Инспектор порта. Сам он почти ничего не делает: держит generic
-    /// <see cref="StateMachine"/> из <c>Core</c> (второе её применение после game flow),
+    /// <see cref="StateMachine"/> из <c>Core</c>,
     /// тикает её и раздаёт состояниям то, что им нужно, через <see cref="IInspectorContext"/>.
     /// Поведение живёт в состояниях, правила улик - в <see cref="ClueEvaluator"/>,
     /// числа и тексты - в ассетах. Тонкий слой ввода/вывода, как и положено
@@ -30,7 +30,7 @@ namespace CrateExpectations.Inspection.AI
         [Tooltip("Регламент порта: как должен выглядеть ящик с заявленным содержимым")]
         [SerializeField] private PortRegulationsDefinition _regulations;
 
-        [Tooltip("Зона досмотра - та же, что и на станциях маскировки")]
+        [Tooltip("Зона досмотра")]
         [SerializeField] private CargoPlacementZone _zone;
 
         [Tooltip("Пост: место и поза, в которые инспектор возвращается между досмотрами")]
@@ -45,7 +45,9 @@ namespace CrateExpectations.Inspection.AI
         private readonly StateMachine _machine = new();
 
         private ClueEvaluator _evaluator;
+
         private CarriedCargoSensor _sensor;
+
         private InspectorIdleState _idle;
         private InspectorPatrolState _patrol;
         private InspectorNoticeState _notice;
@@ -55,6 +57,7 @@ namespace CrateExpectations.Inspection.AI
         private InspectorVerdictState _verdict;
 
         private CancellationTokenSource _stateCts;
+
         private IInspectorVoice _voice;
         private IEventBus _bus;
 
@@ -159,9 +162,10 @@ namespace CrateExpectations.Inspection.AI
         {
             _zone.OccupantChanged += OnOccupantChanged;
 
-            // На первом включении машину заводит Start: до него VContainer ещё не
+            // На первом включении машину заводит Start: до него контейнер ещё не
             // проставил зависимости, а состояния сразу лезут в вывод реплик
-            if (_started) GoTo(InspectorPhase.Idle);
+            if (_started) 
+                GoTo(InspectorPhase.Idle);
         }
 
         private void Start()
@@ -189,13 +193,15 @@ namespace CrateExpectations.Inspection.AI
         /// <inheritdoc />
         public void GoTo(InspectorPhase phase)
         {
-            if (Phase == phase && _machine.Current != null) return;
+            if (Phase == phase && _machine.Current != null)
+                return;
 
             Phase = phase;
 
             // В Idle открытых дел не остаётся: осмотр, прерванный на полпути, не должен
             // потом "догнать" инспектора вердиктом по ящику, которого на столе давно нет
-            if (phase == InspectorPhase.Idle) Case = default;
+            if (phase == InspectorPhase.Idle) 
+                Case = default;
 
             // Новый токен на каждое состояние: всё асинхронное, что осталось от прежнего,
             // сворачивается прямо здесь и не догоняет нас репликами из прошлого
@@ -221,7 +227,8 @@ namespace CrateExpectations.Inspection.AI
         /// <inheritdoc />
         public void CloseCase()
         {
-            if (!Case.IsOpen) return;
+            if (!Case.IsOpen) 
+                return;
 
             _judged = Case.Cargo;
 
@@ -244,7 +251,8 @@ namespace CrateExpectations.Inspection.AI
         /// <summary>Зона опустела - значит следующий поставленный ящик снова подлежит досмотру</summary>
         private void OnOccupantChanged(CargoBox occupant)
         {
-            if (occupant == null) _judged = null;
+            if (occupant == null) 
+                _judged = null;
         }
 
         private void ResetStateToken()
@@ -255,7 +263,8 @@ namespace CrateExpectations.Inspection.AI
 
         private void CancelState()
         {
-            if (_stateCts == null) return;
+            if (_stateCts == null) 
+                return;
 
             _stateCts.Cancel();
             _stateCts.Dispose();

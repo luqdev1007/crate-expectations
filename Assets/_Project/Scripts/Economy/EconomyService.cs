@@ -7,7 +7,7 @@ namespace CrateExpectations.Economy
     /// Кошелёк игрока. Обычный C#-класс: ни <c>MonoBehaviour</c>, ни <c>ScriptableObject</c> -
     /// правила приходят значением, а наружу он говорит только через шину событий.
     ///
-    /// <para><b>Про минус.</b> Баланс уходить в минус <i>разрешено</i>. Клампить в ноль
+    /// <para><b>Про минус.</b> Балансу уходить в минус <i>разрешено</i>. Клампить в ноль
     /// было бы удобнее, но тогда штраф перестаёт что-либо значить ровно в тот момент,
     /// когда игрок и так на дне: разорившийся контрабандист платил бы за провалы нулём.
     /// Долг остаётся долгом, а когда он переваливает за
@@ -35,7 +35,8 @@ namespace CrateExpectations.Economy
         /// <inheritdoc />
         public void Apply(in PayoutResult payout)
         {
-            if (payout.Amount == 0) return;
+            if (payout.Amount == 0)
+                return;
 
             bool wasBankrupt = IsBankrupt;
             Balance += payout.Amount;

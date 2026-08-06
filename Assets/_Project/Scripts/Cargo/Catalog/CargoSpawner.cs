@@ -34,7 +34,8 @@ namespace CrateExpectations.Cargo.Catalog
 
         private async UniTaskVoid SpawnAllAsync(CancellationToken ct)
         {
-            if (_manifest == null || _spawnPoints == null) return;
+            if (_manifest == null || _spawnPoints == null) 
+                return;
 
             string[] keys = _manifest.CargoKeys;
             int count = Mathf.Min(keys.Length, _spawnPoints.Length);
