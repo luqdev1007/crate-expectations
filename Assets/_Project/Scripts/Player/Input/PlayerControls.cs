@@ -174,6 +174,24 @@ namespace CrateExpectations.Player.Input
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""ToggleWeapon"",
+                    ""type"": ""Button"",
+                    ""id"": ""5b7d8e11-cf83-4b62-9e70-7f6c1eab4a56"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Attack"",
+                    ""type"": ""Button"",
+                    ""id"": ""6c8e9f22-d094-4c73-af81-806d2fbc5b67"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -396,6 +414,28 @@ namespace CrateExpectations.Player.Input
                     ""action"": ""ViewContract"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""7d5f7a33-ef85-4b63-be92-917e3adc6c78"",
+                    ""path"": ""<Keyboard>/1"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ToggleWeapon"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""8e6a8b44-fa96-4c74-cfa3-a28f4bed7d89"",
+                    ""path"": ""<Mouse>/leftButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Attack"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -413,6 +453,8 @@ namespace CrateExpectations.Player.Input
             m_Player_SaveGame = m_Player.FindAction("SaveGame", throwIfNotFound: true);
             m_Player_LoadGame = m_Player.FindAction("LoadGame", throwIfNotFound: true);
             m_Player_ViewContract = m_Player.FindAction("ViewContract", throwIfNotFound: true);
+            m_Player_ToggleWeapon = m_Player.FindAction("ToggleWeapon", throwIfNotFound: true);
+            m_Player_Attack = m_Player.FindAction("Attack", throwIfNotFound: true);
         }
 
         ~@PlayerControls()
@@ -502,6 +544,8 @@ namespace CrateExpectations.Player.Input
         private readonly InputAction m_Player_SaveGame;
         private readonly InputAction m_Player_LoadGame;
         private readonly InputAction m_Player_ViewContract;
+        private readonly InputAction m_Player_ToggleWeapon;
+        private readonly InputAction m_Player_Attack;
         /// <summary>
         /// Provides access to input actions defined in input action map "Player".
         /// </summary>
@@ -549,6 +593,14 @@ namespace CrateExpectations.Player.Input
             /// Provides access to the underlying input action "Player/ViewContract".
             /// </summary>
             public InputAction @ViewContract => m_Wrapper.m_Player_ViewContract;
+            /// <summary>
+            /// Provides access to the underlying input action "Player/ToggleWeapon".
+            /// </summary>
+            public InputAction @ToggleWeapon => m_Wrapper.m_Player_ToggleWeapon;
+            /// <summary>
+            /// Provides access to the underlying input action "Player/Attack".
+            /// </summary>
+            public InputAction @Attack => m_Wrapper.m_Player_Attack;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -602,6 +654,12 @@ namespace CrateExpectations.Player.Input
                 @ViewContract.started += instance.OnViewContract;
                 @ViewContract.performed += instance.OnViewContract;
                 @ViewContract.canceled += instance.OnViewContract;
+                @ToggleWeapon.started += instance.OnToggleWeapon;
+                @ToggleWeapon.performed += instance.OnToggleWeapon;
+                @ToggleWeapon.canceled += instance.OnToggleWeapon;
+                @Attack.started += instance.OnAttack;
+                @Attack.performed += instance.OnAttack;
+                @Attack.canceled += instance.OnAttack;
             }
 
             /// <summary>
@@ -640,6 +698,12 @@ namespace CrateExpectations.Player.Input
                 @ViewContract.started -= instance.OnViewContract;
                 @ViewContract.performed -= instance.OnViewContract;
                 @ViewContract.canceled -= instance.OnViewContract;
+                @ToggleWeapon.started -= instance.OnToggleWeapon;
+                @ToggleWeapon.performed -= instance.OnToggleWeapon;
+                @ToggleWeapon.canceled -= instance.OnToggleWeapon;
+                @Attack.started -= instance.OnAttack;
+                @Attack.performed -= instance.OnAttack;
+                @Attack.canceled -= instance.OnAttack;
             }
 
             /// <summary>
@@ -743,6 +807,20 @@ namespace CrateExpectations.Player.Input
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnViewContract(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "ToggleWeapon" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnToggleWeapon(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Attack" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnAttack(InputAction.CallbackContext context);
         }
     }
 }

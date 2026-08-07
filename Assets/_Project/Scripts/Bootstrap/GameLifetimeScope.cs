@@ -18,6 +18,7 @@ using CrateExpectations.Inventory;
 using CrateExpectations.Persistence;
 using CrateExpectations.Platform;
 using CrateExpectations.Player;
+using CrateExpectations.Player.Combat;
 using CrateExpectations.UI;
 
 namespace CrateExpectations.Bootstrap
@@ -82,6 +83,7 @@ namespace CrateExpectations.Bootstrap
 
             // Точки входа сцены
             builder.RegisterComponentInHierarchy<PlayerController>();
+            builder.RegisterComponentInHierarchy<PlayerWeaponController>();
             builder.RegisterComponentInHierarchy<Interactor>();
             builder.RegisterComponentInHierarchy<Carrier>();
             builder.RegisterComponentInHierarchy<InteractionPromptView>();
@@ -114,6 +116,7 @@ namespace CrateExpectations.Bootstrap
             builder.RegisterBuildCallback(container =>
             {
                 container.Resolve<PlayerController>();
+                container.Resolve<PlayerWeaponController>();
                 container.Resolve<Interactor>();
                 container.Resolve<Carrier>();
                 container.Resolve<InteractionPromptView>();

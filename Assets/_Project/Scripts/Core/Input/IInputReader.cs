@@ -20,6 +20,12 @@ namespace CrateExpectations.Core.Input
         /// <summary>Достать/убрать листок текущего заказа</summary>
         event Action ViewContract;
 
+        /// <summary>Достать/убрать оружие</summary>
+        event Action ToggleWeapon;
+
+        /// <summary>Взмах оружием</summary>
+        event Action Attack;
+
         event Action SaveGame;
         event Action LoadGame;
     }

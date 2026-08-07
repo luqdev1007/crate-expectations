@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6fb09435758d30f4997e2bca36a66c56, type: 3}
+  m_Name: SabreDefinition
+  m_EditorClassIdentifier: CrateExpectations.Combat::CrateExpectations.Combat.WeaponDefinition
+  <Prefab>k__BackingField: {fileID: 100006, guid: 73c6e7dd4580f484fac9776280cb7c7a, type: 3}
+  <BodySocket>k__BackingField:
+    PositionX: 0
+    PositionY: 0.045
+    PositionZ: 0
+    RotationX: 0
+    RotationY: -11.1
+    RotationZ: -86.9
+    Scale: 0.55
+  <ViewModelSocket>k__BackingField:
+    PositionX: -0.0066
+    PositionY: 0.1093
+    PositionZ: -0.0544
+    RotationX: -41.032
+    RotationY: -1.556
+    RotationZ: -84.079
+    Scale: 0.7
+  <DrawDuration>k__BackingField: 0.25
+  <SheatheDuration>k__BackingField: 0.25
+  <AttackDuration>k__BackingField: 0.55
+  <Swing>k__BackingField: {fileID: 11400000, guid: 4b22761c949f95f40af919285fbf6491, type: 2}
+  <BladeLength>k__BackingField: 0.76

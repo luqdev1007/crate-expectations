@@ -3,6 +3,7 @@
     "rootNamespace": "CrateExpectations.Player",
     "references": [
         "CrateExpectations.Core",
+        "CrateExpectations.Combat",
         "Unity.InputSystem",
         "Unity.Cinemachine",
         "VContainer",
