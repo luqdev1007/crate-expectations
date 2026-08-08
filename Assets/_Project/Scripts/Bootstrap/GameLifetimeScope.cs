@@ -7,6 +7,7 @@ using CrateExpectations.Contracts;
 using CrateExpectations.Core.Events;
 using CrateExpectations.Core.Input;
 using CrateExpectations.Core.Services;
+using CrateExpectations.Core.Timing;
 using CrateExpectations.Economy;
 using CrateExpectations.Inspection;
 using CrateExpectations.Inspection.AI;
@@ -50,6 +51,10 @@ namespace CrateExpectations.Bootstrap
             // save service
             builder.Register<ISaveService, StubSaveService>(Lifetime.Singleton);
 
+            // Единственный владелец Time.timeScale. Синглтон здесь не для удобства:
+            // два экземпляра сервиса - это два таймера на одну глобальную величину
+            builder.Register<IHitStopService, HitStopService>(Lifetime.Singleton);
+
             // addressables
             builder.Register<ICargoCatalog, AddressableCargoCatalog>(Lifetime.Singleton);
 
@@ -84,6 +89,7 @@ namespace CrateExpectations.Bootstrap
             // Точки входа сцены
             builder.RegisterComponentInHierarchy<PlayerController>();
             builder.RegisterComponentInHierarchy<PlayerWeaponController>();
+            builder.RegisterComponentInHierarchy<MeleeHitStop>();
             builder.RegisterComponentInHierarchy<Interactor>();
             builder.RegisterComponentInHierarchy<Carrier>();
             builder.RegisterComponentInHierarchy<InteractionPromptView>();
@@ -117,6 +123,7 @@ namespace CrateExpectations.Bootstrap
             {
                 container.Resolve<PlayerController>();
                 container.Resolve<PlayerWeaponController>();
+                container.Resolve<MeleeHitStop>();
                 container.Resolve<Interactor>();
                 container.Resolve<Carrier>();
                 container.Resolve<InteractionPromptView>();

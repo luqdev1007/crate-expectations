@@ -4274,6 +4274,51 @@ Transform:
   - {fileID: 3030537599327547067}
   m_Father: {fileID: 102356179}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &602276354
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 602276356}
+  - component: {fileID: 602276355}
+  m_Layer: 0
+  m_Name: ImpactEffects
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &602276355
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 602276354}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89bb3b4762ae3c84eb97e193e85c6edb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CrateExpectations.Combat::CrateExpectations.Combat.ImpactEffectPool
+  _feedback: {fileID: 11400000, guid: fd26f599e20c30745a2821857873f2c8, type: 2}
+--- !u!4 &602276356
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 602276354}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &603454136
 GameObject:
   m_ObjectHideFlags: 0
@@ -10670,6 +10715,55 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
+--- !u!1 &1173350789
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1173350791}
+  - component: {fileID: 1173350790}
+  m_Layer: 0
+  m_Name: PostProcessVolume
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1173350790
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1173350789}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.Volume
+  m_IsGlobal: 1
+  priority: 0
+  blendDistance: 0
+  weight: 1
+  sharedProfile: {fileID: 11400000, guid: 204af1cc6a65c084ba8f1a875b042501, type: 2}
+--- !u!4 &1173350791
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1173350789}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1196186753
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -13115,7 +13209,7 @@ MonoBehaviour:
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
   m_VolumeFrameworkUpdateModeOption: 2
-  m_RenderPostProcessing: 0
+  m_RenderPostProcessing: 1
   m_Antialiasing: 0
   m_AntialiasingQuality: 2
   m_StopNaN: 0
@@ -16668,6 +16762,7 @@ GameObject:
   - component: {fileID: 1738822058}
   - component: {fileID: 1738822059}
   - component: {fileID: 1738822060}
+  - component: {fileID: 1738822061}
   m_Layer: 14
   m_Name: ViewModel
   m_TagString: Untagged
@@ -16719,6 +16814,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 907557593ee62d14789aad4f1e87a2d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: CrateExpectations.Player::CrateExpectations.Player.View.ViewModelSwing
+  _weapon: {fileID: 1242737595798173652}
+--- !u!114 &1738822061
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1738822057}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 338904950d0b77b4fbcb42fbe75cd93e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CrateExpectations.Player::CrateExpectations.Player.View.ViewModelImpact
+  _attack: {fileID: 1242737595798173656}
   _weapon: {fileID: 1242737595798173652}
 --- !u!1001 &1739360610
 PrefabInstance:
@@ -21133,6 +21242,24 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 41644859058766404, guid: da8d2305c5c846c4dabe978420eedcaf, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1242737595798173653}
+    - targetCorrespondingSourceObject: {fileID: 41644859058766404, guid: da8d2305c5c846c4dabe978420eedcaf, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1242737595798173660}
+    - targetCorrespondingSourceObject: {fileID: 41644859058766404, guid: da8d2305c5c846c4dabe978420eedcaf, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1242737595798173656}
+    - targetCorrespondingSourceObject: {fileID: 41644859058766404, guid: da8d2305c5c846c4dabe978420eedcaf, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1242737595798173659}
+    - targetCorrespondingSourceObject: {fileID: 41644859058766404, guid: da8d2305c5c846c4dabe978420eedcaf, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1242737595798173658}
+    - targetCorrespondingSourceObject: {fileID: 41644859058766404, guid: da8d2305c5c846c4dabe978420eedcaf, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1242737595798173657}
+    - targetCorrespondingSourceObject: {fileID: 4927037552141917284, guid: da8d2305c5c846c4dabe978420eedcaf, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1242737595798173655}
   m_SourcePrefab: {fileID: 100100000, guid: da8d2305c5c846c4dabe978420eedcaf, type: 3}
 --- !u!4 &1242737595798173650 stripped
 Transform:
@@ -21180,6 +21307,179 @@ MonoBehaviour:
   - Animator: {fileID: 1952303114}
     SwingDrawnProcedurally: 1
     AttackClip: {fileID: -6373834565392726941, guid: a2c0cfad4fe039540a243485f8cd43a3, type: 3}
+--- !u!1 &1242737595798173654 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4927037552141917284, guid: da8d2305c5c846c4dabe978420eedcaf, type: 3}
+  m_PrefabInstance: {fileID: 1242737595798173649}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1242737595798173655
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1242737595798173654}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9941fe3aef4c05048a77f42bbbe1a791, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CrateExpectations.Player::CrateExpectations.Player.View.CameraPunch
+  _attack: {fileID: 1242737595798173656}
+  _weapon: {fileID: 1242737595798173652}
+--- !u!114 &1242737595798173656
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1242737595798173651}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6342728840a271044af97d8322414fde, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CrateExpectations.Player::CrateExpectations.Player.Combat.PlayerMeleeAttack
+  _weapon: {fileID: 1242737595798173652}
+  _origin: {fileID: 1424311628}
+--- !u!114 &1242737595798173657
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1242737595798173651}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a10e9d254b781144ba17ec92adf3134, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CrateExpectations.Player::CrateExpectations.Player.Combat.MeleeImpactEffects
+  _attack: {fileID: 1242737595798173656}
+  _pool: {fileID: 602276355}
+--- !u!114 &1242737595798173658
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1242737595798173651}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9307041de90658b48bf556289d502bac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CrateExpectations.Player::CrateExpectations.Player.Combat.MeleeHitStop
+  _attack: {fileID: 1242737595798173656}
+  _weapon: {fileID: 1242737595798173652}
+--- !u!114 &1242737595798173659
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1242737595798173651}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4fed778401154654b851b2bb3947dc12, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CrateExpectations.Player::CrateExpectations.Player.Combat.MeleeAudio
+  _attack: {fileID: 1242737595798173656}
+  _weapon: {fileID: 1242737595798173652}
+  _swingPitchSpread: 0.1
+--- !u!82 &1242737595798173660
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1242737595798173651}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 0
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &1247619218556058891
 GameObject:
   m_ObjectHideFlags: 0
@@ -24033,3 +24333,5 @@ SceneRoots:
   - {fileID: 32665960}
   - {fileID: 527166431}
   - {fileID: 803311246}
+  - {fileID: 1173350791}
+  - {fileID: 602276356}

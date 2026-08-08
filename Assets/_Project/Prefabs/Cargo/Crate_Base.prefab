@@ -103,6 +103,7 @@ GameObject:
   - component: {fileID: 522167147886400601}
   - component: {fileID: 6462352048260162191}
   - component: {fileID: 1527413619253899131}
+  - component: {fileID: 8822003470042812308}
   m_Layer: 10
   m_Name: Crate_Base
   m_TagString: Untagged
@@ -204,6 +205,19 @@ MonoBehaviour:
   - {fileID: 723148557806996995}
   _iconRenderer: {fileID: 1702848185468369866}
   _stampAnchor: {fileID: 8588923155210896405}
+--- !u!114 &8822003470042812308
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2082463169096779889}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6822ce97b4c930f43a45a153fa7de90c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CrateExpectations.Combat::CrateExpectations.Combat.PhysicsHitReceiver
+  _lift: 0.35
 --- !u!1 &4542687904091766377
 GameObject:
   m_ObjectHideFlags: 0

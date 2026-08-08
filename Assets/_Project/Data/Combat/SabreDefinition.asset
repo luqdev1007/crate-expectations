@@ -33,4 +33,18 @@ MonoBehaviour:
   <SheatheDuration>k__BackingField: 0.25
   <AttackDuration>k__BackingField: 0.55
   <Swing>k__BackingField: {fileID: 11400000, guid: 4b22761c949f95f40af919285fbf6491, type: 2}
+  <SweepRadius>k__BackingField: 0.35
+  <SweepDistance>k__BackingField: 2.2
+  <SweepHeight>k__BackingField: 0
+  <HitMask>k__BackingField:
+    serializedVersion: 2
+    m_Bits: 1793
+  <SweepStart>k__BackingField: 0.35
+  <SweepEnd>k__BackingField: 0.6
+  <SweepSamples>k__BackingField: 6
+  <Damage>k__BackingField: 1
+  <Impulse>k__BackingField: 6
+  <SwingSound>k__BackingField: {fileID: 8300000, guid: 683b9496e80d1a44186f4c321bf82ff8, type: 3}
+  <HitSound>k__BackingField: {fileID: 8300000, guid: 8bec408e5b18e164bb802cbac3f86390, type: 3}
+  <Feedback>k__BackingField: {fileID: 11400000, guid: fd26f599e20c30745a2821857873f2c8, type: 2}
   <BladeLength>k__BackingField: 0.76
