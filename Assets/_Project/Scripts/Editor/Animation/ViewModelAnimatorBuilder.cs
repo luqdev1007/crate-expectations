@@ -9,38 +9,42 @@ namespace CrateExpectations.EditorTools.Animation
     /// <see cref="PlayerAnimatorBuilder"/>: граф руками не кликается, пересборка воспроизводима,
     /// изменения структуры читаются в диффе как код.
     /// <para>
-    /// Контроллер отдельный от тела, потому что скелеты разные. У тела - полный гуманоид
-    /// JC с TPS-клипами; у вьюмодели - Generic-риг из одних рук, и его клипы авторены сразу
-    /// под первое лицо. Общий контроллер тут невозможен физически: клип с одного рига на
-    /// другой не ложится. Одинаковым остаётся только набор параметров - их раздаёт
-    /// <c>PlayerAnimatorDriver</c>, и знать про два разных графа он не должен.
+    /// Контроллер отдельный от тела, потому что клипы авторены под разные задачи. У тела -
+    /// TPS-пак, снятый с камеры за спиной; у вьюмодели - FPP-пак, снятый из глаза. Скелет
+    /// теперь общий (оба гуманоидные), но подставить клип из одного пака в другой всё равно
+    /// нельзя: композиция кадра в FPP-клипе зашита в саму анимацию. Одинаковым остаётся
+    /// только набор параметров - их раздаёт <c>PlayerAnimatorDriver</c>, и знать про два
+    /// разных графа он не должен.
     /// </para>
     /// <para>
     /// Стойка в кадре одна на оба состояния: отдельной безоружной стойки от первого лица
-    /// в исходном паке нет, а руки без сабли всё равно спрятаны (<c>ViewModelBody</c>).
+    /// в паке нет, а руки без сабли всё равно спрятаны (<c>ViewModelBody</c>).
     /// Стейт <c>Idle</c> существует ради кроссфейда доставания - именно переход между
     /// стойками и читается как "достал" / "убрал".
+    /// </para>
+    /// <para>
+    /// Взмах один. Чередование двух ударов (<c>SlashAlternate</c>) сюда не переехало: в паке
+    /// есть и второй замах, <c>FPP_Longs_Attack_R</c>, но пока он в граф не поставлен, а
+    /// параметр без второго стейта переключал бы удар сам в себя. Драйвер отсутствие
+    /// параметра переживает - он спрашивает контроллер, есть ли такой, и молчит, если нет.
     /// </para>
     /// </summary>
     public static class ViewModelAnimatorBuilder
     {
         private const string AnimationsFolder = "Assets/_Project/Art/Animations/ViewModel";
         private const string ControllerPath = AnimationsFolder + "/ViewModelCombat.controller";
-        private const string ArmsModelPath = AnimationsFolder + "/Arms.fbx";
 
-        // Имена тейков внутри FBX. Префикс - имя арматуры в Blender, менять его переименованием
-        // клипа при импорте не стали: так имя в проекте совпадает с именем в исходнике,
-        // и найти клип в чужом паке можно поиском по одной строке
-        private const string IdleClipName = "CharacterArmature|Sword_Idle";
-        private const string FirstSlashClipName = "CharacterArmature|Sword_Slash1";
-        private const string SecondSlashClipName = "CharacterArmature|Sword_Slash2";
+        // Клипы FPP-пака: один FBX - один клип. Держать их в отдельных файлах не наш выбор,
+        // так пак собран; зато путь к клипу читается без знания имён тейков внутри
+        private const string FppFolder = AnimationsFolder + "/FPP";
+        private const string IdleModelPath = FppFolder + "/FPP_Longs_Idle.fbx";
+        private const string AttackModelPath = FppFolder + "/FPP_Longs_Attack_D.fbx";
 
         // Имена параметров дублируются в PlayerAnimatorDriver: там они хешируются,
         // здесь - объявляются. Третьего места, где они встречаются, быть не должно
         private const string IsArmedParameter = "IsArmed";
         private const string AttackParameter = "Attack";
         private const string AttackSpeedParameter = "AttackSpeed";
-        private const string SlashAlternateParameter = "SlashAlternate";
 
         /// <summary>Длительность кроссфейда стойки, с. Держать равной DrawDuration оружия</summary>
         private const float StanceCrossfade = 0.25f;
@@ -56,11 +60,10 @@ namespace CrateExpectations.EditorTools.Animation
         [MenuItem("Tools/Crate Expectations/Rebuild View Model Animator")]
         public static void Rebuild()
         {
-            AnimationClip idleClip = LoadClip(ArmsModelPath, IdleClipName);
-            AnimationClip firstSlashClip = LoadClip(ArmsModelPath, FirstSlashClipName);
-            AnimationClip secondSlashClip = LoadClip(ArmsModelPath, SecondSlashClipName);
+            AnimationClip idleClip = LoadClip(IdleModelPath);
+            AnimationClip attackClip = LoadClip(AttackModelPath);
 
-            if (idleClip == null || firstSlashClip == null || secondSlashClip == null)
+            if (idleClip == null || attackClip == null)
                 return;
 
             // Пересобираем с нуля, а не правим существующий: иначе в графе копились бы
@@ -72,13 +75,7 @@ namespace CrateExpectations.EditorTools.Animation
             controller.AddParameter(IsArmedParameter, AnimatorControllerParameterType.Bool);
             controller.AddParameter(AttackParameter, AnimatorControllerParameterType.Trigger);
 
-            // Какой из двух клипов взмаха играть. Переключает драйвер перед тем, как дёрнуть
-            // триггер: чередование - это решение о том, чем отыграть удар, и принимать его
-            // должен тот, кто про удар узнаёт, а не граф. Сам граф чередовать не умеет -
-            // два перехода по одному триггеру он разрешает всегда в пользу первого
-            AddBool(controller, SlashAlternateParameter, false);
-
-            // Множитель скорости стейтов взмаха. Единственный способ подчинить длину клипа
+            // Множитель скорости стейта взмаха. Единственный способ подчинить длину клипа
             // числу из ассета оружия, не трогая сам клип
             AddFloat(controller, AttackSpeedParameter, 1f);
 
@@ -93,31 +90,25 @@ namespace CrateExpectations.EditorTools.Animation
             AnimatorState combatIdle = root.AddState("CombatIdle", new Vector3(200f, 0f, 0f));
             combatIdle.motion = idleClip;
 
-            AnimatorState firstSlash = AddSlashState(root, "Attack1", firstSlashClip, new Vector3(200f, 140f, 0f));
-            AnimatorState secondSlash = AddSlashState(root, "Attack2", secondSlashClip, new Vector3(200f, 240f, 0f));
+            AnimatorState attack = root.AddState("Attack", new Vector3(200f, 140f, 0f));
+            attack.motion = attackClip;
+            attack.speedParameterActive = true;
+            attack.speedParameter = AttackSpeedParameter;
 
             root.defaultState = idle;
 
             // Стойка переключается сразу по флагу: ждать конца цикла idle означало бы
-            // задержку до трёх с лишним секунд между нажатием и реакцией
+            // задержку до четырёх с лишним секунд между нажатием и реакцией
             Crossfade(idle, combatIdle, StanceCrossfade)
                 .AddCondition(AnimatorConditionMode.If, 0f, IsArmedParameter);
 
             Crossfade(combatIdle, idle, StanceCrossfade)
                 .AddCondition(AnimatorConditionMode.IfNot, 0f, IsArmedParameter);
 
-            // Оба перехода висят на одном триггере и разведены только флагом. Триггер
-            // потребит тот из них, чьё условие сошлось, - второй не выстрелит
-            AnimatorStateTransition toFirst = Crossfade(combatIdle, firstSlash, AttackBlendIn);
-            toFirst.AddCondition(AnimatorConditionMode.If, 0f, AttackParameter);
-            toFirst.AddCondition(AnimatorConditionMode.IfNot, 0f, SlashAlternateParameter);
+            Crossfade(combatIdle, attack, AttackBlendIn)
+                .AddCondition(AnimatorConditionMode.If, 0f, AttackParameter);
 
-            AnimatorStateTransition toSecond = Crossfade(combatIdle, secondSlash, AttackBlendIn);
-            toSecond.AddCondition(AnimatorConditionMode.If, 0f, AttackParameter);
-            toSecond.AddCondition(AnimatorConditionMode.If, 0f, SlashAlternateParameter);
-
-            ReturnToStance(firstSlash, combatIdle);
-            ReturnToStance(secondSlash, combatIdle);
+            ReturnToStance(attack, combatIdle);
 
             EditorUtility.SetDirty(controller);
             AssetDatabase.SaveAssets();
@@ -125,16 +116,6 @@ namespace CrateExpectations.EditorTools.Animation
 
             Debug.Log($"Контроллер вьюмодели пересобран: {ControllerPath}",
                 AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath));
-        }
-
-        private static AnimatorState AddSlashState(
-            AnimatorStateMachine root, string name, AnimationClip clip, Vector3 position)
-        {
-            AnimatorState state = root.AddState(name, position);
-            state.motion = clip;
-            state.speedParameterActive = true;
-            state.speedParameter = AttackSpeedParameter;
-            return state;
         }
 
         /// <summary>
@@ -164,16 +145,6 @@ namespace CrateExpectations.EditorTools.Animation
             return transition;
         }
 
-        private static void AddBool(AnimatorController controller, string name, bool defaultValue)
-        {
-            controller.AddParameter(new AnimatorControllerParameter
-            {
-                name = name,
-                type = AnimatorControllerParameterType.Bool,
-                defaultBool = defaultValue,
-            });
-        }
-
         private static void AddFloat(AnimatorController controller, string name, float defaultValue)
         {
             controller.AddParameter(new AnimatorControllerParameter
@@ -185,21 +156,18 @@ namespace CrateExpectations.EditorTools.Animation
         }
 
         /// <summary>
-        /// Достаёт клип из FBX по имени тейка. Клипов в этом файле девять, поэтому "первый
-        /// попавшийся", как в контроллере тела, здесь не годится - нужен именно названный
+        /// Достаёт единственный клип из FBX. Искать по имени тейка, как раньше, больше незачем:
+        /// в FPP-паке на файл приходится ровно одна анимация, и её имя повторяет имя файла
         /// </summary>
-        private static AnimationClip LoadClip(string modelPath, string clipName)
+        private static AnimationClip LoadClip(string modelPath)
         {
-            Object[] contents = AssetDatabase.LoadAllAssetRepresentationsAtPath(modelPath);
-
-            foreach (Object asset in contents)
+            foreach (Object asset in AssetDatabase.LoadAllAssetRepresentationsAtPath(modelPath))
             {
-                if (asset is AnimationClip clip && clip.name == clipName)
+                if (asset is AnimationClip clip)
                     return clip;
             }
 
-            Debug.LogError($"В '{modelPath}' нет клипа '{clipName}'. " +
-                           "Контроллер вьюмодели не пересобран.");
+            Debug.LogError($"В '{modelPath}' нет анимации. Контроллер вьюмодели не пересобран.");
             return null;
         }
     }

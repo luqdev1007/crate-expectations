@@ -22,12 +22,12 @@ MonoBehaviour:
     RotationZ: -86.9
     Scale: 0.55
   <ViewModelSocket>k__BackingField:
-    PositionX: -0.0066
-    PositionY: 0.1093
-    PositionZ: -0.0544
-    RotationX: -41.032
-    RotationY: -1.556
-    RotationZ: -84.079
+    PositionX: 0
+    PositionY: 0
+    PositionZ: 0
+    RotationX: 90
+    RotationY: 0
+    RotationZ: 0
     Scale: 0.7
   <DrawDuration>k__BackingField: 0.25
   <SheatheDuration>k__BackingField: 0.25
