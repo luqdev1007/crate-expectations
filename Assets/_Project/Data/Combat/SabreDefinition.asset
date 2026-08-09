@@ -26,9 +26,9 @@ MonoBehaviour:
     PositionX: 0
     PositionY: 0
     PositionZ: 0
-    RotationX: 90
+    RotationX: -90
     RotationY: 0
-    RotationZ: 0
+    RotationZ: 180
     Scale: 0.7
   <DrawDuration>k__BackingField: 0.25
   <SheatheDuration>k__BackingField: 0.25

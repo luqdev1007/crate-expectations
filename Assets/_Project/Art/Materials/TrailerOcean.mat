@@ -133,22 +133,22 @@ Material:
     - _FlowSpeed: 1
     - _FoamOn: 0
     - _FoamOpacity: 1
-    - _FoamSize: 0.01
-    - _FoamSpeed: 0.1
-    - _FoamTiling: 0.19999993
+    - _FoamSize: 0.028
+    - _FoamSpeed: 0.14
+    - _FoamTiling: 0.16
     - _FoamWaveMask: 1
-    - _FoamWaveMaskExp: 2.37
+    - _FoamWaveMaskExp: 2.6
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
     - _HorizonDistance: 32
     - _IntersectionClipping: 0.583
-    - _IntersectionFalloff: 1
-    - _IntersectionLength: 1
+    - _IntersectionFalloff: 1.2
+    - _IntersectionLength: 2.2
     - _IntersectionRippleDist: 20
-    - _IntersectionRippleStrength: 0.53
+    - _IntersectionRippleStrength: 0.7
     - _IntersectionSize: 0.944
-    - _IntersectionSource: 0
+    - _IntersectionSource: 1
     - _IntersectionSpeed: 0.1
     - _IntersectionStyle: 1
     - _IntersectionTiling: 1
@@ -186,7 +186,7 @@ Material:
     - _SimpleLighting: 1
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
-    - _SparkleIntensity: 0
+    - _SparkleIntensity: 0.3
     - _SparkleSize: 0.155
     - _SpecularHighlights: 1
     - _SrcBlend: 1
@@ -201,7 +201,7 @@ Material:
     - _Translucency: 1
     - _WaveCount: 5
     - _WaveDistance: 0.959
-    - _WaveHeight: 0.55
+    - _WaveHeight: 0.85
     - _WaveNormalStr: 6
     - _WaveSpeed: 1.6
     - _WaveSteepness: 0.12
