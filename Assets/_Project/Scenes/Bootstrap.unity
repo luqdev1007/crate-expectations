@@ -16431,6 +16431,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 13
       objectReference: {fileID: 0}
+    - target: {fileID: 5207621515443197526, guid: 6978fff613090774584eb67036563d5e, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5316907376550331651, guid: 6978fff613090774584eb67036563d5e, type: 3}
       propertyPath: m_TextStyleHashCode
       value: -1183493901
