@@ -26,6 +26,8 @@ namespace CrateExpectations.Player
         public event Action ViewContract;
         public event Action ToggleWeapon;
         public event Action Attack;
+        public event Action BlockPressed;
+        public event Action BlockReleased;
         public event Action SaveGame;
         public event Action LoadGame;
 
@@ -83,6 +85,16 @@ namespace CrateExpectations.Player
         {
             if (context.performed)
                 Attack?.Invoke();
+        }
+
+        void PlayerControls.IPlayerActions.OnBlock(InputAction.CallbackContext context)
+        {
+            // Блок - единственное действие с удержанием, поэтому здесь нужны обе фазы,
+            // а не только performed, как у остальных
+            if (context.performed)
+                BlockPressed?.Invoke();
+            else if (context.canceled)
+                BlockReleased?.Invoke();
         }
 
         void PlayerControls.IPlayerActions.OnSaveGame(InputAction.CallbackContext context)

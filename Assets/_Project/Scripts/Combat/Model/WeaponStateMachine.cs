@@ -19,6 +19,14 @@ namespace CrateExpectations.Combat
         private readonly IState _ready;
         private readonly WeaponTimedState _attacking;
         private readonly IState _sheathing;
+        private readonly WeaponTimedState _blockRaise;
+        private readonly IState _blocking;
+        private readonly WeaponTimedState _blockLower;
+
+        // Кнопку блока могли отпустить ещё на подъёме клинка. Дожимать подъём до конца
+        // всё равно надо - иначе поза оборвётся на середине, - поэтому намерение
+        // запоминается и проверяется в тот момент, когда подъём закончился
+        private bool _blockHeld;
 
         /// <summary>С какой доли текущего удара его разрешено прервать следующим</summary>
         private float _cancelAfter = 1f;
@@ -36,9 +44,24 @@ namespace CrateExpectations.Combat
         /// Можно ли ударить прямо сейчас. Из стойки - всегда; посреди удара - только
         /// когда тот дошёл до своего окна отмены
         /// </summary>
+        /// <summary>
+        /// Можно ли ударить прямо сейчас. Из стойки - всегда; посреди удара - только
+        /// когда тот дошёл до своего окна отмены.
+        /// <para>
+        /// Блок в этот список не входит намеренно: пока клинок поднят, опущен или стоит
+        /// в блоке, удара нет. Запрет живёт здесь, а не в контроллере ввода, потому что
+        /// это правило боя, а не свойство кнопки.
+        /// </para>
+        /// </summary>
         public bool CanAttack =>
             State == WeaponState.Ready ||
             (State == WeaponState.Attacking && _attacking.Progress >= _cancelAfter);
+
+        /// <summary>Держит ли игрок блок прямо сейчас - в любой из трёх его фаз</summary>
+        public bool IsBlocking =>
+            State == WeaponState.BlockRaise ||
+            State == WeaponState.Blocking ||
+            State == WeaponState.BlockLower;
 
         public event Action<WeaponState> StateChanged;
 
@@ -65,6 +88,20 @@ namespace CrateExpectations.Combat
 
             // Длительность удара ставится на каждый вход: она своя у каждого приёма
             _attacking = new WeaponTimedState(0f, null, () => Enter(WeaponState.Ready));
+
+            // Удержание - состояние без времени: из него выводит не таймер, а отпущенная
+            // кнопка. Подъём и опускание, наоборот, идут ровно столько, сколько длится клип
+            _blocking = new WeaponRestState();
+
+            _blockRaise = new WeaponTimedState(
+                timings.BlockRaiseDuration,
+                null,
+                () => Enter(_blockHeld ? WeaponState.Blocking : WeaponState.BlockLower));
+
+            _blockLower = new WeaponTimedState(
+                timings.BlockLowerDuration,
+                null,
+                () => Enter(WeaponState.Ready));
 
             State = WeaponState.Sheathed;
             _machine.ChangeState(_sheathed);
@@ -116,6 +153,30 @@ namespace CrateExpectations.Combat
             return true;
         }
 
+        /// <summary>
+        /// Игрок зажал блок. Из стойки клинок идёт вверх; из любого другого состояния
+        /// нажатие проглатывается - блок посреди удара это уже парирование, а его в проекте нет
+        /// </summary>
+        public void RaiseBlock()
+        {
+            _blockHeld = true;
+
+            if (State == WeaponState.Ready)
+                Enter(WeaponState.BlockRaise);
+        }
+
+        /// <summary>
+        /// Игрок отпустил блок. С удержания клинок опускается сразу, а вот подъём
+        /// прерывать нечем: он доигрывает и уходит вниз сам, увидев снятое намерение
+        /// </summary>
+        public void LowerBlock()
+        {
+            _blockHeld = false;
+
+            if (State == WeaponState.Blocking)
+                Enter(WeaponState.BlockLower);
+        }
+
         public void Tick(float deltaTime) => _machine.Tick(deltaTime);
 
         private void Enter(WeaponState next)
@@ -145,6 +206,9 @@ namespace CrateExpectations.Combat
                 case WeaponState.Ready: return _ready;
                 case WeaponState.Attacking: return _attacking;
                 case WeaponState.Sheathing: return _sheathing;
+                case WeaponState.BlockRaise: return _blockRaise;
+                case WeaponState.Blocking: return _blocking;
+                case WeaponState.BlockLower: return _blockLower;
                 default: return _sheathed;
             }
         }

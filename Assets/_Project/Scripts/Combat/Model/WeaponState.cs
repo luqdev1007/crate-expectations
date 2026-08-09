@@ -20,5 +20,14 @@ namespace CrateExpectations.Combat
 
         /// <summary>Убирает: идёт переход в обычную стойку</summary>
         Sheathing,
+
+        /// <summary>Поднимает клинок в блок</summary>
+        BlockRaise,
+
+        /// <summary>Держит блок, пока зажата кнопка</summary>
+        Blocking,
+
+        /// <summary>Опускает клинок из блока</summary>
+        BlockLower,
     }
 }

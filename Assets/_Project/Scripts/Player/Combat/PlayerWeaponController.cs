@@ -109,6 +109,8 @@ namespace CrateExpectations.Player.Combat
         {
             _input.ToggleWeapon += OnToggleWeaponPressed;
             _input.Attack += OnAttackPressed;
+            _input.BlockPressed += OnBlockPressed;
+            _input.BlockReleased += OnBlockReleased;
         }
 
         private void OnDestroy()
@@ -118,6 +120,8 @@ namespace CrateExpectations.Player.Combat
 
             _input.ToggleWeapon -= OnToggleWeaponPressed;
             _input.Attack -= OnAttackPressed;
+            _input.BlockPressed -= OnBlockPressed;
+            _input.BlockReleased -= OnBlockReleased;
         }
 
         private void OnToggleWeaponPressed()
@@ -139,8 +143,18 @@ namespace CrateExpectations.Player.Combat
         /// долю секунды - решает <see cref="TryStartBufferedAttack"/>, и от этого решения
         /// не должно зависеть, каким ударом он окажется: направление снимается здесь
         /// </summary>
+        private void OnBlockPressed() => _machine.RaiseBlock();
+
+        private void OnBlockReleased() => _machine.LowerBlock();
+
         private void OnAttackPressed()
         {
+            // Нажатие во время блока не буферизуется, а пропадает: иначе оно выстрелило бы
+            // ударом в тот момент, когда игрок опустил клинок, - через полсекунды после
+            // того, как отпустил кнопку
+            if (_machine.IsBlocking)
+                return;
+
             _buffer.Press();
             _pendingDirection = AttackSelector.ResolveDirection(_input.MoveInput, IsAirborne());
         }

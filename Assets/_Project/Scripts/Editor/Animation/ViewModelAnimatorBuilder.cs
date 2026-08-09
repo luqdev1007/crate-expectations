@@ -33,6 +33,13 @@ namespace CrateExpectations.EditorTools.Animation
         private const string ControllerPath = AnimationsFolder + "/ViewModelCombat.controller";
         private const string IdleModelPath = AnimationsFolder + "/FPP/FPP_sns_Idle.fbx";
 
+        // Блок - три клипа одной позы: поставил, держит, снял. Отдельно от приёмов:
+        // это не удар, у него нет ни окна, ни объёма, ни импульса, и в AttackSet
+        // ему делать нечего
+        private const string BlockRaiseModelPath = AnimationsFolder + "/FPP/FPP_sns_SwordBlockStart.fbx";
+        private const string BlockLoopModelPath = AnimationsFolder + "/FPP/FPP_sns_SwordBlockLoop.fbx";
+        private const string BlockLowerModelPath = AnimationsFolder + "/FPP/FPP_sns_SwordBlockStop.fbx";
+
         /// <summary>Чей граф собираем. Приёмы берутся из раскладки этого оружия</summary>
         private const string WeaponPath = "Assets/_Project/Data/Combat/SabreDefinition.asset";
 
@@ -42,6 +49,7 @@ namespace CrateExpectations.EditorTools.Animation
         private const string AttackParameter = "Attack";
         private const string AttackSpeedParameter = "AttackSpeed";
         private const string AttackIndexParameter = "AttackIndex";
+        private const string BlockPhaseParameter = "BlockPhase";
 
         /// <summary>Длительность кроссфейда стойки, с. Держать равной DrawDuration оружия</summary>
         private const float StanceCrossfade = 0.25f;
@@ -53,6 +61,9 @@ namespace CrateExpectations.EditorTools.Animation
         private const float AttackExitTime = 0.85f;
 
         private const float AttackBlendOut = 0.15f;
+
+        /// <summary>Вход и выход из блока, с. Короче кроссфейда стойки: блок ставят резко</summary>
+        private const float BlockBlend = 0.08f;
 
         [MenuItem("Tools/Crate Expectations/Rebuild View Model Animator")]
         public static void Rebuild()
@@ -98,6 +109,10 @@ namespace CrateExpectations.EditorTools.Animation
             // выбирает порядок переходов в графе, а не тот, кто нажал
             controller.AddParameter(AttackIndexParameter, AnimatorControllerParameterType.Int);
 
+            // Фаза блока числом, а не тремя булями: фазы взаимоисключающие, и два
+            // поднятых флага означали бы, что позу выбирает порядок переходов в графе
+            controller.AddParameter(BlockPhaseParameter, AnimatorControllerParameterType.Int);
+
             AnimatorStateMachine root = controller.layers[0].stateMachine;
             root.entryPosition = new Vector3(-260f, 0f, 0f);
             root.anyStatePosition = new Vector3(-260f, 120f, 0f);
@@ -124,6 +139,8 @@ namespace CrateExpectations.EditorTools.Animation
             for (int i = 0; i < attacks.Count; i++)
                 if (AddAttack(root, combatIdle, attacks[i], i))
                     built++;
+
+            AddBlock(root, combatIdle);
 
             EditorUtility.SetDirty(controller);
             AssetDatabase.SaveAssets();
@@ -198,6 +215,59 @@ namespace CrateExpectations.EditorTools.Animation
             ReturnToStance(state, stance);
 
             return true;
+        }
+
+        /// <summary>
+        /// Ставит блок: постановка - удержание - снятие.
+        /// <para>
+        /// Вход в постановку идёт из Any State по той же причине, что и у ударов: блок
+        /// можно поставить не только из стойки, а перечислять источники переходами значило бы
+        /// держать в графе связь от каждого состояния. Дальше цепочка идёт по фазе, которую
+        /// пишет драйвер: сам граф ничего не решает и время не считает - фазы переключает
+        /// машина состояний, она же владелец таймингов.
+        /// </para>
+        /// </summary>
+        private static void AddBlock(AnimatorStateMachine root, AnimatorState stance)
+        {
+            AnimationClip raiseClip = LoadClip(BlockRaiseModelPath);
+            AnimationClip loopClip = LoadClip(BlockLoopModelPath);
+            AnimationClip lowerClip = LoadClip(BlockLowerModelPath);
+
+            if (raiseClip == null || loopClip == null || lowerClip == null)
+                return;
+
+            AnimatorState raise = root.AddState("BlockRaise", new Vector3(-40f, 140f, 0f));
+            raise.motion = raiseClip;
+
+            AnimatorState hold = root.AddState("Blocking", new Vector3(-40f, 210f, 0f));
+            hold.motion = loopClip;
+
+            AnimatorState lower = root.AddState("BlockLower", new Vector3(-40f, 280f, 0f));
+            lower.motion = lowerClip;
+
+            Phase(root.AddAnyStateTransition(raise), 1);
+
+            // Между фазами переходим по параметру, а не по exit time: клип постановки
+            // и число в ассете оружия могут разойтись, и хозяином тайминга должна остаться
+            // машина состояний, иначе поза и логика разъедутся
+            Phase(raise.AddTransition(hold), 2);
+            Phase(raise.AddTransition(lower), 3);
+            Phase(hold.AddTransition(lower), 3);
+
+            AnimatorStateTransition back = lower.AddTransition(stance);
+            back.hasExitTime = false;
+            back.hasFixedDuration = true;
+            back.duration = BlockBlend;
+            back.AddCondition(AnimatorConditionMode.Equals, 0, BlockPhaseParameter);
+        }
+
+        private static void Phase(AnimatorStateTransition transition, int phase)
+        {
+            transition.hasExitTime = false;
+            transition.hasFixedDuration = true;
+            transition.duration = BlockBlend;
+            transition.canTransitionToSelf = false;
+            transition.AddCondition(AnimatorConditionMode.Equals, phase, BlockPhaseParameter);
         }
 
         /// <summary>

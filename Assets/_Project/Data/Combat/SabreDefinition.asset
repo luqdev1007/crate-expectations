@@ -32,6 +32,8 @@ MonoBehaviour:
     Scale: 0.7
   <DrawDuration>k__BackingField: 0.25
   <SheatheDuration>k__BackingField: 0.25
+  <BlockRaiseDuration>k__BackingField: 0.883
+  <BlockLowerDuration>k__BackingField: 1
   <Swing>k__BackingField: {fileID: 11400000, guid: 4b22761c949f95f40af919285fbf6491, type: 2}
   <HitMask>k__BackingField:
     serializedVersion: 2

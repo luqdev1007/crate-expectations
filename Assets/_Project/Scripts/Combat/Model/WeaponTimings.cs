@@ -12,10 +12,14 @@ namespace CrateExpectations.Combat
     /// </summary>
     public readonly struct WeaponTimings
     {
-        public WeaponTimings(float drawDuration, float sheatheDuration)
+        public WeaponTimings(
+            float drawDuration, float sheatheDuration,
+            float blockRaiseDuration = 0.2f, float blockLowerDuration = 0.2f)
         {
             DrawDuration = drawDuration;
             SheatheDuration = sheatheDuration;
+            BlockRaiseDuration = blockRaiseDuration;
+            BlockLowerDuration = blockLowerDuration;
         }
 
         /// <summary>Сколько длится доставание, с</summary>
@@ -23,5 +27,11 @@ namespace CrateExpectations.Combat
 
         /// <summary>Сколько длится убирание, с</summary>
         public float SheatheDuration { get; }
+
+        /// <summary>Сколько длится подъём клинка в блок, с</summary>
+        public float BlockRaiseDuration { get; }
+
+        /// <summary>Сколько длится опускание клинка из блока, с</summary>
+        public float BlockLowerDuration { get; }
     }
 }

@@ -192,6 +192,15 @@ namespace CrateExpectations.Player.Input
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Block"",
+                    ""type"": ""Button"",
+                    ""id"": ""1c4b7e30-2a51-4d18-9f6c-5b8e0c7a91d4"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -436,6 +445,17 @@ namespace CrateExpectations.Player.Input
                     ""action"": ""Attack"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""3f9d2c81-64ba-4e07-8d13-7c2a5e9b04af"",
+                    ""path"": ""<Mouse>/rightButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Block"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -455,6 +475,7 @@ namespace CrateExpectations.Player.Input
             m_Player_ViewContract = m_Player.FindAction("ViewContract", throwIfNotFound: true);
             m_Player_ToggleWeapon = m_Player.FindAction("ToggleWeapon", throwIfNotFound: true);
             m_Player_Attack = m_Player.FindAction("Attack", throwIfNotFound: true);
+            m_Player_Block = m_Player.FindAction("Block", throwIfNotFound: true);
         }
 
         ~@PlayerControls()
@@ -546,6 +567,7 @@ namespace CrateExpectations.Player.Input
         private readonly InputAction m_Player_ViewContract;
         private readonly InputAction m_Player_ToggleWeapon;
         private readonly InputAction m_Player_Attack;
+        private readonly InputAction m_Player_Block;
         /// <summary>
         /// Provides access to input actions defined in input action map "Player".
         /// </summary>
@@ -601,6 +623,10 @@ namespace CrateExpectations.Player.Input
             /// Provides access to the underlying input action "Player/Attack".
             /// </summary>
             public InputAction @Attack => m_Wrapper.m_Player_Attack;
+            /// <summary>
+            /// Provides access to the underlying input action "Player/Block".
+            /// </summary>
+            public InputAction @Block => m_Wrapper.m_Player_Block;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -660,6 +686,9 @@ namespace CrateExpectations.Player.Input
                 @Attack.started += instance.OnAttack;
                 @Attack.performed += instance.OnAttack;
                 @Attack.canceled += instance.OnAttack;
+                @Block.started += instance.OnBlock;
+                @Block.performed += instance.OnBlock;
+                @Block.canceled += instance.OnBlock;
             }
 
             /// <summary>
@@ -704,6 +733,9 @@ namespace CrateExpectations.Player.Input
                 @Attack.started -= instance.OnAttack;
                 @Attack.performed -= instance.OnAttack;
                 @Attack.canceled -= instance.OnAttack;
+                @Block.started -= instance.OnBlock;
+                @Block.performed -= instance.OnBlock;
+                @Block.canceled -= instance.OnBlock;
             }
 
             /// <summary>
@@ -821,6 +853,13 @@ namespace CrateExpectations.Player.Input
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnAttack(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Block" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnBlock(InputAction.CallbackContext context);
         }
     }
 }

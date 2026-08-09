@@ -52,6 +52,14 @@ namespace CrateExpectations.Combat
         [Tooltip("Убирание, с. Оружие исчезает из руки на середине этого времени")]
         [field: SerializeField][Min(0f)] public float SheatheDuration { get; private set; } = 0.25f;
 
+        [Header("Блок")]
+        [Tooltip("Подъём клинка в блок, с. Держать равным длине клипа постановки, " +
+                 "иначе поза оборвётся на середине")]
+        [field: SerializeField][Min(0f)] public float BlockRaiseDuration { get; private set; } = 0.25f;
+
+        [Tooltip("Опускание клинка из блока, с")]
+        [field: SerializeField][Min(0f)] public float BlockLowerDuration { get; private set; } = 0.25f;
+
         [Header("Дуга взмаха")]
         [Tooltip("Чем машут вьюмоделью, когда включена процедурная дуга. Ассет отдельный: " +
                  "дуга - это числа кадра, а не оружия, и переживёт замену сабли на топор")]
@@ -90,6 +98,7 @@ namespace CrateExpectations.Combat
         [field: SerializeField][Min(0f)] public float BladeLength { get; private set; } = 0.76f;
 
         /// <summary>Тайминги в виде значения - то, с чем работает <see cref="WeaponStateMachine"/></summary>
-        public WeaponTimings Timings => new(DrawDuration, SheatheDuration);
+        public WeaponTimings Timings =>
+            new(DrawDuration, SheatheDuration, BlockRaiseDuration, BlockLowerDuration);
     }
 }

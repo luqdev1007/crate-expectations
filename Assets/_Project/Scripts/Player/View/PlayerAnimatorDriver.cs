@@ -26,11 +26,16 @@ namespace CrateExpectations.Player.View
     public sealed class PlayerAnimatorDriver : MonoBehaviour
     {
         private const string AttackIndexName = "AttackIndex";
+        private const string BlockPhaseName = "BlockPhase";
 
         private static readonly int IsArmedId = Animator.StringToHash("IsArmed");
         private static readonly int AttackId = Animator.StringToHash("Attack");
         private static readonly int AttackSpeedId = Animator.StringToHash("AttackSpeed");
         private static readonly int AttackIndexId = Animator.StringToHash(AttackIndexName);
+
+        // Одно число на три фазы вместо трёх флагов: фазы взаимоисключающие, и двумя
+        // одновременно поднятыми флагами выбор стейта достался бы порядку переходов в графе
+        private static readonly int BlockPhaseId = Animator.StringToHash(BlockPhaseName);
 
         /// <summary>
         /// Аниматор и то, чем он отличается от соседа. Пара, а не два параллельных массива:
@@ -59,6 +64,9 @@ namespace CrateExpectations.Player.View
             /// в консоль на каждый удар
             /// </summary>
             [NonSerialized] public bool SupportsAttackIndex;
+
+            /// <summary>Знает ли граф про блок. У тела клипов блока нет</summary>
+            [NonSerialized] public bool SupportsBlock;
         }
 
         [Tooltip("Чьи состояния отыгрываем")]
@@ -97,6 +105,7 @@ namespace CrateExpectations.Player.View
                 animator.applyRootMotion = false;
 
                 _animators[i].SupportsAttackIndex = HasParameter(animator, AttackIndexName);
+                _animators[i].SupportsBlock = HasParameter(animator, BlockPhaseName);
             }
         }
 
@@ -129,6 +138,7 @@ namespace CrateExpectations.Player.View
         private void OnWeaponStateChanged(WeaponState state)
         {
             SetBool(IsArmedId, IsArmed(state));
+            SetBlockPhase(state);
 
             if (state == WeaponState.Attacking)
             {
@@ -196,6 +206,31 @@ namespace CrateExpectations.Player.View
             target.Animator.SetFloat(AttackSpeedId, clip.length / attack.Duration);
         }
 
+        /// <summary>
+        /// Фаза блока числом: 0 - блока нет, 1 - подъём, 2 - удержание, 3 - опускание.
+        /// Пишется только тем графам, которые про блок знают, - у тела такого параметра
+        /// нет, и запись несуществующего дала бы варнинг на каждое нажатие
+        /// </summary>
+        private void SetBlockPhase(WeaponState state)
+        {
+            int phase = BlockPhase(state);
+
+            foreach (AnimatorTarget target in _animators)
+                if (target.Animator != null && target.SupportsBlock)
+                    target.Animator.SetInteger(BlockPhaseId, phase);
+        }
+
+        private static int BlockPhase(WeaponState state)
+        {
+            switch (state)
+            {
+                case WeaponState.BlockRaise: return 1;
+                case WeaponState.Blocking: return 2;
+                case WeaponState.BlockLower: return 3;
+                default: return 0;
+            }
+        }
+
         private void SetBool(int id, bool value)
         {
             foreach (AnimatorTarget target in _animators)
@@ -217,6 +252,9 @@ namespace CrateExpectations.Player.View
         private static bool IsArmed(WeaponState state) =>
             state == WeaponState.Drawing ||
             state == WeaponState.Ready ||
-            state == WeaponState.Attacking;
+            state == WeaponState.Attacking ||
+            state == WeaponState.BlockRaise ||
+            state == WeaponState.Blocking ||
+            state == WeaponState.BlockLower;
     }
 }

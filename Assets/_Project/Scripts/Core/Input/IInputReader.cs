@@ -26,6 +26,13 @@ namespace CrateExpectations.Core.Input
         /// <summary>Взмах оружием</summary>
         event Action Attack;
 
+        /// <summary>Кнопку блока нажали</summary>
+        event Action BlockPressed;
+
+        /// <summary>Кнопку блока отпустили. Отдельным событием, а не флагом: блок - это
+        /// удержание, и состояние "держит" живёт в машине состояний оружия, а не во вводе</summary>
+        event Action BlockReleased;
+
         event Action SaveGame;
         event Action LoadGame;
     }
