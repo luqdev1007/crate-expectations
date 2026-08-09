@@ -13,36 +13,23 @@ namespace CrateExpectations.Player.View
     /// <para>
     /// Аниматоров у игрока два - физическое тело и вьюмодель под камерой, - и оба получают
     /// один и тот же набор вызовов. Графы у них разные и общими быть не могут: у тела
-    /// гуманоидный скелет с TPS-клипами, у вьюмодели - Generic-риг из одних рук с клипами,
-    /// авторенными сразу под первое лицо. Друг о друге они не знают, синхронными их держит
-    /// то, что источник состояния один: аниматор ничего не решает сам и лишь отыгрывает то,
-    /// что ему сказали.
+    /// TPS-клипы, снятые камерой из-за спины, у вьюмодели - FPP-пак, авторенный из глаза.
+    /// Друг о друге они не знают, синхронными их держит то, что источник состояния один.
     /// </para>
     /// <para>
-    /// Анимаций доставания и убирания в проекте нет, поэтому их роль играет кроссфейд между
-    /// обычной стойкой и боевой: длительность перехода в контроллере подобрана под
-    /// <c>DrawDuration</c> из ассета оружия.
-    /// </para>
-    /// <para>
-    /// На взмахе аниматоры могут разойтись, и это единственное их расхождение. Физическое
-    /// тело клип взмаха играет всегда: его дугу видно в тени на земле, и по ней же будут
-    /// читать намерение игрока NPC. Вьюмодель клип получает тогда, когда выключен тумблер
-    /// процедурной дуги в <see cref="SwingDefinition"/>, - это и есть переключатель A/B
-    /// между клипом и <see cref="ViewModelSwing"/>. Решает это тот, кто раздаёт триггеры,
-    /// а не сами графы.
+    /// Приёмов у вьюмодели восемь, у тела один: TPS-пак разных ударов не даёт. Поэтому
+    /// номер приёма получает только тот аниматор, чей граф про него знает, а темп -
+    /// оба, каждый по длине СВОЕГО клипа. Общий множитель уложил бы в тайминг
+    /// только один из них.
     /// </para>
     /// </summary>
     public sealed class PlayerAnimatorDriver : MonoBehaviour
     {
-        private const string SlashAlternateName = "SlashAlternate";
-
-        // TODO: временно, вместе с PlayerWeaponController.DebugAttackIndex
         private const string AttackIndexName = "AttackIndex";
 
         private static readonly int IsArmedId = Animator.StringToHash("IsArmed");
         private static readonly int AttackId = Animator.StringToHash("Attack");
         private static readonly int AttackSpeedId = Animator.StringToHash("AttackSpeed");
-        private static readonly int SlashAlternateId = Animator.StringToHash(SlashAlternateName);
         private static readonly int AttackIndexId = Animator.StringToHash(AttackIndexName);
 
         /// <summary>
@@ -59,25 +46,17 @@ namespace CrateExpectations.Player.View
                      "это и есть переключатель A/B между дугой и клипом")]
             public bool SwingDrawnProcedurally;
 
-            // Клип у каждого аниматора свой, потому что скелеты разные: у тела TPS-клип из
-            // пака Kevin Iglesias, у вьюмодели - клип из Arms.fbx, авторенный под первое лицо.
-            // Длины у них не совпадают, а подчинить обе одному AttackDuration надо -
-            // значит и множитель скорости у каждого свой
-            [Tooltip("Тот же клип взмаха, что стоит в стейте Attack контроллера ЭТОГО " +
-                     "аниматора. Нужен только чтобы узнать его длину и подогнать её под " +
-                     "тайминг из ассета оружия")]
+            [Tooltip("Единственный клип взмаха этого аниматора. Нужен только тем графам, " +
+                     "которые НЕ умеют выбирать приём номером: у них один стейт удара " +
+                     "на все случаи, и подогнать его под тайминг приёма можно только " +
+                     "по этой длине. Граф вьюмодели берёт длину из самого приёма, " +
+                     "и поле ему не нужно")]
             public AnimationClip AttackClip;
 
             /// <summary>
-            /// Есть ли у контроллера параметр чередования. Разрешаем один раз в
-            /// <c>Awake</c>: контроллер тела про чередование не знает, а запись
-            /// несуществующего параметра - это варнинг в консоль на каждый удар
-            /// </summary>
-            [NonSerialized] public bool SupportsSlashAlternate;
-
-            /// <summary>
-            /// TODO: временно. Есть ли у контроллера выбор удара числом. У тела его нет -
-            /// там взмах один, и запись несуществующего параметра дала бы варнинг на каждый удар
+            /// Умеет ли граф выбирать приём номером. Разрешаем один раз в <c>Awake</c>:
+            /// у тела такого параметра нет, а запись несуществующего - это варнинг
+            /// в консоль на каждый удар
             /// </summary>
             [NonSerialized] public bool SupportsAttackIndex;
         }
@@ -88,11 +67,6 @@ namespace CrateExpectations.Player.View
         [Tooltip("Кому отыгрывать: физическое тело и вьюмодель. Порядок не важен - " +
                  "различие между ними задаёт флаг, а не место в списке")]
         [SerializeField] private AnimatorTarget[] _animators;
-
-        // Каким из двух клипов взмаха отыграть следующий удар. Флаг живёт здесь, а не в
-        // машине состояний: чередование - это разнообразие картинки, а не правило боя.
-        // Машина про то, что ударов нарисовано два, знать не должна
-        private bool _slashAlternate;
 
         private void Awake()
         {
@@ -110,8 +84,6 @@ namespace CrateExpectations.Player.View
                 return;
             }
 
-            float duration = Mathf.Max(_weapon.Weapon.AttackDuration, 0.01f);
-
             for (int i = 0; i < _animators.Length; i++)
             {
                 Animator animator = _animators[i].Animator;
@@ -124,33 +96,8 @@ namespace CrateExpectations.Player.View
                 // мимо своей физики, а руки уползли бы из кадра
                 animator.applyRootMotion = false;
 
-                _animators[i].SupportsSlashAlternate = HasParameter(animator, SlashAlternateName);
                 _animators[i].SupportsAttackIndex = HasParameter(animator, AttackIndexName);
-
-                ApplyAttackSpeed(_animators[i], duration);
             }
-        }
-
-        /// <summary>
-        /// Темп взмаха задаёт ассет оружия, а не длина клипа: стейты взмаха умножают свою
-        /// скорость на параметр <c>AttackSpeed</c>, и здесь считается ровно тот множитель,
-        /// который уложит клип в <c>AttackDuration</c>. Поменяли число в ассете - взмах
-        /// стал быстрее, клип трогать не нужно.
-        /// <para>
-        /// Считается на каждый аниматор отдельно: клипы у тела и у вьюмодели разной длины,
-        /// и один множитель на двоих уложил бы в тайминг только одного из них.
-        /// </para>
-        /// </summary>
-        private void ApplyAttackSpeed(AnimatorTarget target, float duration)
-        {
-            if (target.AttackClip == null)
-            {
-                Debug.LogWarning($"Аниматору '{target.Animator.name}' игрока '{name}' не назначен " +
-                                 "клип взмаха - взмах пойдёт в темпе клипа, а не в темпе ассета оружия.", this);
-                return;
-            }
-
-            target.Animator.SetFloat(AttackSpeedId, target.AttackClip.length / duration);
         }
 
         /// <summary>
@@ -201,8 +148,14 @@ namespace CrateExpectations.Player.View
         /// </summary>
         private void SetAttackTrigger()
         {
+            AttackDefinition attack = _weapon.CurrentAttack;
+
+            if (attack == null)
+                return;
+
             SwingDefinition swing = _weapon.Weapon.Swing;
             bool procedural = swing != null && swing.UseProceduralSwing;
+            int index = _weapon.Weapon.Attacks.IndexOf(attack);
 
             foreach (AnimatorTarget target in _animators)
             {
@@ -212,22 +165,35 @@ namespace CrateExpectations.Player.View
                 if (target.SwingDrawnProcedurally && procedural)
                     continue;
 
-                // Флаг обязан лечь раньше триггера: граф читает оба в одном вычислении
-                // перехода, и выставленный следом флаг достался бы уже следующему удару
-                if (target.SupportsSlashAlternate)
-                    target.Animator.SetBool(SlashAlternateId, _slashAlternate);
+                ApplyAttackSpeed(target, attack);
 
-                // TODO: временно. По той же причине раньше триггера. Дальше сюда приедет
-                // выбор удара по направлению движения, а поле в инспекторе уйдёт
+                // Номер обязан лечь раньше триггера: граф читает оба в одном вычислении
+                // перехода, и выставленный следом номер достался бы уже следующему удару
                 if (target.SupportsAttackIndex)
-                    target.Animator.SetInteger(AttackIndexId, _weapon.DebugAttackIndex);
+                    target.Animator.SetInteger(AttackIndexId, index);
 
                 target.Animator.SetTrigger(AttackId);
             }
+        }
 
-            // Переключаем после отправки, а не до: иначе самый первый удар за сессию
-            // уходил бы во второй клип, а первый доставался бы только со второго нажатия
-            _slashAlternate = !_slashAlternate;
+        /// <summary>
+        /// Темп задаёт <c>Duration</c> приёма, а не длина клипа: множитель скорости стейта -
+        /// это ровно то число, которое уложит клип в заказанное время. Поменяли длительность
+        /// в ассете приёма - удар стал быстрее, клип трогать не нужно.
+        /// <para>
+        /// Длина берётся у того клипа, который этот аниматор действительно играет: граф
+        /// вьюмодели ставит клип приёма, граф тела - свой единственный. Одно число на двоих
+        /// уложило бы в тайминг только одного из них.
+        /// </para>
+        /// </summary>
+        private static void ApplyAttackSpeed(AnimatorTarget target, AttackDefinition attack)
+        {
+            AnimationClip clip = target.SupportsAttackIndex ? attack.Clip : target.AttackClip;
+
+            if (clip == null || attack.Duration <= 0f)
+                return;
+
+            target.Animator.SetFloat(AttackSpeedId, clip.length / attack.Duration);
         }
 
         private void SetBool(int id, bool value)

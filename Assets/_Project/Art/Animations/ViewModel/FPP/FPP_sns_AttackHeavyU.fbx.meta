@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 471d1483b25fd654d89585efd435412e
+guid: f38a5b52efc741745913e518d906a224
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
@@ -31,11 +31,11 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: FPP_sns_Attack_RD_stop
-      takeName: FPP_sns_Attack_RD_stop
-      internalID: 5094801603742384621
-      firstFrame: 16
-      lastFrame: 120
+      name: FPP_sns_AttackHeavyU
+      takeName: FPP_sns_AttackHeavyU
+      internalID: 2997438166869188983
+      firstFrame: 0
+      lastFrame: 135
       wrapMode: 0
       orientationOffsetY: 0
       level: 0

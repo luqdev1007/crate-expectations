@@ -1,0 +1,112 @@
+using UnityEngine;
+
+namespace CrateExpectations.Combat
+{
+    /// <summary>
+    /// Один приём: чем он выглядит, сколько длится, когда и каким объёмом задевает,
+    /// и как ощущается в момент касания.
+    /// <para>
+    /// Ассет на приём, а не поля на оружии, потому что числа боя перестали быть
+    /// свойством сабли. Укол и рубящий отличаются всем: длиной клипа, формой объёма
+    /// (узкий длинный против широкого короткого), тем, куда летит цель, и тем,
+    /// насколько тяжело удар отдаёт в кадр. Держать это одним набором полей у оружия
+    /// означало бы, что все приёмы вынуждены быть одинаковыми.
+    /// </para>
+    /// <para>
+    /// Активное окно (<see cref="SweepStart"/>..<see cref="SweepEnd"/>) - не круглые
+    /// числа «на глаз», а замер: доля времени клипа, на которой клинок реально идёт
+    /// через кадр. Правило одно - окно не должно открываться раньше, чем клинок
+    /// показался из-за объектива, иначе удар засчитывается по невидимому клинку.
+    /// Уход клинка за камеру ПОСЛЕ окна - это доводка, и она нормальна.
+    /// </para>
+    /// </summary>
+    [CreateAssetMenu(
+        fileName = "AttackDefinition",
+        menuName = "CrateExpectations/Combat/Attack Definition")]
+    public sealed class AttackDefinition : ScriptableObject
+    {
+        [Header("Анимация и темп")]
+        [Tooltip("Клип вьюмодели. Он же попадает в граф: стейты собираются по набору атак, " +
+                 "а не перечисляются в коде билдера")]
+        [field: SerializeField] public AnimationClip Clip { get; private set; }
+
+        [Tooltip("Сколько длится приём, с. Клип подгоняется под это число скоростью стейта. " +
+                 "Ставить так, чтобы множитель не превышал примерно 2: выше клип теряет " +
+                 "проработку и движение читается пластиком")]
+        [field: SerializeField][Range(0.1f, 3f)] public float Duration { get; private set; } = 0.8f;
+
+        // Окно задано в долях времени приёма, а не в секундах: подобранное по кадру,
+        // оно обязано пережить любую правку Duration. В секундах его пришлось бы
+        // пересчитывать вручную после каждого изменения темпа
+        [Header("Активное окно (доли времени приёма)")]
+        [Tooltip("Начало окна. Раньше него удар не считается. Замеряется по кадру: " +
+                 "момент, когда клинок вышел из-за объектива")]
+        [field: SerializeField][Range(0f, 1f)] public float SweepStart { get; private set; } = 0.2f;
+
+        [Tooltip("Конец окна. Дальше идёт доводка, и уход клинка за камеру на ней - норма")]
+        [field: SerializeField][Range(0f, 1f)] public float SweepEnd { get; private set; } = 0.35f;
+
+        [Tooltip("Сколько проверок разложить по окну. Одна проверка на кадр означала бы, " +
+                 "что на просадке частоты цель проскочит между кадрами")]
+        [field: SerializeField][Range(1, 16)] public int SweepSamples { get; private set; } = 6;
+
+        [Header("Объём свипа")]
+        [Tooltip("Радиус капсулы, м. Укол - узкий (0.15-0.2), рубящий - широкий (0.4-0.5)")]
+        [field: SerializeField][Range(0.05f, 1f)] public float SweepRadius { get; private set; } = 0.35f;
+
+        [Tooltip("Дальность от камеры, м. У укола наоборот - длиннее рубящего")]
+        [field: SerializeField][Range(0.5f, 5f)] public float SweepDistance { get; private set; } = 2.2f;
+
+        [Tooltip("Высота капсулы вдоль вертикали камеры, м. Ноль вырождает капсулу в сферу. " +
+                 "Поднимать рубящему сверху вниз: он проходит по высоте, а не по ширине")]
+        [field: SerializeField][Range(0f, 2f)] public float SweepHeight { get; private set; }
+
+        [Header("Удар")]
+        [field: SerializeField][Min(0)] public int Damage { get; private set; } = 1;
+
+        [Tooltip("Импульс отбрасывания, Н·с. Замерено: ящик 4 кг от 6 Н·с трогается " +
+                 "с 1.75 м/с и проезжает 0.7 м")]
+        [field: SerializeField][Min(0f)] public float Impulse { get; private set; } = 6f;
+
+        // Направление в ПРОСТРАНСТВЕ КАМЕРЫ, а не в мировом: удар должен толкать цель
+        // относительно того, куда смотрит игрок. Z - вперёд по прицелу, Y - вверх,
+        // X - вправо. Рубящий сверху вниз кладёт сюда минус по Y, укол - чистый Z
+        [Tooltip("Куда летит цель, в пространстве камеры. Z вперёд, Y вверх, X вправо. " +
+                 "Нормализуется при чтении, длина значения не имеет")]
+        [SerializeField] private Vector3 _impulseDirection = Vector3.forward;
+
+        // Множители, а не собственные числа: форма ощущения (кривые затухания, знак
+        // тычка, длительности) - это свойство удара вообще и живёт в одном
+        // ImpactFeedbackDefinition на всё оружие. Приём меняет только СИЛУ.
+        // Свои кривые у каждого приёма означали бы восемь мест, где правится одно и то же
+        [Header("Отдача кадра: множители к ImpactFeedbackDefinition")]
+        [Tooltip("Во сколько раз держать заморозку дольше обычной. Тяжёлому - больше единицы")]
+        [field: SerializeField][Range(0f, 3f)] public float HitStopMultiplier { get; private set; } = 1f;
+
+        [Tooltip("Во сколько раз сильнее тычок камеры")]
+        [field: SerializeField][Range(0f, 3f)] public float CameraPunchMultiplier { get; private set; } = 1f;
+
+        /// <summary>
+        /// Куда летит цель, единичный вектор в пространстве камеры. Пустое поле в ассете
+        /// означало бы удар, который никуда не толкает, - подставляем "вперёд по прицелу"
+        /// </summary>
+        public Vector3 ImpulseDirection =>
+            _impulseDirection.sqrMagnitude > 1e-4f ? _impulseDirection.normalized : Vector3.forward;
+
+        /// <summary>Расписание проверок попадания внутри приёма</summary>
+        public SweepSchedule Sweep => new(SweepStart, SweepEnd, SweepSamples);
+
+        /// <summary>
+        /// С какой доли времени приёма его разрешено прервать следующим ударом.
+        /// Считается от конца активного окна: прерывать можно только доводку, но не
+        /// сам замах и не момент касания - иначе удар отменялся бы раньше, чем ударил
+        /// </summary>
+        /// <param name="cancelWindow">Какая доля доводки отдаётся под отмену, 0..1</param>
+        public float CancelAfter(float cancelWindow)
+        {
+            float recovery = 1f - SweepEnd;
+
+            return SweepEnd + recovery * (1f - Mathf.Clamp01(cancelWindow));
+        }
+    }
+}

@@ -4,6 +4,7 @@
     "references": [
         "CrateExpectations.Core",
         "CrateExpectations.Cargo",
+        "CrateExpectations.Combat",
         "CrateExpectations.Inspection",
         "CrateExpectations.Contracts",
         "CrateExpectations.Economy",

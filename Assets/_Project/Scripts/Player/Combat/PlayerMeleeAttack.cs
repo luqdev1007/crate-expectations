@@ -47,6 +47,11 @@ namespace CrateExpectations.Player.Combat
         // за окно, засчитал бы шесть ударов по одному ящику
         private readonly HashSet<Collider> _alreadyHit = new();
 
+        // Приём фиксируется на входе в удар и до конца взмаха не перечитывается: игрок
+        // мог отпустить клавиши сразу после нажатия, а окно, объём и импульс обязаны
+        // остаться теми, с которыми удар начинался
+        private AttackDefinition _attack;
+
         private bool _swinging;
         private float _elapsed;
         private float _previousProgress;
@@ -87,6 +92,14 @@ namespace CrateExpectations.Player.Combat
                 return;
             }
 
+            _attack = _weapon.CurrentAttack;
+
+            if (_attack == null)
+            {
+                _swinging = false;
+                return;
+            }
+
             _elapsed = 0f;
 
             // Строго меньше начала окна, иначе самый первый сэмпл потеряется:
@@ -109,22 +122,21 @@ namespace CrateExpectations.Player.Combat
         /// </summary>
         private void LateUpdate()
         {
-            if (!_swinging || _weapon.Weapon == null)
+            if (!_swinging || _weapon.Weapon == null || _attack == null)
             {
                 CacheOrigin();
                 return;
             }
 
-            WeaponDefinition weapon = _weapon.Weapon;
-            float duration = Mathf.Max(weapon.AttackDuration, 0.01f);
+            float duration = Mathf.Max(_attack.Duration, 0.01f);
 
             _elapsed += UnityEngine.Time.deltaTime;
             float progress = Mathf.Clamp01(_elapsed / duration);
 
-            int count = weapon.Sweep.Collect(_previousProgress, progress, _sampleTimes);
+            int count = _attack.Sweep.Collect(_previousProgress, progress, _sampleTimes);
 
             for (int i = 0; i < count; i++)
-                CastAt(weapon, SampleFraction(_sampleTimes[i], progress));
+                CastAt(SampleFraction(_sampleTimes[i], progress));
 
             _previousProgress = progress;
 
@@ -147,26 +159,27 @@ namespace CrateExpectations.Player.Combat
             return span <= 0f ? 1f : Mathf.Clamp01((sampleTime - _previousProgress) / span);
         }
 
-        private void CastAt(WeaponDefinition weapon, float fraction)
+        private void CastAt(float fraction)
         {
             Vector3 origin = Vector3.Lerp(_previousOrigin, _origin.position, fraction);
             Vector3 forward = Vector3.Slerp(_previousForward, _origin.forward, fraction).normalized;
 
             // Капсула стоит вертикально относительно взгляда. При нулевой высоте оба конца
-            // совпадают и капсула вырождается в сферу - ровно тот объём, что задан радиусом
-            Vector3 up = _origin.up * (weapon.SweepHeight * 0.5f);
+            // совпадают и капсула вырождается в сферу - ровно тот объём, что задан радиусом.
+            // Форма своя у каждого приёма: укол - узкий и длинный, рубящий - широкий
+            Vector3 up = _origin.up * (_attack.SweepHeight * 0.5f);
             Vector3 top = origin + up;
             Vector3 bottom = origin - up;
 
             int count = Physics.CapsuleCastNonAlloc(
-                top, bottom, weapon.SweepRadius, forward, _hits,
-                weapon.SweepDistance, weapon.HitMask, QueryTriggerInteraction.Ignore);
+                top, bottom, _attack.SweepRadius, forward, _hits,
+                _attack.SweepDistance, _weapon.Weapon.HitMask, QueryTriggerInteraction.Ignore);
 
             for (int i = 0; i < count; i++)
-                Resolve(weapon, _hits[i], forward);
+                Resolve(_hits[i], forward);
         }
 
-        private void Resolve(WeaponDefinition weapon, RaycastHit hit, Vector3 forward)
+        private void Resolve(RaycastHit hit, Vector3 forward)
         {
             Collider collider = hit.collider;
 
@@ -178,7 +191,12 @@ namespace CrateExpectations.Player.Combat
             Vector3 normal = hit.distance > 0f ? hit.normal : -forward;
             Vector3 point = hit.distance > 0f ? hit.point : collider.ClosestPoint(_origin.position);
 
-            var info = new HitInfo(point, normal, forward, weapon.Impulse, weapon.Damage);
+            // Куда лететь цели, решает приём, а не направление свипа: рубящий сверху вниз
+            // и укол вперёд идут по одному и тому же лучу из камеры, но толкают по-разному.
+            // Направление задано в пространстве камеры и здесь разворачивается в мировое
+            Vector3 push = _origin.TransformDirection(_attack.ImpulseDirection);
+
+            var info = new HitInfo(point, normal, push, _attack.Impulse, _attack.Damage);
 
             // Ищем вверх по иерархии, а не только на самом коллайдере: у ящика коллайдер
             // лежит на корне, а у составной цели окажется на отдельной части.

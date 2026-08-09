@@ -26,12 +26,22 @@ namespace CrateExpectations.Player.View
         [Tooltip("Чей взмах отыгрываем. Отсюда же берётся ассет дуги и длительность взмаха")]
         [SerializeField] private PlayerWeaponController _weapon;
 
+        /// <summary>
+        /// Во что вырождается длительность, если приём почему-то не пришёл. Дуга при этом
+        /// всё равно отыграется - просто в темпе по умолчанию, а не в темпе приёма
+        /// </summary>
+        private const float FallbackDuration = 0.5f;
+
         // Прогресс считаем своим таймером, а не спрашиваем у машины состояний. Машина -
         // чистая логика с покрытыми тестами, и заводить в ней поле ради одного слоя картинки
         // значило бы менять её контракт под нужды рендера. Источник темпа при этом всё равно
-        // один - AttackDuration из ассета оружия, тот же, из которого машина берёт свой
+        // один - Duration того же приёма, из которого машина берёт свой
         private float _elapsed;
         private bool _swinging;
+
+        // Снимается на входе в удар и до конца дуги не перечитывается: приём в контроллере
+        // сменится на следующем нажатии, а дуга обязана доиграть в том темпе, в котором началась
+        private float _duration = FallbackDuration;
 
         private void Awake()
         {
@@ -57,6 +67,9 @@ namespace CrateExpectations.Player.View
                 return;
             }
 
+            AttackDefinition attack = _weapon.CurrentAttack;
+
+            _duration = attack != null ? Mathf.Max(attack.Duration, 0.01f) : FallbackDuration;
             _elapsed = 0f;
             _swinging = true;
         }
@@ -73,7 +86,7 @@ namespace CrateExpectations.Player.View
 
             _elapsed += Time.deltaTime;
 
-            if (_elapsed >= Duration)
+            if (_elapsed >= _duration)
                 _swinging = false;
         }
 
@@ -93,7 +106,7 @@ namespace CrateExpectations.Player.View
             if (!_swinging || swing == null || !swing.UseProceduralSwing)
                 return ViewModelOffset.None;
 
-            float t = Mathf.Clamp01(_elapsed / Duration);
+            float t = Mathf.Clamp01(_elapsed / _duration);
 
             return new ViewModelOffset(
                 swing.Pivot,
@@ -105,8 +118,6 @@ namespace CrateExpectations.Player.View
         /// Нормализованный прогресс внутри взмаха, 0..1. Наружу нужен инструментам:
         /// по нему снимают кадры фаз дуги, не подлавливая момент руками
         /// </summary>
-        public float Progress => _swinging ? Mathf.Clamp01(_elapsed / Duration) : 0f;
-
-        private float Duration => Mathf.Max(_weapon.Weapon.AttackDuration, 0.01f);
+        public float Progress => _swinging ? Mathf.Clamp01(_elapsed / _duration) : 0f;
     }
 }

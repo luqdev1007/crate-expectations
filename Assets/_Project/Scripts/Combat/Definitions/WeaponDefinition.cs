@@ -3,8 +3,13 @@ using UnityEngine;
 namespace CrateExpectations.Combat
 {
     /// <summary>
-    /// Всё про одно оружие: что вешать в руку, как оно там стоит и в каком темпе им машут.
-    /// Чисел фехтования в коде нет - они здесь
+    /// Всё про одно оружие: что вешать в руку, как оно там стоит и чем оно бьёт.
+    /// <para>
+    /// Чисел отдельного удара здесь нет и быть не должно: длительность, объём свипа,
+    /// урон и импульс - свойства ПРИЁМА, а не сабли. Укол и рубящий отличаются всем,
+    /// и один набор полей на оружие заставлял бы их быть одинаковыми. Приёмы лежат
+    /// в <see cref="AttackSet"/>, здесь - только ссылка на раскладку.
+    /// </para>
     /// </summary>
     [CreateAssetMenu(
         fileName = "WeaponDefinition",
@@ -22,14 +27,10 @@ namespace CrateExpectations.Combat
                  "пока оружие убрано")]
         [field: SerializeField] public GameObject Prefab { get; private set; }
 
-        // Стоит первым и слайдером намеренно: это единственное число оружия, которое крутят
-        // подбором, а не выставляют один раз. Ниже по ассету лежат две посадки, каждая
-        // в семь полей, и темп удара из-за них уезжал под сгиб
-        [Header("Темп удара")]
-        [Tooltip("Взмах, с. Клип взмаха подгоняется под это число скоростью стейта, " +
-                 "а не наоборот - источник истины по темпу здесь. Читается в Awake: " +
-                 "правка на ходу подхватится со следующего входа в play mode")]
-        [field: SerializeField][Range(0.05f, 2f)] public float AttackDuration { get; private set; } = 0.55f;
+        [Header("Приёмы")]
+        [Tooltip("Раскладка: какое направление движения каким ударом отвечает. " +
+                 "Отсюда же собирается граф аниматора вьюмодели")]
+        [field: SerializeField] public AttackSet Attacks { get; private set; }
 
         // Посадок две, и они независимы намеренно. У физического тела задача анатомическая:
         // сабля должна выглядеть зажатой в кулаке, потому что её видно в тени на земле и
@@ -52,8 +53,8 @@ namespace CrateExpectations.Combat
         [field: SerializeField][Min(0f)] public float SheatheDuration { get; private set; } = 0.25f;
 
         [Header("Дуга взмаха")]
-        [Tooltip("Чем машут вьюмоделью. Ассет отдельный: дуга - это числа кадра, " +
-                 "а не оружия, и переживёт замену сабли на топор")]
+        [Tooltip("Чем машут вьюмоделью, когда включена процедурная дуга. Ассет отдельный: " +
+                 "дуга - это числа кадра, а не оружия, и переживёт замену сабли на топор")]
         [field: SerializeField] public SwingDefinition Swing { get; private set; }
 
         // Свип идёт из камеры, а не по клинку вьюмодели, и это не упрощение. Вьюмодель
@@ -62,40 +63,10 @@ namespace CrateExpectations.Combat
         // в паре десятков сантиметров от глаза, а не там, где его видит игрок. Детекция
         // обязана быть привязана к тому, КУДА ИГРОК ЦЕЛИТСЯ, иначе попадание расходится
         // с прицелом ровно на величину подгонки кадра
-        [Header("Свип: объём")]
-        [Tooltip("Радиус капсулы свипа, м")]
-        [field: SerializeField][Range(0.05f, 1f)] public float SweepRadius { get; private set; } = 0.35f;
-
-        [Tooltip("Дальность свипа от камеры, м")]
-        [field: SerializeField][Range(0.5f, 5f)] public float SweepDistance { get; private set; } = 2.2f;
-
-        [Tooltip("Высота капсулы вдоль вертикали камеры, м. Ноль превращает капсулу " +
-                 "в сферу - ровно тот объём, что задан радиусом. Поднимать, если удар " +
-                 "должен доставать цель другого роста, а не чтобы усилить попадания")]
-        [field: SerializeField][Range(0f, 2f)] public float SweepHeight { get; private set; }
-
-        [Tooltip("По кому бьём. Слои цели, не всё подряд: свип не должен цеплять самого " +
-                 "игрока и то, что он несёт в руках")]
+        [Header("Свип")]
+        [Tooltip("По кому бьём. Общее на все приёмы: слои цели от удара к удару " +
+                 "не меняются, меняется только объём - и он лежит у приёма")]
         [field: SerializeField] public LayerMask HitMask { get; private set; } = ~0;
-
-        [Header("Свип: окно")]
-        [Tooltip("Начало активной фазы, доля времени взмаха. До неё удар не считается")]
-        [field: SerializeField][Range(0f, 1f)] public float SweepStart { get; private set; } = 0.35f;
-
-        [Tooltip("Конец активной фазы, доля времени взмаха")]
-        [field: SerializeField][Range(0f, 1f)] public float SweepEnd { get; private set; } = 0.6f;
-
-        [Tooltip("Сколько проверок разложить по активному окну. Одна проверка на кадр " +
-                 "означала бы, что на просадке частоты цель проскочит между кадрами")]
-        [field: SerializeField][Range(1, 16)] public int SweepSamples { get; private set; } = 6;
-
-        [Header("Удар")]
-        [Tooltip("Урон за одно попадание")]
-        [field: SerializeField][Min(0)] public int Damage { get; private set; } = 1;
-
-        [Tooltip("Импульс отбрасывания, Н·с. Замерено: ящик массой 4 кг от 6 Н·с трогается " +
-                 "с 1.75 м/с, проезжает 0.7 м и заваливается набок")]
-        [field: SerializeField][Min(0f)] public float Impulse { get; private set; } = 6f;
 
         // Звуки лежат у оружия, а не в ассете фидбека: свист сабли и свист топора -
         // это разные звуки, а вот заморозка и тычок камеры у них общие
@@ -109,18 +80,16 @@ namespace CrateExpectations.Combat
 
         [Header("Отдача кадра")]
         [Tooltip("Заморозка, тычок камеры и отдача вьюмодели. Ассет отдельный: " +
-                 "это ощущение удара вообще, а не свойство конкретной сабли")]
+                 "это ощущение удара вообще, а не свойство конкретной сабли. " +
+                 "Силу под себя каждый приём домножает своими множителями")]
         [field: SerializeField] public ImpactFeedbackDefinition Feedback { get; private set; }
 
         [Header("Задел")]
         [Tooltip("Длина клинка от сокета до острия, м. Дальность удара задаёт не она, " +
-                 "а SweepDistance: клинок вьюмодели в мире стоит не там, где выглядит")]
+                 "а SweepDistance приёма: клинок вьюмодели в мире стоит не там, где выглядит")]
         [field: SerializeField][Min(0f)] public float BladeLength { get; private set; } = 0.76f;
 
         /// <summary>Тайминги в виде значения - то, с чем работает <see cref="WeaponStateMachine"/></summary>
-        public WeaponTimings Timings => new(DrawDuration, SheatheDuration, AttackDuration);
-
-        /// <summary>Расписание проверок попадания внутри взмаха</summary>
-        public SweepSchedule Sweep => new(SweepStart, SweepEnd, SweepSamples);
+        public WeaponTimings Timings => new(DrawDuration, SheatheDuration);
     }
 }

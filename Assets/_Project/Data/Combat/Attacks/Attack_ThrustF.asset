@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f228cf6a9c79f145a9653e3ea14dfbe, type: 3}
+  m_Name: Attack_ThrustF
+  m_EditorClassIdentifier: CrateExpectations.Combat::CrateExpectations.Combat.AttackDefinition
+  <Clip>k__BackingField: {fileID: 7976329640714303274, guid: 3fd53d9efaa8369498b0e93a338e9ad1, type: 3}
+  <Duration>k__BackingField: 0.65
+  <SweepStart>k__BackingField: 0.14
+  <SweepEnd>k__BackingField: 0.26
+  <SweepSamples>k__BackingField: 6
+  <SweepRadius>k__BackingField: 0.18
+  <SweepDistance>k__BackingField: 2.4
+  <SweepHeight>k__BackingField: 0
+  <Damage>k__BackingField: 1
+  <Impulse>k__BackingField: 5
+  _impulseDirection: {x: 0, y: 0, z: 1}
+  <HitStopMultiplier>k__BackingField: 0.9
+  <CameraPunchMultiplier>k__BackingField: 0.9

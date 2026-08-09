@@ -9,8 +9,14 @@ namespace CrateExpectations.Combat.Tests
         private const float Sheathe = 0.4f;
         private const float Attack = 0.6f;
 
+        /// <summary>
+        /// Точка отмены за пределами удара: приём, который нельзя прервать ничем.
+        /// Значение по умолчанию для тестов, которым отмена не интересна
+        /// </summary>
+        private const float NoCancel = 1f;
+
         private static WeaponStateMachine Machine() =>
-            new(new WeaponTimings(Draw, Sheathe, Attack));
+            new(new WeaponTimings(Draw, Sheathe));
 
         /// <summary>Достаёт оружие и доводит машину до боевой стойки</summary>
         private static WeaponStateMachine Armed()
@@ -71,7 +77,7 @@ namespace CrateExpectations.Combat.Tests
         {
             WeaponStateMachine machine = Machine();
 
-            machine.Attack();
+            machine.Attack(Attack, NoCancel);
 
             Assert.That(machine.State, Is.EqualTo(WeaponState.Sheathed));
         }
@@ -81,7 +87,7 @@ namespace CrateExpectations.Combat.Tests
         {
             WeaponStateMachine machine = Armed();
 
-            machine.Attack();
+            machine.Attack(Attack, NoCancel);
             Assert.That(machine.State, Is.EqualTo(WeaponState.Attacking));
 
             machine.Tick(Attack - 0.01f);
@@ -92,13 +98,55 @@ namespace CrateExpectations.Combat.Tests
         }
 
         [Test]
+        public void An_attack_that_did_not_start_says_so()
+        {
+            WeaponStateMachine machine = Machine();
+
+            Assert.That(machine.Attack(Attack, NoCancel), Is.False, "убранное оружие ударило");
+            Assert.That(Armed().Attack(Attack, NoCancel), Is.True, "готовое оружие не ударило");
+        }
+
+        [Test]
+        public void Each_attack_runs_for_its_own_duration_not_a_shared_one()
+        {
+            WeaponStateMachine machine = Armed();
+
+            machine.Attack(0.2f, NoCancel);
+            machine.Tick(0.21f);
+            Assert.That(machine.State, Is.EqualTo(WeaponState.Ready), "короткий приём не кончился вовремя");
+
+            machine.Attack(1.2f, NoCancel);
+            machine.Tick(0.21f);
+            Assert.That(machine.State, Is.EqualTo(WeaponState.Attacking), "длинный приём кончился в темпе короткого");
+        }
+
+        [Test]
+        public void The_recovery_of_an_attack_can_be_cut_short_by_the_next_one()
+        {
+            const float cancelAfter = 0.7f;
+
+            WeaponStateMachine machine = Armed();
+            machine.Attack(Attack, cancelAfter);
+
+            machine.Tick(Attack * cancelAfter - 0.01f);
+            Assert.That(machine.CanAttack, Is.False, "удар отменился до своего окна отмены");
+
+            machine.Tick(0.02f);
+            Assert.That(machine.CanAttack, Is.True, "удар не отменяется в своём окне отмены");
+
+            // Отмена - это новый удар с начала, а не продолжение старого
+            Assert.That(machine.Attack(Attack, cancelAfter), Is.True);
+            Assert.That(machine.AttackProgress, Is.EqualTo(0f).Within(1e-4f));
+        }
+
+        [Test]
         public void A_second_press_during_a_swing_is_swallowed()
         {
             WeaponStateMachine machine = Armed();
-            machine.Attack();
+            machine.Attack(Attack, NoCancel);
 
             machine.Tick(Attack * 0.5f);
-            machine.Attack();
+            machine.Attack(Attack, NoCancel);
 
             Assert.That(machine.State, Is.EqualTo(WeaponState.Attacking));
 
@@ -111,7 +159,7 @@ namespace CrateExpectations.Combat.Tests
         public void The_weapon_cannot_be_put_away_mid_swing()
         {
             WeaponStateMachine machine = Armed();
-            machine.Attack();
+            machine.Attack(Attack, NoCancel);
 
             machine.ToggleWeapon();
 
@@ -144,7 +192,7 @@ namespace CrateExpectations.Combat.Tests
 
             machine.ToggleWeapon();
             machine.Tick(Draw);
-            machine.Attack();
+            machine.Attack(Attack, NoCancel);
             machine.Tick(Attack);
             machine.ToggleWeapon();
             machine.Tick(Sheathe);
@@ -169,7 +217,7 @@ namespace CrateExpectations.Combat.Tests
 
             machine.ToggleWeapon();
             machine.Tick(Draw);
-            machine.Attack();
+            machine.Attack(Attack, NoCancel);
             machine.Tick(Attack);
 
             Assert.That(seen, Is.EqualTo(new[] { true }));

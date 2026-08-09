@@ -31,6 +31,11 @@ namespace CrateExpectations.Player.View
         private ImpactFeedbackDefinition _feedback;
         private float _elapsed;
         private float _duration;
+
+        // Множитель приёма запоминается вместе с остальным: к моменту, когда тычок
+        // доигрывает, удар мог уже смениться следующим, и сила поехала бы посреди отдачи
+        private float _scale = 1f;
+
         private bool _punching;
 
         protected override void OnEnable()
@@ -65,7 +70,10 @@ namespace CrateExpectations.Player.View
             // Второе попадание тем же взмахом перезапускает тычок с нуля, а не складывается
             // с текущим: складывать - значит удваивать амплитуду на каждой лишней цели
             // и получать рывок тем сильнее, чем гуще стояли ящики
+            AttackDefinition attack = _weapon.CurrentAttack;
+
             _feedback = feedback;
+            _scale = attack == null ? 1f : attack.CameraPunchMultiplier;
             _duration = feedback.CameraPunchDuration;
             _elapsed = 0f;
             _punching = true;
@@ -98,7 +106,7 @@ namespace CrateExpectations.Player.View
 
             float t = _duration <= 0f ? 1f : Mathf.Clamp01(_elapsed / _duration);
             float falloff = _feedback.EvaluateCameraPunch(t);
-            Vector2 angles = _feedback.CameraPunchAngles * falloff;
+            Vector2 angles = _feedback.CameraPunchAngles * (falloff * _scale);
 
             state.OrientationCorrection *= Quaternion.Euler(angles.x, angles.y, 0f);
         }

@@ -2316,6 +2316,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2470529085381542805, guid: a9c55b2fac05ba248a24bd117da7b964, type: 3}
   m_PrefabInstance: {fileID: 252584315}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &256794910 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7136233492525103398, guid: da8d2305c5c846c4dabe978420eedcaf, type: 3}
+  m_PrefabInstance: {fileID: 1242737595798173649}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1242737595798173651}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 407dedcdccc947746b63b38c1881a6f6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CrateExpectations.Player::CrateExpectations.Player.PlayerController
 --- !u!1 &275183760
 GameObject:
   m_ObjectHideFlags: 0
@@ -21783,7 +21794,7 @@ MonoBehaviour:
   _sockets:
   - {fileID: 1361060019}
   - {fileID: 988018650}
-  _debugAttackIndex: 0
+  _body: {fileID: 256794910}
 --- !u!114 &1242737595798173653
 MonoBehaviour:
   m_ObjectHideFlags: 0

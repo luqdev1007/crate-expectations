@@ -7,13 +7,21 @@ using VContainer;
 namespace CrateExpectations.Player.Combat
 {
     /// <summary>
-    /// Тонкий слой между вводом и <see cref="WeaponStateMachine"/>: нажатия переводит в команды,
-    /// а решение о видимости оружия - в сокет. Сама логика состояний живёт в обычном C#-классе
-    /// и про <see cref="MonoBehaviour"/> ничего не знает
+    /// Тонкий слой между вводом и <see cref="WeaponStateMachine"/>: нажатия переводит
+    /// в команды, а решение о видимости оружия - в сокет. Сама логика состояний, выбора
+    /// приёма и памяти на нажатие живёт в обычных C#-классах и про
+    /// <see cref="MonoBehaviour"/> ничего не знает.
+    /// <para>
+    /// Направление удара снимается с НАЖАТЫХ КЛАВИШ в момент нажатия и держится до конца
+    /// приёма. Не со скорости <c>Rigidbody</c>: в ней живёт инерция после отпускания,
+    /// она равна нулю при упоре в стену, когда игрок вовсю жмёт вперёд, и в неё
+    /// подмешивается гравитация. Клавиши - это намерение, а бой должен отвечать
+    /// намерению.
+    /// </para>
     /// </summary>
     public sealed class PlayerWeaponController : MonoBehaviour
     {
-        [Tooltip("Чем машем. Отсюда берутся и тайминги, и посадка оружия в руке")]
+        [Tooltip("Чем машем. Отсюда берутся посадка оружия в руке и раскладка приёмов")]
         [SerializeField] private WeaponDefinition _weapon;
 
         [Tooltip("Пустышки под костью кисти, в которые вешается оружие: одна на физическом " +
@@ -21,24 +29,29 @@ namespace CrateExpectations.Player.Combat
                  "и том же состоянии - решение о видимости принимается здесь, один раз на всех")]
         [SerializeField] private WeaponSocket[] _sockets;
 
-        // TODO: временно, снести вместе с полем ниже. Индекс должен приходить из AttackSelector
-        // по направлению движения, а не из инспектора
-        [Header("Отладка")]
-        [Tooltip("ВРЕМЕННО: каким ударом отвечать на ЛКМ. 0 - рубящий, 1 - укол, 2 - тяжёлый укол. " +
-                 "Нужно, чтобы посмотреть клипы до того, как появится выбор удара по направлению")]
-        [SerializeField][Range(0, 2)] private int _debugAttackIndex;
+        [Tooltip("У кого спрашивать, стоит ли игрок на земле. Нужно только для того, " +
+                 "чтобы удар в прыжке отличался от удара с земли")]
+        [SerializeField] private PlayerController _body;
 
         private IInputReader _input;
         private WeaponStateMachine _machine;
+        private AttackSelector _selector;
+        private AttackInputBuffer _buffer;
+
+        // Направление, снятое в момент нажатия. Ждёт вместе с буфером: удар, вышедший
+        // из буфера через десятую долю секунды, обязан быть тем, который игрок заказывал
+        // нажатием, а не тем, куда он успел отпустить клавиши
+        private AttackDirection _pendingDirection;
 
         /// <summary>Ассет текущего оружия - единый источник таймингов для всех, кто их спросит</summary>
         public WeaponDefinition Weapon => _weapon;
 
         /// <summary>
-        /// TODO: временно. Каким из ударов отыгрывать нажатие - число из инспектора,
-        /// чтобы можно было посмотреть все стейты до появления выбора по направлению
+        /// Каким приёмом бьют прямо сейчас. Ставится ДО входа в удар, поэтому слушатель
+        /// <see cref="StateChanged"/> уже видит здесь тот приём, который начался,
+        /// а не предыдущий
         /// </summary>
-        public int DebugAttackIndex => _debugAttackIndex;
+        public AttackDefinition CurrentAttack { get; private set; }
 
         /// <summary>Что сейчас с оружием</summary>
         public WeaponState State => _machine == null ? WeaponState.Sheathed : _machine.State;
@@ -69,9 +82,19 @@ namespace CrateExpectations.Player.Combat
                 return;
             }
 
+            if (_weapon.Attacks == null)
+            {
+                Debug.LogError($"Оружию '{_weapon.name}' не назначена раскладка приёмов - бить нечем.", this);
+                enabled = false;
+                return;
+            }
+
             _machine = new WeaponStateMachine(_weapon.Timings);
             _machine.WeaponVisibilityChanged += OnWeaponVisibilityChanged;
             _machine.StateChanged += OnStateChanged;
+
+            _selector = new AttackSelector(_weapon.Attacks);
+            _buffer = new AttackInputBuffer(_weapon.Attacks.InputBuffer);
 
             // Оружие собирается один раз и дальше только прячется: пересоздавать префаб
             // на каждое доставание значило бы аллоцировать в момент, когда игрок нажал клавишу
@@ -97,9 +120,55 @@ namespace CrateExpectations.Player.Combat
             _input.Attack -= OnAttackPressed;
         }
 
-        private void OnToggleWeaponPressed() => _machine.ToggleWeapon();
+        private void OnToggleWeaponPressed()
+        {
+            _machine.ToggleWeapon();
 
-        private void OnAttackPressed() => _machine.Attack();
+            // Убрали оружие - забыли и нажатие, и место в чередовании. Иначе сабля,
+            // вернувшись в руку, махнула бы сама собой, а серия продолжилась бы с той
+            // вариации, на которой её бросили
+            if (_machine.State == WeaponState.Sheathing)
+            {
+                _buffer.Clear();
+                _selector.ResetVariations();
+            }
+        }
+
+        /// <summary>
+        /// Нажатие только запоминается. Начнётся удар в этом же кадре или через десятую
+        /// долю секунды - решает <see cref="TryStartBufferedAttack"/>, и от этого решения
+        /// не должно зависеть, каким ударом он окажется: направление снимается здесь
+        /// </summary>
+        private void OnAttackPressed()
+        {
+            _buffer.Press();
+            _pendingDirection = AttackSelector.ResolveDirection(_input.MoveInput, IsAirborne());
+        }
+
+        private void TryStartBufferedAttack()
+        {
+            if (!_buffer.HasPending || !_machine.CanAttack)
+                return;
+
+            AttackDefinition attack = _selector.Select(_pendingDirection);
+
+            if (attack == null)
+            {
+                // Раскладка пуста настолько, что бить нечем вообще. Держать нажатие
+                // в буфере смысла нет - оно не станет валидным само по себе
+                _buffer.Clear();
+                return;
+            }
+
+            // Ставим до входа в удар: слушатели StateChanged читают приём сразу же,
+            // и увидеть предыдущий они не должны
+            CurrentAttack = attack;
+
+            if (_machine.Attack(attack.Duration, attack.CancelAfter(_weapon.Attacks.CancelWindow)))
+                _buffer.Consume();
+        }
+
+        private bool IsAirborne() => _body != null && !_body.IsGrounded();
 
         private void OnWeaponVisibilityChanged(bool visible)
         {
@@ -120,6 +189,15 @@ namespace CrateExpectations.Player.Combat
 
         private void OnStateChanged(WeaponState state) => StateChanged?.Invoke(state);
 
-        private void Update() => _machine.Tick(Time.deltaTime);
+        private void Update()
+        {
+            _machine.Tick(Time.deltaTime);
+
+            // Порядок: сначала машина досчитала время и, возможно, освободилась, и только
+            // потом буфер пробует отработать. Наоборот - и нажатие ждало бы лишний кадр
+            TryStartBufferedAttack();
+
+            _buffer.Tick(Time.deltaTime);
+        }
     }
 }

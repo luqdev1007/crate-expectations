@@ -184,7 +184,13 @@ namespace CrateExpectations.Player
             _cameraPivot.localRotation = Quaternion.Euler(_pitch, 0f, 0f);
         }
 
-        private bool IsGrounded()
+        /// <summary>
+        /// Стоит ли игрок на земле. Публично, потому что об этом спрашивает бой: удар
+        /// в прыжке - отдельный приём, и отличить его можно только здесь. Считается
+        /// запросом к физике на каждый вызов, поэтому звать его покадрово не надо -
+        /// он и не зовётся: бою хватает одного раза на нажатие
+        /// </summary>
+        public bool IsGrounded()
         {
             Vector3 origin = _groundCheckOrigin.position + Vector3.down * _definition.GroundCheckDistance;
             int hitCount = Physics.OverlapSphereNonAlloc(

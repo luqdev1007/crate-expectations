@@ -48,9 +48,14 @@ namespace CrateExpectations.Player.Combat
             if (feedback == null || _hitStop == null)
                 return;
 
+            // Форма заморозки одна на всё оружие, силу задаёт приём: тяжёлый удар держит
+            // кадр дольше лёгкого, и это единственное, чем они здесь различаются
+            AttackDefinition attack = _weapon.CurrentAttack;
+            float scale = attack == null ? 1f : attack.HitStopMultiplier;
+
             // Несколько целей одним взмахом дадут несколько вызовов. Складывать их
             // не надо, и сервис этого и не делает - он лишь двигает конец заморозки
-            _hitStop.Freeze(feedback.HitStopDuration, feedback.HitStopScale);
+            _hitStop.Freeze(feedback.HitStopDuration * scale, feedback.HitStopScale);
         }
     }
 }
