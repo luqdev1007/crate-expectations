@@ -18,9 +18,10 @@
 #endif
 
 
-SamplerState sampler_LinearRepeat;
+// Начиная с URP 17 (Unity 6) оба сэмплера объявлены в Core.hlsl, и повторное объявление
+// здесь роняло компиляцию шейдера воды: "redefinition of 'sampler_LinearRepeat'".
+// Объявления убраны, псевдонимы оставлены - они и так ссылались на те же самые имена
 #define Repeat sampler_LinearRepeat
-SamplerState sampler_LinearClamp;
 #define Clamp sampler_LinearClamp
 
 #ifndef _DISABLE_DEPTH_TEX
