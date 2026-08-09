@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: SabreDefinition
   m_EditorClassIdentifier: CrateExpectations.Combat::CrateExpectations.Combat.WeaponDefinition
   <Prefab>k__BackingField: {fileID: 100006, guid: 73c6e7dd4580f484fac9776280cb7c7a, type: 3}
+  <AttackDuration>k__BackingField: 0.55
   <BodySocket>k__BackingField:
     PositionX: 0
     PositionY: 0.045
@@ -31,7 +32,6 @@ MonoBehaviour:
     Scale: 0.7
   <DrawDuration>k__BackingField: 0.25
   <SheatheDuration>k__BackingField: 0.25
-  <AttackDuration>k__BackingField: 0.55
   <Swing>k__BackingField: {fileID: 11400000, guid: 4b22761c949f95f40af919285fbf6491, type: 2}
   <SweepRadius>k__BackingField: 0.35
   <SweepDistance>k__BackingField: 2.2

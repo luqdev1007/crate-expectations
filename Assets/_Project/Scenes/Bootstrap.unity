@@ -9403,8 +9403,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 988018649}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.2307948, y: -0.26545888, z: 0.6683815, w: -0.65538657}
-  m_LocalPosition: {x: 0.0737, y: -0.0425, z: -0.0005}
+  m_LocalRotation: {x: -0.25496998, y: 0.20617998, z: -0.7518999, w: 0.57194996}
+  m_LocalPosition: {x: 0.09138, y: -0.04332, z: -0.00355}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -21779,6 +21779,7 @@ MonoBehaviour:
   _sockets:
   - {fileID: 1361060019}
   - {fileID: 988018650}
+  _debugAttackIndex: 0
 --- !u!114 &1242737595798173653
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21798,7 +21799,7 @@ MonoBehaviour:
     AttackClip: {fileID: 3094330708855449807, guid: 6f56d9a642635264093b0e74acaeec8a, type: 3}
   - Animator: {fileID: 1571989084}
     SwingDrawnProcedurally: 1
-    AttackClip: {fileID: -4579385534379116752, guid: 5377030cf4c39464c865582e9e932381, type: 3}
+    AttackClip: {fileID: 5094801603742384621, guid: 471d1483b25fd654d89585efd435412e, type: 3}
 --- !u!1 &1242737595798173654 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4927037552141917284, guid: da8d2305c5c846c4dabe978420eedcaf, type: 3}

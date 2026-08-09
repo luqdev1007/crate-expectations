@@ -17,16 +17,18 @@ namespace CrateExpectations.EditorTools.Animation
     /// разных графа он не должен.
     /// </para>
     /// <para>
+    /// Клипы - из пака FPP_SnS (одноручная сабля со щитом). Разведка показала, что
+    /// двуручный FPP_Longsword рубящих ударов в кадре не даёт вообще: остриё уходит
+    /// за объектив на всей проводке. У SnS одноручный хват, и из 39 его ударов кадр
+    /// держат четыре, и три из них - разные приёмы; они здесь и стоят. Боковых среди них
+    /// нет: боковой замах в этом
+    /// паке заносит клинок за спину, то есть буквально за камеру.
+    /// </para>
+    /// <para>
     /// Стойка в кадре одна на оба состояния: отдельной безоружной стойки от первого лица
     /// в паке нет, а руки без сабли всё равно спрятаны (<c>ViewModelBody</c>).
     /// Стейт <c>Idle</c> существует ради кроссфейда доставания - именно переход между
     /// стойками и читается как "достал" / "убрал".
-    /// </para>
-    /// <para>
-    /// Взмах один. Чередование двух ударов (<c>SlashAlternate</c>) сюда не переехало: в паке
-    /// есть и второй замах, <c>FPP_Longs_Attack_R</c>, но пока он в граф не поставлен, а
-    /// параметр без второго стейта переключал бы удар сам в себя. Драйвер отсутствие
-    /// параметра переживает - он спрашивает контроллер, есть ли такой, и молчит, если нет.
     /// </para>
     /// </summary>
     public static class ViewModelAnimatorBuilder
@@ -37,14 +39,26 @@ namespace CrateExpectations.EditorTools.Animation
         // Клипы FPP-пака: один FBX - один клип. Держать их в отдельных файлах не наш выбор,
         // так пак собран; зато путь к клипу читается без знания имён тейков внутри
         private const string FppFolder = AnimationsFolder + "/FPP";
-        private const string IdleModelPath = FppFolder + "/FPP_Longs_Idle.fbx";
-        private const string AttackModelPath = FppFolder + "/FPP_Longs_Attack_D.fbx";
+        private const string IdleModelPath = FppFolder + "/FPP_sns_Idle.fbx";
+
+        /// <summary>Рубящий сверху-справа вниз. Единственный рубящий пака, который держит кадр</summary>
+        private const string SlashModelPath = FppFolder + "/FPP_sns_Attack_RD_stop.fbx";
+
+        /// <summary>Укол. Самый быстрый из трёх - ближе всех к <c>AttackDuration</c></summary>
+        private const string ThrustModelPath = FppFolder + "/FPP_sns_Attack_F_fast.fbx";
+
+        /// <summary>Тяжёлый укол, хвост цепочки Start -> Loop -> End</summary>
+        private const string HeavyModelPath = FppFolder + "/FPP_sns_AttackHeavyF_End.fbx";
 
         // Имена параметров дублируются в PlayerAnimatorDriver: там они хешируются,
         // здесь - объявляются. Третьего места, где они встречаются, быть не должно
         private const string IsArmedParameter = "IsArmed";
         private const string AttackParameter = "Attack";
         private const string AttackSpeedParameter = "AttackSpeed";
+
+        // TODO: временно. Сейчас значение приходит из поля в инспекторе
+        // (PlayerWeaponController.DebugAttackIndex), дальше - из выбора удара по направлению
+        private const string AttackIndexParameter = "AttackIndex";
 
         /// <summary>Длительность кроссфейда стойки, с. Держать равной DrawDuration оружия</summary>
         private const float StanceCrossfade = 0.25f;
@@ -57,14 +71,50 @@ namespace CrateExpectations.EditorTools.Animation
 
         private const float AttackBlendOut = 0.15f;
 
+        /// <summary>
+        /// Один удар: как называется стейт, каким клипом играется, каким значением
+        /// <c>AttackIndex</c> выбирается
+        /// </summary>
+        private struct Attack
+        {
+            public string State;
+            public string ModelPath;
+            public int Index;
+            public float Y;
+        }
+
         [MenuItem("Tools/Crate Expectations/Rebuild View Model Animator")]
         public static void Rebuild()
         {
-            AnimationClip idleClip = LoadClip(IdleModelPath);
-            AnimationClip attackClip = LoadClip(AttackModelPath);
+            // Порядок задаёт значения AttackIndex: 0 - то, что играется, когда параметр
+            // никто не выставил. Рубящий стоит нулевым намеренно - это основной удар.
+            //
+            // Зеркального Attack_LD здесь нет и не будет, пока сабля живёт в сокете на правой
+            // кисти: галка Mirror на гуманоидном стейте меняет местами не кадр, а СТОРОНЫ ТЕЛА -
+            // правая кисть начинает играть кривые левой. Замерено: в зеркальном рубящем кисть
+            // с оружием уходит за линзу, а через кадр проносится пустая левая. Второе
+            // направление - это либо второй сокет с переключением, либо другой клип
+            Attack[] attacks =
+            {
+                new Attack { State = "Attack_RD", ModelPath = SlashModelPath, Index = 0, Y = 140f },
+                new Attack { State = "Attack_F", ModelPath = ThrustModelPath, Index = 1, Y = 240f },
+                new Attack { State = "Attack_Heavy", ModelPath = HeavyModelPath, Index = 2, Y = 340f },
+            };
 
-            if (idleClip == null || attackClip == null)
+            AnimationClip idleClip = LoadClip(IdleModelPath);
+
+            if (idleClip == null)
                 return;
+
+            var clips = new AnimationClip[attacks.Length];
+
+            for (int i = 0; i < attacks.Length; i++)
+            {
+                clips[i] = LoadClip(attacks[i].ModelPath);
+
+                if (clips[i] == null)
+                    return;
+            }
 
             // Пересобираем с нуля, а не правим существующий: иначе в графе копились бы
             // переходы, которых в этом коде уже нет
@@ -79,6 +129,11 @@ namespace CrateExpectations.EditorTools.Animation
             // числу из ассета оружия, не трогая сам клип
             AddFloat(controller, AttackSpeedParameter, 1f);
 
+            // Каким из ударов отвечать на триггер. Числом, а не тремя триггерами:
+            // триггеры взводятся независимо, и два взведённых означали бы, что удар
+            // выбирает порядок переходов в графе, а не тот, кто нажал
+            controller.AddParameter(AttackIndexParameter, AnimatorControllerParameterType.Int);
+
             AnimatorStateMachine root = controller.layers[0].stateMachine;
             root.entryPosition = new Vector3(-260f, 0f, 0f);
             root.anyStatePosition = new Vector3(-260f, 120f, 0f);
@@ -90,11 +145,6 @@ namespace CrateExpectations.EditorTools.Animation
             AnimatorState combatIdle = root.AddState("CombatIdle", new Vector3(200f, 0f, 0f));
             combatIdle.motion = idleClip;
 
-            AnimatorState attack = root.AddState("Attack", new Vector3(200f, 140f, 0f));
-            attack.motion = attackClip;
-            attack.speedParameterActive = true;
-            attack.speedParameter = AttackSpeedParameter;
-
             root.defaultState = idle;
 
             // Стойка переключается сразу по флагу: ждать конца цикла idle означало бы
@@ -105,17 +155,60 @@ namespace CrateExpectations.EditorTools.Animation
             Crossfade(combatIdle, idle, StanceCrossfade)
                 .AddCondition(AnimatorConditionMode.IfNot, 0f, IsArmedParameter);
 
-            Crossfade(combatIdle, attack, AttackBlendIn)
-                .AddCondition(AnimatorConditionMode.If, 0f, AttackParameter);
-
-            ReturnToStance(attack, combatIdle);
+            for (int i = 0; i < attacks.Length; i++)
+                AddAttack(root, combatIdle, attacks[i], clips[i], clips[0]);
 
             EditorUtility.SetDirty(controller);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
-            Debug.Log($"Контроллер вьюмодели пересобран: {ControllerPath}",
+            Debug.Log($"Контроллер вьюмодели пересобран: {ControllerPath}. Опорный клип темпа - " +
+                      $"'{clips[0].name}' ({clips[0].length:F3} с), он и должен стоять в поле " +
+                      "Attack Clip у вьюмодели в PlayerAnimatorDriver.",
                 AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath));
+        }
+
+        /// <summary>
+        /// Ставит один удар: стейт с клипом, вход из стойки по паре "триггер + индекс"
+        /// и возврат обратно
+        /// </summary>
+        private static void AddAttack(
+            AnimatorStateMachine root,
+            AnimatorState stance,
+            Attack attack,
+            AnimationClip clip,
+            AnimationClip reference)
+        {
+            AnimatorState state = root.AddState(attack.State, new Vector3(200f, attack.Y, 0f));
+            state.motion = clip;
+
+            SetSpeed(state, clip, reference);
+
+            AnimatorStateTransition enter = Crossfade(stance, state, AttackBlendIn);
+            enter.AddCondition(AnimatorConditionMode.If, 0f, AttackParameter);
+            enter.AddCondition(AnimatorConditionMode.Equals, attack.Index, AttackIndexParameter);
+
+            ReturnToStance(state, stance);
+        }
+
+        /// <summary>
+        /// Темп удара задаёт <c>AttackDuration</c> из ассета оружия, а не длина клипа.
+        /// Считает это <c>PlayerAnimatorDriver</c> и кладёт в <c>AttackSpeed</c> - но одно
+        /// число на три клипа разной длины уложилось бы в тайминг только для одного
+        /// из них. Поэтому параметр остаётся общим множителем, а разницу длин берёт
+        /// на себя собственная скорость стейта: она нормирует клип к опорному.
+        /// <para>
+        /// Опорный - клип первого удара; у него скорость ровно 1, и именно он должен
+        /// стоять в поле <c>Attack Clip</c> драйвера. Итог по всем стейтам одинаков:
+        /// <c>clipLength / AttackDuration</c>, и правка числа в ассете видна сразу,
+        /// без пересборки графа.
+        /// </para>
+        /// </summary>
+        private static void SetSpeed(AnimatorState state, AnimationClip clip, AnimationClip reference)
+        {
+            state.speedParameterActive = true;
+            state.speedParameter = AttackSpeedParameter;
+            state.speed = clip.length / reference.length;
         }
 
         /// <summary>

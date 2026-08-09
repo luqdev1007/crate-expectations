@@ -1,11 +1,11 @@
 fileFormatVersion: 2
-guid: 5377030cf4c39464c865582e9e932381
+guid: 7ba1fb41cf430f9419ef86f7aa63ed3c
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
   externalObjects: {}
   materials:
-    materialImportMode: 2
+    materialImportMode: 0
     materialName: 0
     materialSearch: 1
     materialLocation: 1
@@ -31,18 +31,18 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: FPP_Longs_Attack_D
-      takeName: FPP_Longs_Attack_D
-      internalID: -4579385534379116752
+      name: FPP_sns_Idle
+      takeName: FPP_sns_Idle
+      internalID: 2886711361295093964
       firstFrame: 0
-      lastFrame: 97
+      lastFrame: 278
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 0
+      loopTime: 1
       loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
@@ -70,8 +70,8 @@ ModelImporter:
     importPhysicalCameras: 1
     importVisibility: 1
     importBlendShapes: 1
-    importCameras: 1
-    importLights: 1
+    importCameras: 0
+    importLights: 0
     nodeNameCollisionStrategy: 1
     fileIdsGeneration: 2
     swapUVChannels: 0

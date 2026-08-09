@@ -36,10 +36,14 @@ namespace CrateExpectations.Player.View
     {
         private const string SlashAlternateName = "SlashAlternate";
 
+        // TODO: временно, вместе с PlayerWeaponController.DebugAttackIndex
+        private const string AttackIndexName = "AttackIndex";
+
         private static readonly int IsArmedId = Animator.StringToHash("IsArmed");
         private static readonly int AttackId = Animator.StringToHash("Attack");
         private static readonly int AttackSpeedId = Animator.StringToHash("AttackSpeed");
         private static readonly int SlashAlternateId = Animator.StringToHash(SlashAlternateName);
+        private static readonly int AttackIndexId = Animator.StringToHash(AttackIndexName);
 
         /// <summary>
         /// Аниматор и то, чем он отличается от соседа. Пара, а не два параллельных массива:
@@ -70,6 +74,12 @@ namespace CrateExpectations.Player.View
             /// несуществующего параметра - это варнинг в консоль на каждый удар
             /// </summary>
             [NonSerialized] public bool SupportsSlashAlternate;
+
+            /// <summary>
+            /// TODO: временно. Есть ли у контроллера выбор удара числом. У тела его нет -
+            /// там взмах один, и запись несуществующего параметра дала бы варнинг на каждый удар
+            /// </summary>
+            [NonSerialized] public bool SupportsAttackIndex;
         }
 
         [Tooltip("Чьи состояния отыгрываем")]
@@ -115,6 +125,7 @@ namespace CrateExpectations.Player.View
                 animator.applyRootMotion = false;
 
                 _animators[i].SupportsSlashAlternate = HasParameter(animator, SlashAlternateName);
+                _animators[i].SupportsAttackIndex = HasParameter(animator, AttackIndexName);
 
                 ApplyAttackSpeed(_animators[i], duration);
             }
@@ -205,6 +216,11 @@ namespace CrateExpectations.Player.View
                 // перехода, и выставленный следом флаг достался бы уже следующему удару
                 if (target.SupportsSlashAlternate)
                     target.Animator.SetBool(SlashAlternateId, _slashAlternate);
+
+                // TODO: временно. По той же причине раньше триггера. Дальше сюда приедет
+                // выбор удара по направлению движения, а поле в инспекторе уйдёт
+                if (target.SupportsAttackIndex)
+                    target.Animator.SetInteger(AttackIndexId, _weapon.DebugAttackIndex);
 
                 target.Animator.SetTrigger(AttackId);
             }

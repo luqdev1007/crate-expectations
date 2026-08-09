@@ -21,11 +21,24 @@ namespace CrateExpectations.Player.Combat
                  "и том же состоянии - решение о видимости принимается здесь, один раз на всех")]
         [SerializeField] private WeaponSocket[] _sockets;
 
+        // TODO: временно, снести вместе с полем ниже. Индекс должен приходить из AttackSelector
+        // по направлению движения, а не из инспектора
+        [Header("Отладка")]
+        [Tooltip("ВРЕМЕННО: каким ударом отвечать на ЛКМ. 0 - рубящий, 1 - укол, 2 - тяжёлый укол. " +
+                 "Нужно, чтобы посмотреть клипы до того, как появится выбор удара по направлению")]
+        [SerializeField][Range(0, 2)] private int _debugAttackIndex;
+
         private IInputReader _input;
         private WeaponStateMachine _machine;
 
         /// <summary>Ассет текущего оружия - единый источник таймингов для всех, кто их спросит</summary>
         public WeaponDefinition Weapon => _weapon;
+
+        /// <summary>
+        /// TODO: временно. Каким из ударов отыгрывать нажатие - число из инспектора,
+        /// чтобы можно было посмотреть все стейты до появления выбора по направлению
+        /// </summary>
+        public int DebugAttackIndex => _debugAttackIndex;
 
         /// <summary>Что сейчас с оружием</summary>
         public WeaponState State => _machine == null ? WeaponState.Sheathed : _machine.State;
