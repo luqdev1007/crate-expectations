@@ -4,6 +4,7 @@
     "references": [
         "CrateExpectations.Core",
         "CrateExpectations.Combat",
+        "CrateExpectations.Interaction",
         "Unity.InputSystem",
         "Unity.Cinemachine",
         "VContainer",

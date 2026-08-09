@@ -36,6 +36,17 @@ namespace CrateExpectations.Interaction
 
         public bool IsCarrying => _held != null;
 
+        /// <summary>
+        /// Запрещён ли захват прямо сейчас. Ставится снаружи - тем, кто занял руки
+        /// чем-то ещё (сейчас это оружие). Переноска сама про оружие не знает и знать
+        /// не должна: иначе модуль взаимодействия начал бы зависеть от боя.
+        /// <para>
+        /// Запрещается только ВЗЯТЬ. Положить уже взятое можно всегда, иначе поднятый
+        /// флаг оставил бы ящик приклеенным к рукам навсегда.
+        /// </para>
+        /// </summary>
+        public bool GrabBlocked { get; set; }
+
         /// <summary>Что именно в руках или <c>null</c> (нужен тем, кто показывает груз игроку)</summary>
         public Carriable Held => _held;
 
@@ -90,9 +101,18 @@ namespace CrateExpectations.Interaction
         private void OnGrabPressed()
         {
             if (IsCarrying)
+            {
                 Release(Vector3.zero);
-            else
-                TryGrab();
+                return;
+            }
+
+            // Руки заняты чем-то другим - нажатие просто пропадает. Ни очереди,
+            // ни автоматического убирания того, что мешает: убрать оружие - это
+            // решение игрока, а не побочный эффект попытки взять ящик
+            if (GrabBlocked)
+                return;
+
+            TryGrab();
         }
 
         private void OnThrowPressed()

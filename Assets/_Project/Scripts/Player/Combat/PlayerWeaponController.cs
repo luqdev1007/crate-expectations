@@ -1,5 +1,6 @@
 using System;
 using CrateExpectations.Combat;
+using CrateExpectations.Interaction;
 using CrateExpectations.Core.Input;
 using UnityEngine;
 using VContainer;
@@ -32,6 +33,10 @@ namespace CrateExpectations.Player.Combat
         [Tooltip("У кого спрашивать, стоит ли игрок на земле. Нужно только для того, " +
                  "чтобы удар в прыжке отличался от удара с земли")]
         [SerializeField] private PlayerController _body;
+
+        [Tooltip("Руки, которыми носят груз. Оружие и ящик взаимоисключающи: " +
+                 "с ящиком в руках саблю не достать, с саблей в руке ящик не поднять")]
+        [SerializeField] private Carrier _carrier;
 
         private IInputReader _input;
         private WeaponStateMachine _machine;
@@ -126,6 +131,11 @@ namespace CrateExpectations.Player.Combat
 
         private void OnToggleWeaponPressed()
         {
+            // В руках ящик - нажатие пропадает. Ронять груз за игрока не будем:
+            // он его нёс осознанно, и потерять его от случайной единички обидно
+            if (_carrier != null && _carrier.IsCarrying)
+                return;
+
             _machine.ToggleWeapon();
 
             // Убрали оружие - забыли и нажатие, и место в чередовании. Иначе сабля,
@@ -201,7 +211,16 @@ namespace CrateExpectations.Player.Combat
                     socket.SetVisible(visible);
         }
 
-        private void OnStateChanged(WeaponState state) => StateChanged?.Invoke(state);
+        private void OnStateChanged(WeaponState state)
+        {
+            // Пока сабля не за поясом - ящик не поднять. Считаем от Sheathed, а не
+            // перечислением боевых состояний: доставание и убирание тоже заняты руками,
+            // и новое состояние оружия не должно требовать правки этой строки
+            if (_carrier != null)
+                _carrier.GrabBlocked = state != WeaponState.Sheathed;
+
+            StateChanged?.Invoke(state);
+        }
 
         private void Update()
         {
