@@ -188,8 +188,16 @@ namespace CrateExpectations.Player.Combat
             // и увидеть предыдущий они не должны
             CurrentAttack = attack;
 
-            if (_machine.Attack(attack.Duration, attack.CancelAfter(_weapon.Attacks.CancelWindow)))
-                _buffer.Consume();
+            if (!_machine.Attack(attack.Duration, attack.CancelAfter(_weapon.Attacks.CancelWindow)))
+                return;
+
+            _buffer.Consume();
+
+            // Направление рывка не передаём: его снимает сам контроллер в момент выпада,
+            // со взгляда на тот кадр. Игрок за время замаха успевает довернуться, и
+            // направление, снятое здесь - на нажатии, - к моменту выпада уже устарело бы
+            if (_body != null)
+                _body.Lunge(attack.LungeSpeed, attack.LungeDuration, attack.LungeDelay);
         }
 
         private bool IsAirborne() => _body != null && !_body.IsGrounded();

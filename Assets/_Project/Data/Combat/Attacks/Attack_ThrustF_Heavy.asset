@@ -20,6 +20,9 @@ MonoBehaviour:
   <SweepRadius>k__BackingField: 0.22
   <SweepDistance>k__BackingField: 2.6
   <SweepHeight>k__BackingField: 0
+  <LungeSpeed>k__BackingField: 10
+  <LungeDuration>k__BackingField: 0.12
+  <LungeDelay>k__BackingField: 0.52
   <Damage>k__BackingField: 2
   <Impulse>k__BackingField: 9
   _impulseDirection: {x: 0, y: -0.05, z: 1}

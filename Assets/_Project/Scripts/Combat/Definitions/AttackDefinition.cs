@@ -61,6 +61,21 @@ namespace CrateExpectations.Combat
                  "Поднимать рубящему сверху вниз: он проходит по высоте, а не по ширине")]
         [field: SerializeField][Range(0f, 2f)] public float SweepHeight { get; private set; }
 
+        // Рывок - свойство приёма, а не игрока: наступательный выпад тащит вперёд,
+        // а удар стоя не сдвигает с места вообще. Ноль в скорости отключает рывок,
+        // и это состояние по умолчанию - большинству приёмов он не нужен
+        [Header("Рывок")]
+        [Tooltip("Скорость рывка, м/с. Ноль - приём с места. Разгон мгновенный: " +
+                 "выпад должен читаться как рывок, а не как разбег")]
+        [field: SerializeField][Range(0f, 20f)] public float LungeSpeed { get; private set; }
+
+        [Tooltip("Сколько длится рывок, с. Дистанция получается как скорость на длительность")]
+        [field: SerializeField][Range(0f, 1f)] public float LungeDuration { get; private set; } = 0.2f;
+
+        [Tooltip("Пауза между началом приёма и рывком, с. Нужна, чтобы рывок совпал " +
+                 "с выпадом в клипе, а не случился до того, как рука пошла вперёд")]
+        [field: SerializeField][Range(0f, 1f)] public float LungeDelay { get; private set; }
+
         [Header("Удар")]
         [field: SerializeField][Min(0)] public int Damage { get; private set; } = 1;
 

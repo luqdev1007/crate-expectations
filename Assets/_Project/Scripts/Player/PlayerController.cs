@@ -69,6 +69,65 @@ namespace CrateExpectations.Player
             _pitch = Mathf.Clamp(_pitch, _definition.PitchMin, _definition.PitchMax);
         }
 
+        /// <summary>Что рывок делает с горизонтальной скоростью прямо сейчас</summary>
+        private enum LungePhase
+        {
+            /// <summary>Рывка нет, скоростью распоряжается ввод</summary>
+            None,
+
+            /// <summary>
+            /// Замах: ноги стоят. Игрок в этот момент уже не идёт, но ещё не рвётся -
+            /// именно эта пауза и делает следующий кадр рывком, а не разгоном
+            /// </summary>
+            Brace,
+
+            /// <summary>Сам выпад</summary>
+            Dash,
+        }
+
+        /// <summary>
+        /// Толкнуть игрока рывком - выпадом на атаке. Скорость на время рывка ЗАМЕЩАЕТ
+        /// ходьбу, а не складывается с ней: горизонталью владеет этот класс единолично,
+        /// и второй источник, дописывающий её со стороны, дрался бы с разгоном и
+        /// с упором в стены.
+        /// <para>
+        /// Приём начинается не рывком, а ОСТАНОВКОЙ: пока идёт замах, ввод движения
+        /// игнорируется и ноги стоят. Поворачиваться при этом можно - мышь идёт мимо
+        /// этой механики, и целиться в момент выпада игрок не перестаёт.
+        /// </para>
+        /// <para>
+        /// Поэтому направления рывка здесь и нет: оно снимается со взгляда В МОМЕНТ ВЫПАДА,
+        /// а не при нажатии. Замах длится полсекунды, за них игрок доворачивается на цель,
+        /// и рывок, запомненный на входе, унёс бы его туда, куда он смотрел до доворота.
+        /// </para>
+        /// <para>
+        /// Оба отрезка отсчитываются здесь же, а не ставятся таймером снаружи: рывок должен
+        /// жить в том же времени, что и физика, иначе на паузе или в хитстопе он уедет
+        /// вперёд без игрока.
+        /// </para>
+        /// </summary>
+        /// <param name="speed">Скорость рывка, м/с. Ноль отменяет</param>
+        /// <param name="duration">Сколько рывок длится, с</param>
+        /// <param name="delay">Сколько перед ним стоим на месте, с</param>
+        public void Lunge(float speed, float duration, float delay)
+        {
+            if (speed <= 0f || duration <= 0f)
+                return;
+
+            _lungeSpeed = speed;
+            _lungeRemaining = duration;
+            _lungeDelay = delay;
+        }
+
+        private float _lungeSpeed;
+        private float _lungeRemaining;
+        private float _lungeDelay;
+
+        // Рывок кончился на прошлом шаге - следующий гасит скорость сразу, а не докатом.
+        // Доезд по инерции съедал ровно то, ради чего рывок и делался: он читается резким,
+        // только если так же резко заканчивается
+        private bool _lungeEnded;
+
         private void FixedUpdate()
         {
             Quaternion yawRotation = Quaternion.Euler(0f, _yaw, 0f);
@@ -81,12 +140,30 @@ namespace CrateExpectations.Player
                 wishDir.Normalize();
 
             Vector3 targetVelocity = wishDir * _definition.MoveSpeed;
+            LungePhase phase = TickLunge();
+
+            if (phase == LungePhase.Brace)
+                targetVelocity = Vector3.zero;
+            else if (phase == LungePhase.Dash)
+                targetVelocity = yawRotation * Vector3.forward * _lungeSpeed;
+
             ClipToWalls(ref targetVelocity);
 
             Vector3 velocity = _rigidbody.linearVelocity;
             Vector3 horizontal = new Vector3(velocity.x, 0f, velocity.z);
-            horizontal = Vector3.MoveTowards(
-                horizontal, targetVelocity, _definition.Acceleration * Time.fixedDeltaTime);
+
+            // Ни замах, ни выпад разгона не знают: скорость ставится сразу. Разгон здесь
+            // означал бы, что игрок ещё едет по инерции, когда должен уже стоять,
+            // и ещё только набирает ход, когда должен уже лететь.
+            // Первый шаг после выпада тоже мгновенный - иначе рывок заканчивался бы
+            // долгим докатом и переставал читаться рывком
+            bool instant = phase != LungePhase.None || _lungeEnded;
+            _lungeEnded = phase == LungePhase.Dash && _lungeRemaining <= 0f;
+
+            horizontal = instant
+                ? targetVelocity
+                : Vector3.MoveTowards(
+                    horizontal, targetVelocity, _definition.Acceleration * Time.fixedDeltaTime);
 
             // Второй раз - уже по результату разгона: в скорости мог остаться «упор в стену»
             // с прошлых шагов, а именно он и заставлял контроллер бороться с выталкиванием
@@ -106,6 +183,25 @@ namespace CrateExpectations.Player
 
             // Коллбеки следующего физшага соберут буфер заново
             _wallNormalCount = 0;
+        }
+
+        /// <summary>
+        /// В какой фазе рывок. Сначала выстаивается замах, потом тратится время самого выпада
+        /// </summary>
+        private LungePhase TickLunge()
+        {
+            if (_lungeRemaining <= 0f)
+                return LungePhase.None;
+
+            if (_lungeDelay > 0f)
+            {
+                _lungeDelay -= Time.fixedDeltaTime;
+                return LungePhase.Brace;
+            }
+
+            _lungeRemaining -= Time.fixedDeltaTime;
+
+            return LungePhase.Dash;
         }
 
         private void OnCollisionEnter(Collision collision) => CollectWallNormals(collision);
