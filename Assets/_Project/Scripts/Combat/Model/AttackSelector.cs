@@ -73,18 +73,59 @@ namespace CrateExpectations.Combat
         public AttackDefinition Select(Vector2 moveInput, bool airborne) =>
             Select(ResolveDirection(moveInput, airborne));
 
-        /// <summary>Приём на готовое направление</summary>
-        public AttackDefinition Select(AttackDirection direction)
+        /// <summary>Приём на готовое направление, без заряда</summary>
+        public AttackDefinition Select(AttackDirection direction) => Select(direction, 0f);
+
+        /// <summary>
+        /// Приём на готовое направление с учётом того, сколько игрок продержал кнопку.
+        /// <para>
+        /// Правило одно: из строки берутся приёмы, чей <see cref="AttackDefinition.HoldTime"/>
+        /// уже набран, и из них - САМАЯ ВЫСОКАЯ ступень. То есть короткое нажатие всегда
+        /// отдаёт незаряженный вариант, а полностью набранное удержание - заряженный.
+        /// Чередование вариаций при этом остаётся ВНУТРИ ступени: две вариации лёгкого
+        /// укола продолжат сменять друг друга, и заряженный приём в это чередование
+        /// не влезет.
+        /// </para>
+        /// </summary>
+        /// <param name="direction">Куда бьём</param>
+        /// <param name="heldTime">Сколько кнопка была зажата к моменту удара, с</param>
+        public AttackDefinition Select(AttackDirection direction, float heldTime)
         {
-            AttackDefinition attack = Take(direction);
+            AttackDefinition attack = Take(direction, heldTime);
 
             // Направление может быть не расписано - это нормальное состояние раскладки
             // на полпути, а не ошибка. Бить при этом игрок всё равно должен, и бьёт он
             // тем, что стоит на месте: удар стоя определён всегда
             if (attack == null && direction != AttackDirection.Neutral)
-                attack = Take(AttackDirection.Neutral);
+                attack = Take(AttackDirection.Neutral, heldTime);
 
             return attack;
+        }
+
+        /// <summary>
+        /// Сколько надо держать кнопку, чтобы это направление отдало свой заряженный
+        /// приём. Ноль - заряжать здесь нечего, и нажатие должно уходить в удар сразу.
+        /// <para>
+        /// Спрашивается на КАЖДОМ нажатии, ещё до начала удара: по этому числу решают,
+        /// начинать удар прямо сейчас или сперва копить удержание. Поэтому берётся
+        /// максимум по строке, а не ближайшая ступень: заряд считается набранным,
+        /// когда доступен самый тяжёлый приём направления.
+        /// </para>
+        /// </summary>
+        public float ChargeTime(AttackDirection direction)
+        {
+            IReadOnlyList<AttackDefinition> attacks = _table.Get(direction);
+
+            if (attacks == null)
+                return 0f;
+
+            float longest = 0f;
+
+            for (int i = 0; i < attacks.Count; i++)
+                if (attacks[i] != null && attacks[i].HoldTime > longest)
+                    longest = attacks[i].HoldTime;
+
+            return longest;
         }
 
         /// <summary>
@@ -98,30 +139,58 @@ namespace CrateExpectations.Combat
                 _variation[i] = 0;
         }
 
-        private AttackDefinition Take(AttackDirection direction)
+        private AttackDefinition Take(AttackDirection direction, float heldTime)
         {
             IReadOnlyList<AttackDefinition> attacks = _table.Get(direction);
 
             if (attacks == null || attacks.Count == 0)
                 return null;
 
+            float tier = HighestReachedTier(attacks, heldTime);
+
+            // Вся строка заряженная, а заряда нет. Строка при этом не «пустая» -
+            // отдавать её приём было бы неправильно, а падать на Neutral правильно
+            if (tier < 0f)
+                return null;
+
             int index = (int)direction;
 
             // Пустые ячейки в раскладке пропускаем, а не считаем вариацией: иначе
-            // недозаполненная строка давала бы удары через раз
+            // недозаполненная строка давала бы удары через раз. Чужая ступень заряда
+            // пропускается тем же способом и по той же причине
             for (int i = 0; i < attacks.Count; i++)
             {
-                AttackDefinition attack = attacks[(_variation[index] + i) % attacks.Count];
+                int slot = (_variation[index] + i) % attacks.Count;
+                AttackDefinition attack = attacks[slot];
 
-                if (attack == null)
+                if (attack == null || !Mathf.Approximately(attack.HoldTime, tier))
                     continue;
 
-                _variation[index] = (_variation[index] + i + 1) % attacks.Count;
+                _variation[index] = (slot + 1) % attacks.Count;
 
                 return attack;
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Самая высокая ступень заряда, до которой игрок дотянул удержанием.
+        /// Минус один - не дотянул ни до одной
+        /// </summary>
+        private static float HighestReachedTier(IReadOnlyList<AttackDefinition> attacks, float heldTime)
+        {
+            float tier = -1f;
+
+            for (int i = 0; i < attacks.Count; i++)
+            {
+                AttackDefinition attack = attacks[i];
+
+                if (attack != null && attack.HoldTime <= heldTime && attack.HoldTime > tier)
+                    tier = attack.HoldTime;
+            }
+
+            return tier;
         }
     }
 }

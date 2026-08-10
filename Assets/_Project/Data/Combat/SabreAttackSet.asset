@@ -19,6 +19,7 @@ MonoBehaviour:
     - {fileID: 11400000, guid: fdaca40ae3bb6044bb4d331e8d023ce7, type: 2}
   - Direction: 1
     Attacks:
+    - {fileID: 11400000, guid: fb3022485e8d7884895196806b38eca4, type: 2}
     - {fileID: 11400000, guid: 27683338890076344b64462349e83aa2, type: 2}
   - Direction: 2
     Attacks:

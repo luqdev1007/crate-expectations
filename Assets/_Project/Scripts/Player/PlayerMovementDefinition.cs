@@ -19,6 +19,12 @@ namespace CrateExpectations.Player
         [Tooltip("Высота прыжка в метрах (импульс считается из неё и гравитации)")]
         [field: SerializeField] public float JumpHeight { get; private set; } = 1.2f;
 
+        [Tooltip("Сколько после прыжка считать игрока в воздухе, даже если сфера проверки " +
+                 "земли ещё цепляет пол, с. Сфера отлипает не сразу - игрок должен успеть " +
+                 "подняться на её радиус, - и всё это время бой видел бы удар наземным. " +
+                 "Держать чуть больше этого подъёма и заметно меньше длины прыжка")]
+        [field: SerializeField][Range(0f, 0.5f)] public float JumpAirborneGrace { get; private set; } = 0.2f;
+
         [Header("Обзор")]
         [Tooltip("Чувствительность мыши, градусов на единицу дельты")]
         [field: SerializeField] public float LookSensitivity { get; private set; } = 0.1f;

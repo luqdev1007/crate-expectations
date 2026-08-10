@@ -37,6 +37,31 @@ namespace CrateExpectations.Combat.Tests
             return this;
         }
 
+        /// <summary>
+        /// То же самое, но со ступенями заряда: сколько надо продержать кнопку,
+        /// чтобы приём стал доступен. Поле закрыто на запись - кладём его тем же
+        /// способом, что и инспектор
+        /// </summary>
+        public FakeAttackTable WithCharged(
+            AttackDirection direction, params (string Name, float Hold)[] tiers)
+        {
+            var attacks = new AttackDefinition[tiers.Length];
+
+            for (int i = 0; i < tiers.Length; i++)
+            {
+                attacks[i] = ScriptableObject.CreateInstance<AttackDefinition>();
+                attacks[i].name = tiers[i].Name;
+
+                var serialized = new UnityEditor.SerializedObject(attacks[i]);
+                serialized.FindProperty("<HoldTime>k__BackingField").floatValue = tiers[i].Hold;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+            }
+
+            _rows[direction] = attacks;
+
+            return this;
+        }
+
         /// <inheritdoc />
         public IReadOnlyList<AttackDefinition> Get(AttackDirection direction) =>
             _rows.TryGetValue(direction, out AttackDefinition[] attacks)

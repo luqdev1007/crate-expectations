@@ -15,6 +15,7 @@ MonoBehaviour:
   <MoveSpeed>k__BackingField: 4.5
   <Acceleration>k__BackingField: 45
   <JumpHeight>k__BackingField: 1.1
+  <JumpAirborneGrace>k__BackingField: 0.2
   <LookSensitivity>k__BackingField: 0.12
   <PitchMin>k__BackingField: -85
   <PitchMax>k__BackingField: 85

@@ -23,8 +23,16 @@ namespace CrateExpectations.Core.Input
         /// <summary>Достать/убрать оружие</summary>
         event Action ToggleWeapon;
 
-        /// <summary>Взмах оружием</summary>
+        /// <summary>Кнопку удара нажали</summary>
         event Action Attack;
+
+        /// <summary>
+        /// Кнопку удара отпустили. Нужно заряженным приёмам: пока кнопка зажата, бой
+        /// копит удержание и по нему выбирает, каким ударом отвечать. Отдельным событием,
+        /// а не флагом «зажата» - длительность удержания считает тот, кому она нужна,
+        /// а ввод только сообщает края нажатия
+        /// </summary>
+        event Action AttackReleased;
 
         /// <summary>Кнопку блока нажали</summary>
         event Action BlockPressed;

@@ -26,6 +26,7 @@ namespace CrateExpectations.Player
         public event Action ViewContract;
         public event Action ToggleWeapon;
         public event Action Attack;
+        public event Action AttackReleased;
         public event Action BlockPressed;
         public event Action BlockReleased;
         public event Action SaveGame;
@@ -83,14 +84,17 @@ namespace CrateExpectations.Player
 
         void PlayerControls.IPlayerActions.OnAttack(InputAction.CallbackContext context)
         {
+            // Обе фазы: удар бывает заряженным, и тогда значение имеет не только
+            // момент нажатия, но и то, сколько кнопку продержали
             if (context.performed)
                 Attack?.Invoke();
+            else if (context.canceled)
+                AttackReleased?.Invoke();
         }
 
         void PlayerControls.IPlayerActions.OnBlock(InputAction.CallbackContext context)
         {
-            // Блок - единственное действие с удержанием, поэтому здесь нужны обе фазы,
-            // а не только performed, как у остальных
+            // Блок держат так же, как заряженный удар, - обе фазы нужны и здесь
             if (context.performed)
                 BlockPressed?.Invoke();
             else if (context.canceled)

@@ -33,6 +33,10 @@ namespace CrateExpectations.Player
         private float _pitch;
         private bool _jumpRequested;
 
+        // Сколько ещё считать игрока прыгающим после того, как прыжок состоялся.
+        // Живёт в физическом времени, потому что и заводится, и тратится в FixedUpdate
+        private float _jumpGrace;
+
         [Inject]
         public void Construct(IInputReader input) => _input = input;
 
@@ -171,12 +175,20 @@ namespace CrateExpectations.Player
 
             float verticalVelocity = velocity.y;
 
+            _jumpGrace = Mathf.Max(0f, _jumpGrace - Time.fixedDeltaTime);
+
             if (_jumpRequested)
             {
                 _jumpRequested = false;
 
                 if (IsGrounded())
+                {
                     verticalVelocity = Mathf.Sqrt(2f * -Physics.gravity.y * _definition.JumpHeight);
+
+                    // Прыжок состоялся - с этой секунды игрок в воздухе для всех, кто спросит,
+                    // и неважно, что сфера проверки земли ещё не отлипла от пола
+                    _jumpGrace = _definition.JumpAirborneGrace;
+                }
             }
 
             _rigidbody.linearVelocity = new Vector3(horizontal.x, verticalVelocity, horizontal.z);
@@ -281,12 +293,32 @@ namespace CrateExpectations.Player
         }
 
         /// <summary>
-        /// Стоит ли игрок на земле. Публично, потому что об этом спрашивает бой: удар
-        /// в прыжке - отдельный приём, и отличить его можно только здесь. Считается
-        /// запросом к физике на каждый вызов, поэтому звать его покадрово не надо -
-        /// он и не зовётся: бою хватает одного раза на нажатие
+        /// Прыгает ли игрок прямо сейчас. Спрашивает об этом бой: удар в прыжке -
+        /// отдельный приём, и отличить его можно только здесь.
+        /// <para>
+        /// Это НЕ «оторвался от земли по физике». Между нажатием прыжка и тем моментом,
+        /// когда сфера проверки земли отлипнет от пола, проходит около десятой доли
+        /// секунды - игрок должен успеть подняться на её радиус. Ровно в этот промежуток
+        /// и попадает удар, нажатый вместе с прыжком, и раньше он получался наземным:
+        /// приоритет уходил направлению движения, и вместо воздушного приёма выходил
+        /// удар вперёд. Поэтому прыжок засчитывается по НАМЕРЕНИЮ - с нажатия -
+        /// и держится ещё <c>JumpAirborneGrace</c> после отрыва.
+        /// </para>
+        /// <para>
+        /// Порядок проверок здесь не косметический: два флага бесплатны, а
+        /// <see cref="IsGrounded"/> - это запрос к физике, и он спрашивается последним
+        /// и только если первые два молчат.
+        /// </para>
         /// </summary>
-        public bool IsGrounded()
+        public bool IsAirborne => _jumpRequested || _jumpGrace > 0f || !IsGrounded();
+
+        /// <summary>
+        /// Стоит ли игрок на земле по физике. Приватно намеренно: снаружи спрашивают
+        /// <see cref="IsAirborne"/>, потому что «в воздухе» - это не только отсутствие
+        /// пола под ногами, но и уже начавшийся прыжок. Считается запросом к физике
+        /// на каждый вызов, поэтому звать его покадрово не надо
+        /// </summary>
+        private bool IsGrounded()
         {
             Vector3 origin = _groundCheckOrigin.position + Vector3.down * _definition.GroundCheckDistance;
             int hitCount = Physics.OverlapSphereNonAlloc(

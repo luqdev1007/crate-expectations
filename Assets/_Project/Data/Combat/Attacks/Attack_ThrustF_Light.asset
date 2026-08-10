@@ -10,20 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1f228cf6a9c79f145a9653e3ea14dfbe, type: 3}
-  m_Name: Attack_ThrustF_Heavy
+  m_Name: Attack_ThrustF_Light
   m_EditorClassIdentifier: CrateExpectations.Combat::CrateExpectations.Combat.AttackDefinition
-  <HoldTime>k__BackingField: 0.25
-  <Clip>k__BackingField: {fileID: 6183653814501077553, guid: 7e298146dfbeb9e4b9b5f1a465ac0e12, type: 3}
-  <Duration>k__BackingField: 1.4
-  <SweepStart>k__BackingField: 0.46
-  <SweepEnd>k__BackingField: 0.62
-  <SweepSamples>k__BackingField: 8
-  <SweepRadius>k__BackingField: 0.22
-  <SweepDistance>k__BackingField: 2.6
+  <HoldTime>k__BackingField: 0
+  <Clip>k__BackingField: {fileID: 7976329640714303274, guid: 3fd53d9efaa8369498b0e93a338e9ad1, type: 3}
+  <Duration>k__BackingField: 0.93333334
+  <SweepStart>k__BackingField: 0.14
+  <SweepEnd>k__BackingField: 0.26
+  <SweepSamples>k__BackingField: 6
+  <SweepRadius>k__BackingField: 0.18
+  <SweepDistance>k__BackingField: 2.4
   <SweepHeight>k__BackingField: 0
-  <LungeSpeed>k__BackingField: 10
+  <LungeSpeed>k__BackingField: 0
   <LungeDuration>k__BackingField: 0.12
-  <LungeDelay>k__BackingField: 0.52
+  <LungeDelay>k__BackingField: 0
   <Damage>k__BackingField: 2
   <Impulse>k__BackingField: 9
   _impulseDirection: {x: 0, y: -0.05, z: 1}

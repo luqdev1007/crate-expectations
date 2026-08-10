@@ -145,5 +145,86 @@ namespace CrateExpectations.Combat.Tests
 
             Assert.That(selector.Select(AttackDirection.Left).name, Is.EqualTo("left1"));
         }
+
+        // --- заряд ---
+
+        private const float Threshold = 0.25f;
+
+        private static FakeAttackTable ChargedForward() => new FakeAttackTable()
+            .WithCharged(AttackDirection.Forward, ("tap", 0f), ("charged", Threshold));
+
+        [Test]
+        public void A_short_press_gets_the_uncharged_attack()
+        {
+            AttackSelector selector = Selector(ChargedForward());
+
+            Assert.That(selector.Select(AttackDirection.Forward, 0f).name, Is.EqualTo("tap"));
+            Assert.That(selector.Select(AttackDirection.Forward, Threshold - 0.01f).name, Is.EqualTo("tap"),
+                "чуть-чуть не додержали, а приём уже заряженный");
+        }
+
+        [Test]
+        public void Holding_to_the_threshold_gets_the_charged_attack()
+        {
+            AttackSelector selector = Selector(ChargedForward());
+
+            Assert.That(selector.Select(AttackDirection.Forward, Threshold).name, Is.EqualTo("charged"),
+                "ровно на пороге заряженный приём обязан быть доступен");
+            Assert.That(selector.Select(AttackDirection.Forward, Threshold * 4f).name, Is.EqualTo("charged"),
+                "передержали - должен остаться тот же заряженный, а не откатиться");
+        }
+
+        [Test]
+        public void The_charged_attack_never_shows_up_in_the_uncharged_rotation()
+        {
+            // Ступень заряда - не вариация. Три коротких нажатия подряд обязаны дать
+            // три коротких удара, а не подсунуть заряженный вторым по кругу
+            AttackSelector selector = Selector(new FakeAttackTable()
+                .WithCharged(AttackDirection.Forward, ("tap1", 0f), ("charged", Threshold), ("tap2", 0f)));
+
+            Assert.That(selector.Select(AttackDirection.Forward, 0f).name, Is.EqualTo("tap1"));
+            Assert.That(selector.Select(AttackDirection.Forward, 0f).name, Is.EqualTo("tap2"));
+            Assert.That(selector.Select(AttackDirection.Forward, 0f).name, Is.EqualTo("tap1"),
+                "чередование внутри ступени не закольцевалось");
+        }
+
+        [Test]
+        public void A_row_that_is_charged_all_the_way_through_falls_back_instead_of_firing_early()
+        {
+            // Раскладка, где у направления есть ТОЛЬКО заряженный приём, - валидная.
+            // Короткое нажатие в ней обязано уйти в удар стоя, а не выдать заряженный даром
+            AttackSelector selector = Selector(new FakeAttackTable()
+                .With(AttackDirection.Neutral, "stand")
+                .WithCharged(AttackDirection.Forward, ("charged", Threshold)));
+
+            Assert.That(selector.Select(AttackDirection.Forward, 0f).name, Is.EqualTo("stand"));
+            Assert.That(selector.Select(AttackDirection.Forward, Threshold).name, Is.EqualTo("charged"));
+        }
+
+        [Test]
+        public void The_charge_time_of_a_direction_is_the_longest_hold_in_its_row()
+        {
+            AttackSelector selector = Selector(ChargedForward()
+                .With(AttackDirection.Left, "left1", "left2"));
+
+            Assert.That(selector.ChargeTime(AttackDirection.Forward), Is.EqualTo(Threshold).Within(1e-5f));
+
+            // Ноль здесь - это команда "бей сразу", и она обязана приходить и для
+            // незаряженного направления, и для нерасписанного
+            Assert.That(selector.ChargeTime(AttackDirection.Left), Is.EqualTo(0f).Within(1e-5f));
+            Assert.That(selector.ChargeTime(AttackDirection.Air), Is.EqualTo(0f).Within(1e-5f));
+        }
+
+        [Test]
+        public void A_direction_without_charge_ignores_however_long_the_button_was_held()
+        {
+            // Зажатая кнопка не должна менять удар там, где заряжаться нечему:
+            // иначе долгое нажатие молча ломало бы чередование вариаций
+            AttackSelector selector = Selector(new FakeAttackTable()
+                .With(AttackDirection.Left, "left1", "left2"));
+
+            Assert.That(selector.Select(AttackDirection.Left, 5f).name, Is.EqualTo("left1"));
+            Assert.That(selector.Select(AttackDirection.Left, 5f).name, Is.EqualTo("left2"));
+        }
     }
 }
