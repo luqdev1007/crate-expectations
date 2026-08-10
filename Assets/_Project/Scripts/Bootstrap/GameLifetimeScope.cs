@@ -42,9 +42,10 @@ namespace CrateExpectations.Bootstrap
 
         [SerializeField] private InspectionDefinition _inspection;
 
-        [Tooltip("Живая вьюмодель рук. Ссылкой, а не поиском по типу: рядом с ней в сцене " +
-                 "лежат отключённые вьюмодели прежних сборок, и поиск по иерархии отдаёт " +
-                 "первую из них, то есть мёртвую")]
+        [Tooltip("Вьюмодель рук. Ссылкой, а не поиском по иерархии: поиск отдаёт первое " +
+                 "совпадение в порядке объектов сцены, то есть привязка зависит от этого " +
+                 "порядка и молча ломается, когда его меняют. Ссылка детерминирована, " +
+                 "а если её забыть - это видно сразу")]
         [SerializeField] private ViewModelBody _viewModelBody;
 
         protected override void Configure(IContainerBuilder builder)
