@@ -1,3 +1,4 @@
+using CrateExpectations.Core.Hands;
 using CrateExpectations.Core.Input;
 using UnityEngine;
 using VContainer;
@@ -9,7 +10,7 @@ namespace CrateExpectations.Interaction
     /// считается от прицела, а способ удержания задаётся <see cref="HoldMode"/>
     /// в <see cref="CarryDefinition"/> (смена режима не требует правок кода)
     /// </summary>
-    public sealed class Carrier : MonoBehaviour
+    public sealed class Carrier : MonoBehaviour, ICarryStateSource
     {
         [SerializeField] private CarryDefinition _definition;
 
@@ -34,24 +35,24 @@ namespace CrateExpectations.Interaction
         private RigidbodyInterpolation _previousInterpolation;
         private float _previousAngularDamping;
 
+        /// <inheritdoc />
         public bool IsCarrying => _held != null;
-
-        /// <summary>
-        /// Запрещён ли захват прямо сейчас. Ставится снаружи - тем, кто занял руки
-        /// чем-то ещё (сейчас это оружие). Переноска сама про оружие не знает и знать
-        /// не должна: иначе модуль взаимодействия начал бы зависеть от боя.
-        /// <para>
-        /// Запрещается только ВЗЯТЬ. Положить уже взятое можно всегда, иначе поднятый
-        /// флаг оставил бы ящик приклеенным к рукам навсегда.
-        /// </para>
-        /// </summary>
-        public bool GrabBlocked { get; set; }
 
         /// <summary>Что именно в руках или <c>null</c> (нужен тем, кто показывает груз игроку)</summary>
         public Carriable Held => _held;
 
         [Inject]
         public void Construct(IInputReader input) => _input = input;
+
+        /// <summary>
+        /// Отдаёт переноске общую модель занятости рук. Не через <c>[Inject]</c> намеренно:
+        /// этот же компонент - ИСТОЧНИК для <see cref="HandsState"/>, и инъекция замкнула бы
+        /// граф зависимостей сам на себя (переноска ждала бы модель, модель - переноску).
+        /// Связывание идёт из <c>GameLifetimeScope</c>, когда оба конца уже созданы
+        /// </summary>
+        public void BindHands(HandsState hands) => _hands = hands;
+
+        private HandsState _hands;
 
         private void Start()
         {
@@ -100,6 +101,8 @@ namespace CrateExpectations.Interaction
 
         private void OnGrabPressed()
         {
+            // Положить взятое можно всегда и первым делом: занятые руки не должны
+            // оставлять ящик приклеенным навсегда
             if (IsCarrying)
             {
                 Release(Vector3.zero);
@@ -107,9 +110,10 @@ namespace CrateExpectations.Interaction
             }
 
             // Руки заняты чем-то другим - нажатие просто пропадает. Ни очереди,
-            // ни автоматического убирания того, что мешает: убрать оружие - это
-            // решение игрока, а не побочный эффект попытки взять ящик
-            if (GrabBlocked)
+            // ни автоматического убирания того, что мешает: убрать оружие или опустить
+            // листок - решение игрока, а не побочный эффект попытки взять ящик.
+            // Сюда же попадает и «посреди удара»: занятость боем это учитывает
+            if (_hands != null && !_hands.CanGrab)
                 return;
 
             TryGrab();

@@ -1,4 +1,5 @@
 using System;
+using CrateExpectations.Core.Hands;
 using CrateExpectations.Core.Input;
 using UnityEngine;
 using VContainer;
@@ -35,6 +36,15 @@ namespace CrateExpectations.Interaction
 
         [Inject]
         public void Construct(IInputReader input) => _input = input;
+
+        /// <summary>
+        /// Отдаёт общую модель занятости рук. Не через <c>[Inject]</c> - по той же причине,
+        /// что и у переноски: связывание идёт из <c>GameLifetimeScope</c> после того,
+        /// как модель и её источники уже созданы
+        /// </summary>
+        public void BindHands(HandsState hands) => _hands = hands;
+
+        private HandsState _hands;
 
         private void Start() => _input.Interact += OnInteractPressed;
 
@@ -137,6 +147,12 @@ namespace CrateExpectations.Interaction
 
         private void OnInteractPressed()
         {
+            // Посреди удара, блока или доставания оружия рука занята делом и до станции
+            // не дотягивается. С опущенной саблей, с грузом и с листком - дотягивается:
+            // это не занятость рук, а занятость действием
+            if (_hands != null && !_hands.CanReachOut)
+                return;
+
             if (_current != null && _current.CanInteract)
                 _current.Interact(this);
         }

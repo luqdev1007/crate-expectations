@@ -1,6 +1,7 @@
 using CrateExpectations.Contracts;
 using CrateExpectations.Contracts.Events;
 using CrateExpectations.Core.Events;
+using CrateExpectations.Core.Hands;
 using CrateExpectations.Core.Input;
 using CrateExpectations.Persistence.Events;
 using UnityEngine;
@@ -13,7 +14,7 @@ namespace CrateExpectations.UI
     /// только на слое FirstPersonItem - его рисует отдельная наложенная камера,
     /// поэтому листок не проваливается в стены и не режется геометрией
     /// </summary>
-    public sealed class ContractViewer : MonoBehaviour
+    public sealed class ContractViewer : MonoBehaviour, IContractViewSource
     {
         [SerializeField] private ContractViewDefinition _definition;
 
@@ -37,7 +38,7 @@ namespace CrateExpectations.UI
         private float _raise;
         private bool _wanted;
 
-        /// <summary>Листок сейчас в руках (или как раз поднимается)</summary>
+        /// <inheritdoc />
         public bool IsRaised => _wanted;
 
         [Inject]
@@ -47,6 +48,16 @@ namespace CrateExpectations.UI
             _manager = manager;
             _bus = bus;
         }
+
+        /// <summary>
+        /// Отдаёт листку общую модель занятости рук. Не через <c>[Inject]</c> намеренно:
+        /// этот же компонент - ИСТОЧНИК для <see cref="HandsState"/>, и инъекция замкнула бы
+        /// граф зависимостей сам на себя. Связывание идёт из <c>GameLifetimeScope</c>,
+        /// когда оба конца уже созданы
+        /// </summary>
+        public void BindHands(HandsState hands) => _hands = hands;
+
+        private HandsState _hands;
 
         private void Awake()
         {
@@ -102,11 +113,18 @@ namespace CrateExpectations.UI
 
         private void OnViewContractPressed()
         {
+            // Опустить поднятое можно всегда и первым делом: иначе занятость "Reading",
+            // которую создаёт сам листок, запретила бы его же убрать
             if (_wanted)
             {
                 Lower();
                 return;
             }
+
+            // Руки заняты грузом или оружием - нажатие просто пропадает. Ни автосброса
+            // ящика, ни "одной рукой": освободить руки - решение игрока
+            if (_hands != null && !_hands.CanRaiseContract)
+                return;
 
             ContractProgress active = _manager.Active;
 

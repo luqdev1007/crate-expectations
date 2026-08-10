@@ -1,6 +1,6 @@
 using System;
 using CrateExpectations.Combat;
-using CrateExpectations.Interaction;
+using CrateExpectations.Core.Hands;
 using CrateExpectations.Core.Input;
 using UnityEngine;
 using VContainer;
@@ -26,8 +26,15 @@ namespace CrateExpectations.Player.Combat
     /// сам. У направлений без заряда ничего не меняется: удар начинается по нажатию,
     /// как и был.
     /// </para>
+    /// <para>
+    /// Он же - источник <see cref="IWeaponStateSource"/> для общей модели занятости рук.
+    /// Владельцем сделан именно контроллер, а не <see cref="WeaponStateMachine"/>:
+    /// машина не знает про заряд (тот живёт здесь, в <see cref="AttackCharge"/>),
+    /// а без заряда ответ на «занят ли» был бы неполным - зажатая кнопка удара
+    /// это уже занятые руки, хотя состояние машины всё ещё Ready.
+    /// </para>
     /// </summary>
-    public sealed class PlayerWeaponController : MonoBehaviour
+    public sealed class PlayerWeaponController : MonoBehaviour, IWeaponStateSource
     {
         [Tooltip("Чем машем. Отсюда берутся посадка оружия в руке и раскладка приёмов")]
         [SerializeField] private WeaponDefinition _weapon;
@@ -40,10 +47,6 @@ namespace CrateExpectations.Player.Combat
         [Tooltip("У кого спрашивать, стоит ли игрок на земле. Нужно только для того, " +
                  "чтобы удар в прыжке отличался от удара с земли")]
         [SerializeField] private PlayerController _body;
-
-        [Tooltip("Руки, которыми носят груз. Оружие и ящик взаимоисключающи: " +
-                 "с ящиком в руках саблю не достать, с саблей в руке ящик не поднять")]
-        [SerializeField] private Carrier _carrier;
 
         private IInputReader _input;
         private WeaponStateMachine _machine;
@@ -74,6 +77,23 @@ namespace CrateExpectations.Player.Combat
         /// <summary>Что сейчас с оружием</summary>
         public WeaponState State => _machine == null ? WeaponState.Sheathed : _machine.State;
 
+        /// <inheritdoc />
+        public bool IsWeaponDrawn => State != WeaponState.Sheathed;
+
+        /// <summary>
+        /// Занят ли игрок действием оружия. Список состояний не перечисляется, а выводится
+        /// от обратного: свободны ровно два - убрано и готово. Всё остальное (доставание,
+        /// удар со всеми его фазами, три фазы блока, убирание) - занято, и перечисление
+        /// пришлось бы дописывать при каждом новом состоянии машины.
+        /// <para>
+        /// Заряд добавлен отдельным слагаемым: кнопку удара можно держать и в Ready,
+        /// и даже с убранным оружием, а руки при этом уже заняты - игрок целится приёмом
+        /// </para>
+        /// </summary>
+        public bool IsBusy =>
+            _charge.IsCharging ||
+            (State != WeaponState.Sheathed && State != WeaponState.Ready);
+
         /// <summary>
         /// Состояние сменилось. Событие своё, а не проброшенное из машины напрямую: подписчик
         /// живёт на другом объекте, и порядок <c>Awake</c> между объектами Unity не обещает -
@@ -90,6 +110,16 @@ namespace CrateExpectations.Player.Combat
 
         [Inject]
         public void Construct(IInputReader input) => _input = input;
+
+        /// <summary>
+        /// Отдаёт бою общую модель занятости рук. Не через <c>[Inject]</c> намеренно:
+        /// этот же компонент - ИСТОЧНИК для <see cref="HandsState"/>, и инъекция замкнула бы
+        /// граф зависимостей сам на себя. Связывание идёт из <c>GameLifetimeScope</c>,
+        /// когда оба конца уже созданы
+        /// </summary>
+        public void BindHands(HandsState hands) => _hands = hands;
+
+        private HandsState _hands;
 
         private void Awake()
         {
@@ -146,9 +176,10 @@ namespace CrateExpectations.Player.Combat
 
         private void OnToggleWeaponPressed()
         {
-            // В руках ящик - нажатие пропадает. Ронять груз за игрока не будем:
-            // он его нёс осознанно, и потерять его от случайной единички обидно
-            if (_carrier != null && _carrier.IsCarrying)
+            // Руки заняты чем-то, кроме оружия, - нажатие пропадает. Ронять груз или
+            // убирать листок за игрока не будем: он занял руки осознанно, и потерять
+            // это от случайной единички обидно
+            if (_hands != null && !_hands.CanToggleWeapon)
                 return;
 
             _machine.ToggleWeapon();
@@ -179,6 +210,12 @@ namespace CrateExpectations.Player.Combat
             // ударом в тот момент, когда игрок опустил клинок, - через полсекунды после
             // того, как отпустил кнопку
             if (_machine.IsBlocking)
+                return;
+
+            // Руки заняты грузом или листком - ударить нечем. Одна проверка на оба случая:
+            // и то, и другое выводит занятость из Free/Combat, а разбирать их по отдельности
+            // значило бы держать это правило в двух местах
+            if (_hands != null && !_hands.CanAttack)
                 return;
 
             _pendingDirection = AttackSelector.ResolveDirection(_input.MoveInput, IsAirborne());
@@ -275,12 +312,9 @@ namespace CrateExpectations.Player.Combat
 
         private void OnStateChanged(WeaponState state)
         {
-            // Пока сабля не за поясом - ящик не поднять. Считаем от Sheathed, а не
-            // перечислением боевых состояний: доставание и убирание тоже заняты руками,
-            // и новое состояние оружия не должно требовать правки этой строки
-            if (_carrier != null)
-                _carrier.GrabBlocked = state != WeaponState.Sheathed;
-
+            // Раньше здесь поднимался флаг запрета захвата у переноски. Флага больше нет:
+            // «можно ли взять ящик» спрашивают у HandsState, и правило живёт в одном месте,
+            // а не выталкивается отсюда в чужой компонент на каждой смене состояния
             StateChanged?.Invoke(state);
         }
 

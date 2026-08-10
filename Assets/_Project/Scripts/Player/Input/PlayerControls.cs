@@ -360,17 +360,6 @@ namespace CrateExpectations.Player.Input
                 },
                 {
                     ""name"": """",
-                    ""id"": ""2cdccc14-b190-4239-8566-104103aaf712"",
-                    ""path"": ""<Mouse>/rightButton"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Throw"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
                     ""id"": ""f1330513-0117-4cce-b760-90840ab571cb"",
                     ""path"": ""<Keyboard>/g"",
                     ""interactions"": """",

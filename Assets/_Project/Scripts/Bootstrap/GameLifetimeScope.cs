@@ -5,6 +5,7 @@ using CrateExpectations.Cargo.Catalog;
 using CrateExpectations.Cargo.UI;
 using CrateExpectations.Contracts;
 using CrateExpectations.Core.Events;
+using CrateExpectations.Core.Hands;
 using CrateExpectations.Core.Input;
 using CrateExpectations.Core.Services;
 using CrateExpectations.Core.Timing;
@@ -116,6 +117,17 @@ namespace CrateExpectations.Bootstrap
             builder.RegisterComponentInHierarchy<ContractViewer>();
             builder.RegisterComponentInHierarchy<SaveStatusView>();
 
+            // Занятость рук. Регистрируется фабрикой, а не типом, намеренно: источники
+            // модели - те же компоненты, которые её потом спрашивают, и обычная инъекция
+            // замкнула бы граф зависимостей сам на себя. Фабрика для анализатора
+            // непрозрачна, а порядок вызова мы задаём руками ниже
+            builder.Register(
+                resolver => new HandsState(
+                    resolver.Resolve<Carrier>(),
+                    resolver.Resolve<PlayerWeaponController>(),
+                    resolver.Resolve<ContractViewer>()),
+                Lifetime.Singleton);
+
             builder.RegisterEntryPoint<GameFlow>();
 
             // Компоненты сцены резолвятся лениво
@@ -146,6 +158,17 @@ namespace CrateExpectations.Bootstrap
                 // сразу по той же причине - подписаться на ввод до первого нажатия
                 container.Resolve<CargoSceneKeeper>();
                 container.Resolve<SaveHotkeys>();
+
+                // Строго после того, как компоненты выше уже созданы и проинъектированы:
+                // фабрика модели резолвит три из них, и на непрогретом контейнере это
+                // ушло бы в рекурсию. Раздаём модель отдельным вызовом, а не инъекцией,
+                // по той же причине - три из четырёх получателей сами являются её источниками
+                HandsState hands = container.Resolve<HandsState>();
+
+                container.Resolve<Carrier>().BindHands(hands);
+                container.Resolve<Interactor>().BindHands(hands);
+                container.Resolve<PlayerWeaponController>().BindHands(hands);
+                container.Resolve<ContractViewer>().BindHands(hands);
             });
         }
     }
