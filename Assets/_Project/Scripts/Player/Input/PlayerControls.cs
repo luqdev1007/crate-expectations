@@ -131,24 +131,6 @@ namespace CrateExpectations.Player.Input
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""Grab"",
-                    ""type"": ""Button"",
-                    ""id"": ""081214f3-3b79-424e-afa4-dbf3acd4e120"",
-                    ""expectedControlType"": """",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""Throw"",
-                    ""type"": ""Button"",
-                    ""id"": ""113c5e6f-b46a-41a8-954d-977ac7f73f17"",
-                    ""expectedControlType"": """",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
                     ""name"": ""SaveGame"",
                     ""type"": ""Button"",
                     ""id"": ""1c0f2a55-9a3e-4c1e-8f0b-2a1d5f7e9b01"",
@@ -338,50 +320,6 @@ namespace CrateExpectations.Player.Input
                 },
                 {
                     ""name"": """",
-                    ""id"": ""5de06b0c-3cf2-4fa6-a3ce-e9cb94ccba93"",
-                    ""path"": ""<Keyboard>/f"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Grab"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""22126266-39b2-4139-92ea-00aaea2b833f"",
-                    ""path"": ""<Gamepad>/buttonNorth"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Grab"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""f1330513-0117-4cce-b760-90840ab571cb"",
-                    ""path"": ""<Keyboard>/g"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Throw"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""4bc38f06-23bd-46ce-a466-d1e2cc1be250"",
-                    ""path"": ""<Gamepad>/rightTrigger"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Throw"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
                     ""id"": ""3e2a4c77-bc50-4e30-ab2d-4c3f7b9a1d23"",
                     ""path"": ""<Keyboard>/f5"",
                     ""interactions"": """",
@@ -437,6 +375,17 @@ namespace CrateExpectations.Player.Input
                 },
                 {
                     ""name"": """",
+                    ""id"": ""5f1a2b7c-9d34-4e61-b8a0-2c7e4d9f10a3"",
+                    ""path"": ""<Gamepad>/rightTrigger"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Attack"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""3f9d2c81-64ba-4e07-8d13-7c2a5e9b04af"",
                     ""path"": ""<Mouse>/rightButton"",
                     ""interactions"": """",
@@ -457,8 +406,6 @@ namespace CrateExpectations.Player.Input
             m_Player_Look = m_Player.FindAction("Look", throwIfNotFound: true);
             m_Player_Jump = m_Player.FindAction("Jump", throwIfNotFound: true);
             m_Player_Interact = m_Player.FindAction("Interact", throwIfNotFound: true);
-            m_Player_Grab = m_Player.FindAction("Grab", throwIfNotFound: true);
-            m_Player_Throw = m_Player.FindAction("Throw", throwIfNotFound: true);
             m_Player_SaveGame = m_Player.FindAction("SaveGame", throwIfNotFound: true);
             m_Player_LoadGame = m_Player.FindAction("LoadGame", throwIfNotFound: true);
             m_Player_ViewContract = m_Player.FindAction("ViewContract", throwIfNotFound: true);
@@ -549,8 +496,6 @@ namespace CrateExpectations.Player.Input
         private readonly InputAction m_Player_Look;
         private readonly InputAction m_Player_Jump;
         private readonly InputAction m_Player_Interact;
-        private readonly InputAction m_Player_Grab;
-        private readonly InputAction m_Player_Throw;
         private readonly InputAction m_Player_SaveGame;
         private readonly InputAction m_Player_LoadGame;
         private readonly InputAction m_Player_ViewContract;
@@ -584,14 +529,6 @@ namespace CrateExpectations.Player.Input
             /// Provides access to the underlying input action "Player/Interact".
             /// </summary>
             public InputAction @Interact => m_Wrapper.m_Player_Interact;
-            /// <summary>
-            /// Provides access to the underlying input action "Player/Grab".
-            /// </summary>
-            public InputAction @Grab => m_Wrapper.m_Player_Grab;
-            /// <summary>
-            /// Provides access to the underlying input action "Player/Throw".
-            /// </summary>
-            public InputAction @Throw => m_Wrapper.m_Player_Throw;
             /// <summary>
             /// Provides access to the underlying input action "Player/SaveGame".
             /// </summary>
@@ -654,12 +591,6 @@ namespace CrateExpectations.Player.Input
                 @Interact.started += instance.OnInteract;
                 @Interact.performed += instance.OnInteract;
                 @Interact.canceled += instance.OnInteract;
-                @Grab.started += instance.OnGrab;
-                @Grab.performed += instance.OnGrab;
-                @Grab.canceled += instance.OnGrab;
-                @Throw.started += instance.OnThrow;
-                @Throw.performed += instance.OnThrow;
-                @Throw.canceled += instance.OnThrow;
                 @SaveGame.started += instance.OnSaveGame;
                 @SaveGame.performed += instance.OnSaveGame;
                 @SaveGame.canceled += instance.OnSaveGame;
@@ -701,12 +632,6 @@ namespace CrateExpectations.Player.Input
                 @Interact.started -= instance.OnInteract;
                 @Interact.performed -= instance.OnInteract;
                 @Interact.canceled -= instance.OnInteract;
-                @Grab.started -= instance.OnGrab;
-                @Grab.performed -= instance.OnGrab;
-                @Grab.canceled -= instance.OnGrab;
-                @Throw.started -= instance.OnThrow;
-                @Throw.performed -= instance.OnThrow;
-                @Throw.canceled -= instance.OnThrow;
                 @SaveGame.started -= instance.OnSaveGame;
                 @SaveGame.performed -= instance.OnSaveGame;
                 @SaveGame.canceled -= instance.OnSaveGame;
@@ -793,20 +718,6 @@ namespace CrateExpectations.Player.Input
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnInteract(InputAction.CallbackContext context);
-            /// <summary>
-            /// Method invoked when associated input action "Grab" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-            /// </summary>
-            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-            void OnGrab(InputAction.CallbackContext context);
-            /// <summary>
-            /// Method invoked when associated input action "Throw" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-            /// </summary>
-            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-            void OnThrow(InputAction.CallbackContext context);
             /// <summary>
             /// Method invoked when associated input action "SaveGame" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
             /// </summary>

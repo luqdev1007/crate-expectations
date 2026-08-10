@@ -40,7 +40,8 @@ namespace CrateExpectations.Interaction
         [Tooltip("Ограничение линейной скорости удерживаемого объекта, м/с")]
         [field: SerializeField] public float MaxVelocity { get; private set; } = 15f;
 
-        [Tooltip("Сила броска вдоль forward камеры")]
+        [Tooltip("Сила броска вдоль forward камеры. Это НИЖНЯЯ граница: столько уходит " +
+                 "в бросок, сделанный без замаха")]
         [field: SerializeField] public float ThrowForce { get; private set; } = 8f;
 
         [Tooltip("Угловое демпфирование удерживаемого объекта - гасит вращение при переносе")]
@@ -59,6 +60,52 @@ namespace CrateExpectations.Interaction
         [Tooltip("Слои объектов, которые можно поднимать (грубый фильтр луча; " +
                  "решает всё равно наличие компонента Carriable).")]
         [field: SerializeField] public LayerMask CarriableMask { get; private set; } = ~0;
+
+        [Header("Заряженный бросок")]
+        [Tooltip("Мёртвая зона удержания, с. Нажатие короче этого не начинает замах " +
+                 "и не приводит ни к какому броску - короткий клик обязан быть " +
+                 "полностью безобидным, а не слабым тычком")]
+        [field: SerializeField] public float ActivationThreshold { get; private set; } = 0.18f;
+
+        [Tooltip("Сколько копить замах ПОСЛЕ мёртвой зоны до полного заряда, с")]
+        [field: SerializeField] public float ChargeDuration { get; private set; } = 0.7f;
+
+        [Tooltip("Сила броска при полном заряде. Верхняя граница; нижняя - ThrowForce")]
+        [field: SerializeField] public float ChargedThrowForce { get; private set; } = 18f;
+
+        [Tooltip("Перевод заряда (0..1) в долю силы и в глубину замаха. Линейная по " +
+                 "умолчанию: кривой подкручивается ощущение, а не числа")]
+        [field: SerializeField]
+        public AnimationCurve ThrowCurve { get; private set; } = AnimationCurve.Linear(0f, 0f, 1f, 1f);
+
+        [Tooltip("Куда уезжает точка удержания при полном замахе, в пространстве камеры: " +
+                 "вниз и назад, к плечу игрока")]
+        [field: SerializeField]
+        public Vector3 WindupOffset { get; private set; } = new Vector3(0f, -0.15f, -0.5f);
+
+        [Tooltip("Пауза между отпусканием кнопки и вылетом груза, с. Задел под анимацию " +
+                 "броска: ноль - груз уходит в тот же кадр")]
+        [field: SerializeField] public float ReleaseDelay { get; private set; }
+
+        /// <summary>
+        /// Заряд, пропущенный через кривую. Кламп здесь, а не у вызывающих: заряд приходит
+        /// из модели удержания уже нормализованным, но кривую автор правит руками,
+        /// и выход за 0..1 не должен превращаться в бросок неизвестной силы
+        /// </summary>
+        public float ThrowCurveAt(float chargeT) => ThrowCurve.Evaluate(Mathf.Clamp01(chargeT));
+
+        /// <summary>
+        /// Сила броска для заряда 0..1. Без заряда - ровно <see cref="ThrowForce"/>,
+        /// при полном - ровно <see cref="ChargedThrowForce"/>
+        /// </summary>
+        public float ThrowForceAt(float chargeT) =>
+            Mathf.Lerp(ThrowForce, ChargedThrowForce, ThrowCurveAt(chargeT));
+
+        /// <summary>
+        /// Смещение точки удержания для заряда 0..1, в пространстве камеры.
+        /// Без заряда - ноль, то есть точка стоит там же, где стояла всегда
+        /// </summary>
+        public Vector3 WindupOffsetAt(float chargeT) => WindupOffset * ThrowCurveAt(chargeT);
 
         [Header("Слой переноса")]
         [Tooltip("Индекс слоя (Layer), на который переводится объект в руках. " +

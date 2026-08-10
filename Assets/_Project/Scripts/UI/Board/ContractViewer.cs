@@ -83,11 +83,11 @@ namespace CrateExpectations.UI
 
         private void Start()
         {
+            // Листок убирается той же кнопкой, что и достаётся, и только ею. Раньше его
+            // опускали заодно клавиши захвата и броска - обеих больше нет: захват переехал
+            // на кнопку руки, которой жмут ещё и станции, и опускать листок на КАЖДОЕ
+            // такое нажатие значило бы отбирать его у игрока посреди работы со станцией
             _input.ViewContract += OnViewContractPressed;
-
-            // Листок занимает руки: берём ящик или швыряем - листок уходит сам
-            _input.Grab += Lower;
-            _input.Throw += Lower;
 
             _bus.Subscribe<ContractCompleted>(OnContractClosed);
             _bus.Subscribe<ContractFailed>(OnContractFailed);
@@ -97,11 +97,7 @@ namespace CrateExpectations.UI
         private void OnDestroy()
         {
             if (_input != null)
-            {
                 _input.ViewContract -= OnViewContractPressed;
-                _input.Grab -= Lower;
-                _input.Throw -= Lower;
-            }
 
             if (_bus == null)
                 return;

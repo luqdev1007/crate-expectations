@@ -13,9 +13,14 @@ namespace CrateExpectations.Core.Input
         Vector2 LookInput { get; }
 
         event Action Jump;
+
+        /// <summary>
+        /// Единственная кнопка «руки». Ею и жмут станцию, и поднимают груз, и кладут его
+        /// обратно: что именно случится, решает то, на что игрок смотрит, а не то, какую
+        /// клавишу он вспомнил. Отдельных Grab и Throw больше нет - бросок ушёл на кнопку
+        /// удара, где он копит замах
+        /// </summary>
         event Action Interact;
-        event Action Grab;
-        event Action Throw;
 
         /// <summary>Достать/убрать листок текущего заказа</summary>
         event Action ViewContract;

@@ -19,8 +19,15 @@ namespace CrateExpectations.Interaction
         [field: SerializeField] public float FocusDistance { get; private set; } = 4f;
 
         [Tooltip("Слои предметов, о которых Interactor сообщает как о цели под прицелом " +
-                 "(обычно 'Carriable' и 'Carried'). Взаимодействие они не перехватывают")]
+                 "(обычно 'Carriable' и 'Carried')")]
         [field: SerializeField] public LayerMask FocusMask { get; private set; }
+
+        [Header("Подсказки груза")]
+        [Tooltip("Подсказка, когда под прицелом груз, который можно поднять")]
+        [field: SerializeField] public string GrabPrompt { get; private set; } = "Взять";
+
+        [Tooltip("Подсказка, когда груз уже в руках")]
+        [field: SerializeField] public string DropPrompt { get; private set; } = "Положить";
 
         /// <summary>Дальность одного общего луча: покрывает и взаимодействие, и взгляд</summary>
         public float ScanDistance => Mathf.Max(MaxDistance, FocusDistance);

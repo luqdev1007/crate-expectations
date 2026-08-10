@@ -8,16 +8,29 @@ namespace CrateExpectations.Interaction
     /// <summary>
     /// Подъём, перенос и бросок физических объектов с <see cref="Carriable"/>: точка удержания
     /// считается от прицела, а способ удержания задаётся <see cref="HoldMode"/>
-    /// в <see cref="CarryDefinition"/> (смена режима не требует правок кода)
+    /// в <see cref="CarryDefinition"/> (смена режима не требует правок кода).
+    /// <para>
+    /// Он же держит замах: с грузом в руках кнопка удара копит заряд броска вместо удара.
+    /// Разводка этого нажатия НЕ вынесена в отдельного посредника - посреднику пришлось бы
+    /// знать и про бой, и про переноску сразу, а знать тут нечего: занятость рук уже
+    /// вычисляется в <c>HandsState</c>, и «бить» с «бросать» разведены её же значениями.
+    /// Бой пропускает нажатие, когда занятость Carrying, переноска отзывается на него
+    /// ровно тогда, когда груз в руках, - одно и то же условие с двух сторон,
+    /// а не две копии одной проверки
+    /// </para>
+    /// <para>
+    /// А вот КОГДА поднять и когда положить, решает не переноска. Кнопка руки одна на
+    /// всё - ею же жмут станции, - и выбирать цель под прицелом должен тот, кто пускает
+    /// луч, то есть <see cref="Interactor"/>. Здесь остаётся исполнение: взять, держать,
+    /// отпустить. Своего луча захвата у переноски больше нет
+    /// </para>
     /// </summary>
     public sealed class Carrier : MonoBehaviour, ICarryStateSource
     {
         [SerializeField] private CarryDefinition _definition;
 
-        [Tooltip("Начало луча захвата и опора точки удержания (обычно камера)")]
+        [Tooltip("Опора точки удержания и направление броска (обычно камера)")]
         [SerializeField] private Transform _rayOrigin;
-
-        private readonly RaycastHit[] _hits = new RaycastHit[8];
 
         private IInputReader _input;
         private Carriable _held;
@@ -35,29 +48,40 @@ namespace CrateExpectations.Interaction
         private RigidbodyInterpolation _previousInterpolation;
         private float _previousAngularDamping;
 
+        // Замах. Тот же класс, которым бой копит заряженный удар, но ЭКЗЕМПЛЯР свой:
+        // общий сделал бы замах ящиком боевой занятостью, и руки посреди броска
+        // уехали бы из Carrying в Combat
+        private readonly HoldCharge _throwCharge = new();
+
         /// <inheritdoc />
         public bool IsCarrying => _held != null;
+
+        /// <summary>
+        /// Замах уже копится (мёртвая зона пройдена). Пригодится аниматору,
+        /// когда у броска появится анимация
+        /// </summary>
+        public bool IsCharging => _throwCharge.IsCharging;
+
+        /// <summary>Насколько замах полон, 0..1. Тоже под будущую анимацию</summary>
+        public float ChargeT => _throwCharge.ChargeT;
 
         /// <summary>Что именно в руках или <c>null</c> (нужен тем, кто показывает груз игроку)</summary>
         public Carriable Held => _held;
 
+        /// <summary>
+        /// С какого расстояния игрок дотягивается до груза. Наружу - потому что луч
+        /// теперь чужой: цель под прицелом ищет <see cref="Interactor"/>, а вот НА КАКОЙ
+        /// дистанции груз считается досягаемым, знает ассет переноски
+        /// </summary>
+        public float GrabDistance => _definition.GrabDistance;
+
         [Inject]
         public void Construct(IInputReader input) => _input = input;
 
-        /// <summary>
-        /// Отдаёт переноске общую модель занятости рук. Не через <c>[Inject]</c> намеренно:
-        /// этот же компонент - ИСТОЧНИК для <see cref="HandsState"/>, и инъекция замкнула бы
-        /// граф зависимостей сам на себя (переноска ждала бы модель, модель - переноску).
-        /// Связывание идёт из <c>GameLifetimeScope</c>, когда оба конца уже созданы
-        /// </summary>
-        public void BindHands(HandsState hands) => _hands = hands;
-
-        private HandsState _hands;
-
         private void Start()
         {
-            _input.Grab += OnGrabPressed;
-            _input.Throw += OnThrowPressed;
+            _input.Attack += OnAttackPressed;
+            _input.AttackReleased += OnAttackReleased;
 
             ValidateCarriedLayer();
         }
@@ -91,40 +115,97 @@ namespace CrateExpectations.Interaction
         {
             if (_input != null)
             {
-                _input.Grab -= OnGrabPressed;
-                _input.Throw -= OnThrowPressed;
+                _input.Attack -= OnAttackPressed;
+                _input.AttackReleased -= OnAttackReleased;
             }
 
             if (_anchor != null)
                 Destroy(_anchor.gameObject);
         }
 
-        private void OnGrabPressed()
+        /// <summary>
+        /// Взять груз в руки. Решение уже принято снаружи - здесь только исполнение,
+        /// поэтому и проверок тут ровно одна: две ноши сразу физически не бывает
+        /// </summary>
+        public void Grab(Carriable carriable)
         {
-            // Положить взятое можно всегда и первым делом: занятые руки не должны
-            // оставлять ящик приклеенным навсегда
-            if (IsCarrying)
-            {
-                Release(Vector3.zero);
-                return;
-            }
-
-            // Руки заняты чем-то другим - нажатие просто пропадает. Ни очереди,
-            // ни автоматического убирания того, что мешает: убрать оружие или опустить
-            // листок - решение игрока, а не побочный эффект попытки взять ящик.
-            // Сюда же попадает и «посреди удара»: занятость боем это учитывает
-            if (_hands != null && !_hands.CanGrab)
+            if (IsCarrying || carriable == null)
                 return;
 
-            TryGrab();
+            Attach(carriable);
         }
 
-        private void OnThrowPressed()
+        /// <summary>Положить груз там, где он висит. Без импульса - это не бросок</summary>
+        public void Drop()
         {
             if (!IsCarrying)
                 return;
 
-            Release(_rayOrigin.forward * _definition.ThrowForce);
+            Release(Vector3.zero);
+        }
+
+        /// <summary>
+        /// Годится ли то, во что упёрся чужой луч, чтобы это поднять. Знание «что можно
+        /// поднять» остаётся здесь, у ассета переноски: <see cref="Interactor"/> владеет
+        /// лучом, но не должен заводить вторую копию маски и дистанции захвата.
+        /// <para>
+        /// Маска слоёв - лишь грубый фильтр; решает наличие <see cref="Carriable"/>
+        /// на самом коллайдере или выше по иерархии
+        /// </para>
+        /// </summary>
+        /// <param name="hit">Коллайдер под прицелом</param>
+        /// <param name="distance">Дистанция до него по лучу, м</param>
+        /// <param name="carriable">Что именно поднимется</param>
+        public bool TryResolveGrabTarget(Collider hit, float distance, out Carriable carriable)
+        {
+            carriable = null;
+
+            if (hit == null || distance > _definition.GrabDistance)
+                return false;
+
+            if ((_definition.CarriableMask.value & (1 << hit.gameObject.layer)) == 0)
+                return false;
+
+            return TryResolveCarriable(hit, out carriable);
+        }
+
+        /// <summary>
+        /// Кнопку удара нажали. С грузом в руках она копит замах, а не бьёт: удар при
+        /// занятости Carrying не пускает бой у себя, и вторую копию этого правила
+        /// здесь заводить нечего - переноске достаточно знать, что груз у неё
+        /// </summary>
+        private void OnAttackPressed()
+        {
+            if (!IsCarrying)
+                return;
+
+            _throwCharge.Begin(_definition.ChargeDuration, _definition.ActivationThreshold);
+        }
+
+        /// <summary>
+        /// Кнопку удара отпустили. Замах короче мёртвой зоны не делает НИЧЕГО: короткий
+        /// клик с грузом в руках не должен ни ронять его, ни толкать слабым тычком, -
+        /// иначе игрок терял бы ящик каждый раз, когда промахнулся кнопкой
+        /// </summary>
+        private void OnAttackReleased()
+        {
+            if (!IsCarrying || !_throwCharge.IsCharging)
+            {
+                _throwCharge.Cancel();
+                return;
+            }
+
+            // Второго пути броска нет: сила считается по заряду, а дальше это тот же
+            // Release, что и у броска с руки. Заряд гасится внутри него - вместе
+            // со всеми остальными способами лишиться груза
+            Release(_rayOrigin.forward * _definition.ThrowForceAt(_throwCharge.ChargeT));
+        }
+
+        private void Update()
+        {
+            // Возврат Tick тут не нужен: полный замах никуда сам не улетает, он ждёт
+            // отпускания кнопки, стоя на единице. Этим бросок и отличается от удара
+            _throwCharge.Tick(Time.deltaTime);
         }
 
         private void FixedUpdate()
@@ -156,35 +237,6 @@ namespace CrateExpectations.Interaction
                 velocity = velocity.normalized * maxVelocity;
 
             _heldBody.linearVelocity = velocity;
-        }
-
-        private void TryGrab()
-        {
-            var ray = new Ray(_rayOrigin.position, _rayOrigin.forward);
-
-            int count = Physics.RaycastNonAlloc(
-                ray, _hits, _definition.GrabDistance,
-                _definition.CarriableMask, QueryTriggerInteraction.Ignore);
-
-            Carriable nearest = null;
-            float nearestDistance = float.MaxValue;
-
-            for (int i = 0; i < count; i++)
-            {
-                if (_hits[i].distance >= nearestDistance)
-                    continue;
-
-                Carriable candidate;
-
-                if (!TryResolveCarriable(_hits[i].collider, out candidate))
-                    continue;
-
-                nearest = candidate;
-                nearestDistance = _hits[i].distance;
-            }
-
-            if (nearest != null)
-                Attach(nearest);
         }
 
         /// <summary>
@@ -223,7 +275,18 @@ namespace CrateExpectations.Interaction
                 distance = Mathf.Max(hit.distance, _definition.MinHoldDistance);
             }
 
-            return origin + direction * distance;
+            Vector3 point = origin + direction * distance;
+
+            if (!_throwCharge.IsCharging)
+                return point;
+
+            // Замах прибавляется ПОСЛЕ подтяжки и кламба, а не к дистанции до них: иначе
+            // кламп минимальной дистанции дрался бы с замахом и на близких стенах ящик
+            // дёргался бы вместо того, чтобы уехать назад.
+            // Смещение камерное, а не мировое: замах должен уводить груз к плечу игрока,
+            // куда бы он ни смотрел. Груз при этом едет НА игрока и может влезть
+            // в геометрию за спиной - это принято осознанно
+            return point + _rayOrigin.rotation * _definition.WindupOffsetAt(_throwCharge.ChargeT);
         }
 
         /// <summary>Половина наименьшего габарита груза - радиус для проверки точки удержания</summary>
@@ -291,6 +354,11 @@ namespace CrateExpectations.Interaction
 
             _held = null;
             _heldBody = null;
+
+            // Единственное место, где гасится замах, - и именно поэтому оно здесь: через
+            // Release проходят ВСЕ способы лишиться груза (кнопка, бросок, отрыв
+            // по BreakDistance), и заряд не может пережить ни один из них
+            _throwCharge.Cancel();
         }
 
         private void AttachJoint()

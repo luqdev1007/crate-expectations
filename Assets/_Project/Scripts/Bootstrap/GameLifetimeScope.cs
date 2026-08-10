@@ -165,7 +165,9 @@ namespace CrateExpectations.Bootstrap
                 // по той же причине - три из четырёх получателей сами являются её источниками
                 HandsState hands = container.Resolve<HandsState>();
 
-                container.Resolve<Carrier>().BindHands(hands);
+                // Переноски в этом списке нет намеренно: гейт «можно ли взять» переехал
+                // к тому, кто выбирает цель под прицелом, - в Interactor. Переноска
+                // осталась источником занятости, но сама её ни о чём не спрашивает
                 container.Resolve<Interactor>().BindHands(hands);
                 container.Resolve<PlayerWeaponController>().BindHands(hands);
                 container.Resolve<ContractViewer>().BindHands(hands);

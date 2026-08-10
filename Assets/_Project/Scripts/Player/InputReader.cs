@@ -21,8 +21,6 @@ namespace CrateExpectations.Player
 
         public event Action Jump;
         public event Action Interact;
-        public event Action Grab;
-        public event Action Throw;
         public event Action ViewContract;
         public event Action ToggleWeapon;
         public event Action Attack;
@@ -56,18 +54,6 @@ namespace CrateExpectations.Player
         {
             if (context.performed) 
                 Interact?.Invoke();
-        }
-
-        void PlayerControls.IPlayerActions.OnGrab(InputAction.CallbackContext context)
-        {
-            if (context.performed) 
-                Grab?.Invoke();
-        }
-
-        void PlayerControls.IPlayerActions.OnThrow(InputAction.CallbackContext context)
-        {
-            if (context.performed) 
-                Throw?.Invoke();
         }
 
         void PlayerControls.IPlayerActions.OnViewContract(InputAction.CallbackContext context)

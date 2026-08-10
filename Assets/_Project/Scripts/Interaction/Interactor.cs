@@ -6,6 +6,26 @@ using VContainer;
 
 namespace CrateExpectations.Interaction
 {
+    /// <summary>
+    /// Рука игрока: один луч, ОДНА цель под прицелом и одна кнопка на всё.
+    /// <para>
+    /// Цель выбирается здесь, а не у каждого потребителя своя, потому что кнопка руки
+    /// одна: ею жмут станцию, ею же поднимают и кладут груз. Пока действий было два
+    /// (E на станцию, F на груз), выбирать было нечего - каждый отвечал на свою клавишу.
+    /// С одной клавишей появляется вопрос «что именно сейчас», и ответ на него обязан
+    /// быть один: подсказка на экране и то, что случится по нажатию, - это одно и то же
+    /// решение, принятое в одном месте. Иначе подсказка рано или поздно начнёт врать.
+    /// </para>
+    /// <para>
+    /// Приоритет: груз в руках важнее всего (положить можно всегда), дальше побеждает
+    /// то, что БЛИЖЕ по лучу. Смотришь на станцию - жмёшь станцию, смотришь на ящик
+    /// перед ней - берёшь ящик.
+    /// </para>
+    /// <para>
+    /// Само взятие и отпускание исполняет <see cref="Carrier"/>: здесь только выбор
+    /// и диспетчеризация, физика переноски - не наше дело
+    /// </para>
+    /// </summary>
     public sealed class Interactor : MonoBehaviour
     {
         [SerializeField] private InteractionDefinition _definition;
@@ -14,14 +34,22 @@ namespace CrateExpectations.Interaction
         private readonly RaycastHit[] _hits = new RaycastHit[8];
 
         private IInputReader _input;
+        private Carrier _carrier;
+
         private IInteractable _current;
         private string _currentPrompt = string.Empty;
 
         private Collider _interactableCollider;
         private IInteractable _resolvedInteractable;
+        private float _interactableDistance;
+
+        private Carriable _grabTarget;
+        private float _grabDistance;
 
         private Collider _focusCollider;
         private Transform _focus;
+
+        private ReachAction _reach;
 
         public event Action<string> PromptChanged;
 
@@ -34,8 +62,15 @@ namespace CrateExpectations.Interaction
         /// <inheritdoc cref="FocusChanged"/>
         public Transform Focus => _focus;
 
+        /// <summary>Что сделает кнопка руки прямо сейчас</summary>
+        public ReachAction Reach => _reach;
+
         [Inject]
-        public void Construct(IInputReader input) => _input = input;
+        public void Construct(IInputReader input, Carrier carrier)
+        {
+            _input = input;
+            _carrier = carrier;
+        }
 
         /// <summary>
         /// Отдаёт общую модель занятости рук. Не через <c>[Inject]</c> - по той же причине,
@@ -58,14 +93,21 @@ namespace CrateExpectations.Interaction
         {
             Scan();
 
-            if (!ReferenceEquals(_resolvedInteractable, _current))
+            _reach = ResolveReach();
+
+            // Подсвечивается и «сфокусирована» станция ровно тогда, когда нажатие достанется
+            // ЕЙ. Иначе ящик, перехвативший цель, оставлял бы станцию гореть - и подсветка
+            // обещала бы одно, а кнопка делала другое
+            IInteractable interactable = _reach == ReachAction.Interact ? _resolvedInteractable : null;
+
+            if (!ReferenceEquals(interactable, _current))
             {
                 _current?.OnUnfocused();
-                _current = _resolvedInteractable;
+                _current = interactable;
                 _current?.OnFocused();
             }
 
-            string prompt = _current != null ? _current.Prompt : string.Empty;
+            string prompt = ResolvePrompt();
 
             if (string.Equals(prompt, _currentPrompt))
                 return;
@@ -75,9 +117,9 @@ namespace CrateExpectations.Interaction
         }
 
         /// <summary>
-        /// Один луч на двух потребителей: ближайший интерактивный объект для подсказки и
-        /// ближайший предмет под прицелом для мировых плашек. Разбираем их по маскам раздельно,
-        /// поэтому ящик, попавший в кадр перед станцией, не отбирает у неё подсказку
+        /// Один луч на трёх потребителей: ближайшая станция, ближайший поднимаемый груз
+        /// и ближайший предмет под прицелом для мировых плашек. Разбираем их по маскам
+        /// раздельно и в один проход - второй луч ради груза не пускаем
         /// </summary>
         private void Scan()
         {
@@ -92,6 +134,9 @@ namespace CrateExpectations.Interaction
 
             Collider focus = null;
             float focusDistance = float.MaxValue;
+
+            Carriable grab = null;
+            float grabDistance = float.MaxValue;
 
             for (int i = 0; i < count; i++)
             {
@@ -113,17 +158,31 @@ namespace CrateExpectations.Interaction
                     focus = collider;
                     focusDistance = distance;
                 }
+
+                // Что считается поднимаемым, знает переноска - у неё маска и дальность
+                // захвата. Здесь только луч
+                if (distance < grabDistance
+                    && _carrier.TryResolveGrabTarget(collider, distance, out Carriable candidate))
+                {
+                    grab = candidate;
+                    grabDistance = distance;
+                }
             }
 
-            TakeInteractable(interactable);
+            TakeInteractable(interactable, interactableDistance);
             TakeFocus(focus);
+
+            _grabTarget = grab;
+            _grabDistance = grabDistance;
         }
 
         private static bool IsInMask(Collider collider, LayerMask mask) =>
             (mask.value & (1 << collider.gameObject.layer)) != 0;
 
-        private void TakeInteractable(Collider collider)
+        private void TakeInteractable(Collider collider, float distance)
         {
+            _interactableDistance = distance;
+
             // Тот же коллайдер - тот же компонент: GetComponentInParent зовём только на смене цели
             if (ReferenceEquals(collider, _interactableCollider))
                 return;
@@ -145,16 +204,66 @@ namespace CrateExpectations.Interaction
             FocusChanged?.Invoke(_focus);
         }
 
+        /// <summary>
+        /// Выбор цели. Занятость рук учитывается ЗДЕСЬ, а не только на нажатии: подсказка
+        /// «Взять» с саблей в руке была бы обещанием, которого кнопка не выполнит.
+        /// <para>
+        /// А вот занятость ДЕЙСТВИЕМ (замах, блок) сюда не входит намеренно: она живёт доли
+        /// секунды, и подсказка моргала бы на каждом ударе. Её проверяет само нажатие
+        /// </para>
+        /// </summary>
+        private ReachAction ResolveReach()
+        {
+            bool canGrab = _grabTarget != null && (_hands == null || _hands.CanGrab);
+
+            return ReachPriority.Resolve(
+                _carrier.IsCarrying,
+                canGrab, _grabDistance,
+                _resolvedInteractable != null, _interactableDistance);
+        }
+
+        private string ResolvePrompt()
+        {
+            switch (_reach)
+            {
+                case ReachAction.Interact:
+                    return _current != null ? _current.Prompt : string.Empty;
+
+                case ReachAction.Grab:
+                    return _definition.GrabPrompt;
+
+                case ReachAction.Drop:
+                    return _definition.DropPrompt;
+
+                default:
+                    return string.Empty;
+            }
+        }
+
         private void OnInteractPressed()
         {
-            // Посреди удара, блока или доставания оружия рука занята делом и до станции
+            // Посреди удара, блока или доставания оружия рука занята делом и никуда
             // не дотягивается. С опущенной саблей, с грузом и с листком - дотягивается:
             // это не занятость рук, а занятость действием
             if (_hands != null && !_hands.CanReachOut)
                 return;
 
-            if (_current != null && _current.CanInteract)
-                _current.Interact(this);
+            switch (_reach)
+            {
+                case ReachAction.Interact:
+                    if (_current != null && _current.CanInteract)
+                        _current.Interact(this);
+
+                    break;
+
+                case ReachAction.Grab:
+                    _carrier.Grab(_grabTarget);
+                    break;
+
+                case ReachAction.Drop:
+                    _carrier.Drop();
+                    break;
+            }
         }
     }
 }

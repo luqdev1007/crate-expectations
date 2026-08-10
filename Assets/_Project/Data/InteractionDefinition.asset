@@ -20,3 +20,5 @@ MonoBehaviour:
   <FocusMask>k__BackingField:
     serializedVersion: 2
     m_Bits: 5120
+  <GrabPrompt>k__BackingField: "\u0412\u0437\u044F\u0442\u044C"
+  <DropPrompt>k__BackingField: "\u041F\u043E\u043B\u043E\u0436\u0438\u0442\u044C"

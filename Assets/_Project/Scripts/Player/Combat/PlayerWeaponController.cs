@@ -29,7 +29,7 @@ namespace CrateExpectations.Player.Combat
     /// <para>
     /// Он же - источник <see cref="IWeaponStateSource"/> для общей модели занятости рук.
     /// Владельцем сделан именно контроллер, а не <see cref="WeaponStateMachine"/>:
-    /// машина не знает про заряд (тот живёт здесь, в <see cref="AttackCharge"/>),
+    /// машина не знает про заряд (тот живёт здесь, в <see cref="HoldCharge"/>),
     /// а без заряда ответ на «занят ли» был бы неполным - зажатая кнопка удара
     /// это уже занятые руки, хотя состояние машины всё ещё Ready.
     /// </para>
@@ -52,7 +52,11 @@ namespace CrateExpectations.Player.Combat
         private WeaponStateMachine _machine;
         private AttackSelector _selector;
         private AttackInputBuffer _buffer;
-        private readonly AttackCharge _charge = new();
+
+        // Заряд удара. Экземпляр СВОЙ, и это принципиально: тем же классом копит замах
+        // бросок груза, но у него свой экземпляр у переноски. Смешать их значило бы,
+        // что замах ящиком поднимает боевой IsBusy и руки уезжают в Combat посреди броска
+        private readonly HoldCharge _charge = new();
 
         // Направление, снятое в момент нажатия. Ждёт вместе с буфером: удар, вышедший
         // из буфера через десятую долю секунды, обязан быть тем, который игрок заказывал
@@ -87,7 +91,10 @@ namespace CrateExpectations.Player.Combat
         /// пришлось бы дописывать при каждом новом состоянии машины.
         /// <para>
         /// Заряд добавлен отдельным слагаемым: кнопку удара можно держать и в Ready,
-        /// и даже с убранным оружием, а руки при этом уже заняты - игрок целится приёмом
+        /// и даже с убранным оружием, а руки при этом уже заняты - игрок целится приёмом.
+        /// Заряд здесь ровно один - БОЕВОЙ. Замах для броска груза копится тем же классом,
+        /// но другим экземпляром и у другого владельца, и в этот флаг не попадает:
+        /// иначе занятость рук во время броска уехала бы из Carrying в Combat
         /// </para>
         /// </summary>
         public bool IsBusy =>
@@ -190,7 +197,7 @@ namespace CrateExpectations.Player.Combat
             if (_machine.State == WeaponState.Sheathing)
             {
                 _buffer.Clear();
-                _charge.Clear();
+                _charge.Cancel();
                 _selector.ResetVariations();
             }
         }
@@ -228,8 +235,10 @@ namespace CrateExpectations.Player.Combat
             if (charge > 0f)
             {
                 // У направления есть заряженный приём - нажатие пока не удар, а начало
-                // удержания. Ударом оно станет либо на отпускании, либо на пороге
-                _charge.Begin(charge);
+                // удержания. Ударом оно станет либо на отпускании, либо на пороге.
+                // Мёртвой зоны у боя нет: самое короткое нажатие - это уже удар,
+                // вопрос только какой
+                _charge.Begin(charge, 0f);
                 return;
             }
 
@@ -243,7 +252,7 @@ namespace CrateExpectations.Player.Combat
         /// </summary>
         private void OnAttackReleased()
         {
-            if (!_charge.IsCharging)
+            if (!_charge.IsHolding)
                 return;
 
             Fire(_charge.Release());
@@ -324,9 +333,11 @@ namespace CrateExpectations.Player.Combat
 
             _machine.Tick(deltaTime);
 
-            // Заряд дошёл до порога - удар уходит сам, кнопку отпускать не надо
+            // Заряд дошёл до порога - удар уходит сам, кнопку отпускать не надо.
+            // Снимаем заряд тут же: без этого отпускание кнопки положило бы в буфер
+            // второй удар - тот самый, который уже ушёл
             if (_charge.Tick(deltaTime))
-                Fire(_charge.Held);
+                Fire(_charge.Release());
 
             // Порядок: сначала машина досчитала время и, возможно, освободилась, и только
             // потом буфер пробует отработать. Наоборот - и нажатие ждало бы лишний кадр
