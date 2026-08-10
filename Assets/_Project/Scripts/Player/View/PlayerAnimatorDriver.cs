@@ -104,25 +104,12 @@ namespace CrateExpectations.Player.View
                 // мимо своей физики, а руки уползли бы из кадра
                 animator.applyRootMotion = false;
 
-                _animators[i].SupportsAttackIndex = HasParameter(animator, AttackIndexName);
-                _animators[i].SupportsBlock = HasParameter(animator, BlockPhaseName);
+                _animators[i].SupportsAttackIndex =
+                    AnimatorParameters.Has(animator, AttackIndexName);
+
+                _animators[i].SupportsBlock =
+                    AnimatorParameters.Has(animator, BlockPhaseName);
             }
-        }
-
-        /// <summary>
-        /// Есть ли у контроллера такой параметр. Единственный способ спросить - перебрать
-        /// список: <see cref="Animator"/> проверки по имени не даёт, а запись в
-        /// несуществующий параметр он молча не глотает
-        /// </summary>
-        private static bool HasParameter(Animator animator, string parameterName)
-        {
-            AnimatorControllerParameter[] parameters = animator.parameters;
-
-            for (int i = 0; i < parameters.Length; i++)
-                if (parameters[i].name == parameterName)
-                    return true;
-
-            return false;
         }
 
         private void OnEnable()

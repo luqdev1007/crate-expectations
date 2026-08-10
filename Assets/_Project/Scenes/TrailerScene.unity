@@ -6187,6 +6187,7 @@ GameObject:
   - component: {fileID: 312458786}
   - component: {fileID: 312458788}
   - component: {fileID: 312458787}
+  - component: {fileID: 312458789}
   m_Layer: 14
   m_Name: FppModel
   m_TagString: Untagged
@@ -6226,7 +6227,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CrateExpectations.Player::CrateExpectations.Player.View.ViewModelBody
   _armsRenderer: {fileID: 1136708802}
-  _weapon: {fileID: 490440818}
 --- !u!95 &312458788
 Animator:
   serializedVersion: 7
@@ -6249,6 +6249,19 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &312458789
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 312458785}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9225ace7f2b8d464d94e0973ce93af94, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CrateExpectations.Player::CrateExpectations.Player.View.HandsAnimatorDriver
+  _animator: {fileID: 312458788}
 --- !u!1 &331498206
 GameObject:
   m_ObjectHideFlags: 0
@@ -8686,7 +8699,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CrateExpectations.Player::CrateExpectations.Player.View.ViewModelBody
   _armsRenderer: {fileID: 1673246871}
-  _weapon: {fileID: 490440818}
 --- !u!95 &473558288
 Animator:
   serializedVersion: 7
@@ -9281,7 +9293,7 @@ MonoBehaviour:
     AttackClip: {fileID: 3094330708855449807, guid: 6f56d9a642635264093b0e74acaeec8a, type: 3}
   - Animator: {fileID: 312458788}
     SwingDrawnProcedurally: 1
-    AttackClip: {fileID: 5094801603742384621, guid: 471d1483b25fd654d89585efd435412e, type: 3}
+    AttackClip: {fileID: 0}
 --- !u!114 &490440827
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12679,6 +12691,7 @@ MonoBehaviour:
   _saveSlot: {fileID: 11400000, guid: 75d55fd7da4ac3648bcbb0b975c0e65a, type: 2}
   _cargoRegistry: {fileID: 11400000, guid: 3a85b2781a87b304b98155c5dc9aec4c, type: 2}
   _inspection: {fileID: 11400000, guid: 72b220ae886298b44972791a57c3beab, type: 2}
+  _viewModelBody: {fileID: 312458787}
 --- !u!1 &628099092
 GameObject:
   m_ObjectHideFlags: 0
@@ -36766,7 +36779,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CrateExpectations.Player::CrateExpectations.Player.View.ViewModelBody
   _armsRenderer: {fileID: 297418712}
-  _weapon: {fileID: 490440818}
 --- !u!95 &1785028502
 Animator:
   serializedVersion: 7

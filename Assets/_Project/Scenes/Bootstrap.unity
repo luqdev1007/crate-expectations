@@ -3890,6 +3890,7 @@ MonoBehaviour:
   _saveSlot: {fileID: 11400000, guid: 75d55fd7da4ac3648bcbb0b975c0e65a, type: 2}
   _cargoRegistry: {fileID: 11400000, guid: 3a85b2781a87b304b98155c5dc9aec4c, type: 2}
   _inspection: {fileID: 11400000, guid: 72b220ae886298b44972791a57c3beab, type: 2}
+  _viewModelBody: {fileID: 1571989085}
 --- !u!4 &538882588
 Transform:
   m_ObjectHideFlags: 0
@@ -6379,7 +6380,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CrateExpectations.Player::CrateExpectations.Player.View.ViewModelBody
   _armsRenderer: {fileID: 617764074}
-  _weapon: {fileID: 1242737595798173652}
 --- !u!114 &617764078
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15533,6 +15533,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 135c29175f3ebe74391b5e21f9ba285a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1571989085}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 135c29175f3ebe74391b5e21f9ba285a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1571989086}
   m_SourcePrefab: {fileID: 100100000, guid: 135c29175f3ebe74391b5e21f9ba285a, type: 3}
 --- !u!4 &1571989080 stripped
 Transform:
@@ -15572,7 +15575,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CrateExpectations.Player::CrateExpectations.Player.View.ViewModelBody
   _armsRenderer: {fileID: 1571989082}
-  _weapon: {fileID: 1242737595798173652}
+--- !u!114 &1571989086
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1571989083}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9225ace7f2b8d464d94e0973ce93af94, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CrateExpectations.Player::CrateExpectations.Player.View.HandsAnimatorDriver
+  _animator: {fileID: 1571989084}
 --- !u!1001 &1586343775
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -19670,7 +19685,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CrateExpectations.Player::CrateExpectations.Player.View.ViewModelBody
   _armsRenderer: {fileID: 1952303116}
-  _weapon: {fileID: 1242737595798173652}
 --- !u!1001 &1953068797
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -21795,7 +21809,6 @@ MonoBehaviour:
   - {fileID: 1361060019}
   - {fileID: 988018650}
   _body: {fileID: 256794910}
-  _carrier: {fileID: 1242737595798173662}
 --- !u!114 &1242737595798173653
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21815,7 +21828,7 @@ MonoBehaviour:
     AttackClip: {fileID: 3094330708855449807, guid: 6f56d9a642635264093b0e74acaeec8a, type: 3}
   - Animator: {fileID: 1571989084}
     SwingDrawnProcedurally: 1
-    AttackClip: {fileID: 5094801603742384621, guid: 471d1483b25fd654d89585efd435412e, type: 3}
+    AttackClip: {fileID: 0}
 --- !u!1 &1242737595798173654 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4927037552141917284, guid: da8d2305c5c846c4dabe978420eedcaf, type: 3}
@@ -21989,17 +22002,6 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &1242737595798173662 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5195596205699271188, guid: da8d2305c5c846c4dabe978420eedcaf, type: 3}
-  m_PrefabInstance: {fileID: 1242737595798173649}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1242737595798173651}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9eb8e337f69bdb3428614155c5fd1af2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: CrateExpectations.Interaction::CrateExpectations.Interaction.Carrier
 --- !u!1 &1247619218556058891
 GameObject:
   m_ObjectHideFlags: 0

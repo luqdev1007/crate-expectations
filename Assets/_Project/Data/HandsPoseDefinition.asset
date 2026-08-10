@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fae3d2d0377f3b146949be00f6533be1, type: 3}
+  m_Name: HandsPoseDefinition
+  m_EditorClassIdentifier: CrateExpectations.Player::CrateExpectations.Player.View.HandsPoseDefinition
+  <CarryIdle>k__BackingField: {fileID: 2886711361295093964, guid: 7ba1fb41cf430f9419ef86f7aa63ed3c, type: 3}
+  <CarryWindup>k__BackingField: {fileID: 2886711361295093964, guid: 7ba1fb41cf430f9419ef86f7aa63ed3c, type: 3}
+  <ContractHold>k__BackingField: {fileID: 2886711361295093964, guid: 7ba1fb41cf430f9419ef86f7aa63ed3c, type: 3}

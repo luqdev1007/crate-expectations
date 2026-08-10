@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using CrateExpectations.Combat;
+using CrateExpectations.Player.View;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -43,13 +44,25 @@ namespace CrateExpectations.EditorTools.Animation
         /// <summary>Чей граф собираем. Приёмы берутся из раскладки этого оружия</summary>
         private const string WeaponPath = "Assets/_Project/Data/Combat/SabreDefinition.asset";
 
-        // Имена параметров дублируются в PlayerAnimatorDriver: там они хешируются,
-        // здесь - объявляются. Третьего места, где они встречаются, быть не должно
+        /// <summary>
+        /// Второй ассет-вход билдера: небоевые позы рук. Клипы приходят из него, а не
+        /// из путей-констант, как стойка и блок, - те остались по старому и переезжают
+        /// отдельным долгом
+        /// </summary>
+        private const string HandsPosePath = "Assets/_Project/Data/HandsPoseDefinition.asset";
+
+        // Имена параметров дублируются в драйверах: там они хешируются, здесь -
+        // объявляются. Третьего места, где они встречаются, быть не должно
         private const string IsArmedParameter = "IsArmed";
         private const string AttackParameter = "Attack";
         private const string AttackSpeedParameter = "AttackSpeed";
         private const string AttackIndexParameter = "AttackIndex";
         private const string BlockPhaseParameter = "BlockPhase";
+
+        // Эти двое - от HandsAnimatorDriver, а не от PlayerAnimatorDriver: занятость рук
+        // и заряд броска приходят не от машины состояний оружия
+        private const string HandsModeParameter = "HandsMode";
+        private const string ChargeTParameter = "ChargeT";
 
         /// <summary>Длительность кроссфейда стойки, с. Держать равной DrawDuration оружия</summary>
         private const float StanceCrossfade = 0.25f;
@@ -64,6 +77,12 @@ namespace CrateExpectations.EditorTools.Animation
 
         /// <summary>Вход и выход из блока, с. Короче кроссфейда стойки: блок ставят резко</summary>
         private const float BlockBlend = 0.08f;
+
+        /// <summary>
+        /// Смена позы рук, с. Между кроссфейдом стойки и резкостью блока: взять ящик -
+        /// это не выпад, но и не смена стойки
+        /// </summary>
+        private const float HandsBlend = 0.12f;
 
         [MenuItem("Tools/Crate Expectations/Rebuild View Model Animator")]
         public static void Rebuild()
@@ -113,6 +132,14 @@ namespace CrateExpectations.EditorTools.Animation
             // поднятых флага означали бы, что позу выбирает порядок переходов в графе
             controller.AddParameter(BlockPhaseParameter, AnimatorControllerParameterType.Int);
 
+            // Занятость рук - тоже числом и по той же причине: занятость одна за раз,
+            // и числа для неё объявлены в HandsAnimatorMode, откуда их берёт и рантайм
+            controller.AddParameter(HandsModeParameter, AnimatorControllerParameterType.Int);
+
+            // Заряд броска. Ноль по умолчанию: незаряженная поза - это поза покоя,
+            // и стартовать граф обязан именно с неё
+            AddFloat(controller, ChargeTParameter, 0f);
+
             AnimatorStateMachine root = controller.layers[0].stateMachine;
             root.entryPosition = new Vector3(-260f, 0f, 0f);
             root.anyStatePosition = new Vector3(-260f, 120f, 0f);
@@ -142,12 +169,15 @@ namespace CrateExpectations.EditorTools.Animation
 
             AddBlock(root, combatIdle);
 
+            bool handsBuilt = AddHandsPoses(controller, root, idle, combatIdle);
+
             EditorUtility.SetDirty(controller);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
             Debug.Log($"Контроллер вьюмодели пересобран: {ControllerPath}. Приёмов в графе: {built} " +
-                      $"из {attacks.Count} (раскладка '{weapon.Attacks.name}').",
+                      $"из {attacks.Count} (раскладка '{weapon.Attacks.name}'). " +
+                      $"Небоевые позы рук: {(handsBuilt ? "собраны" : "НЕ собраны")}.",
                 AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath));
         }
 
@@ -174,6 +204,13 @@ namespace CrateExpectations.EditorTools.Animation
 
             foreach (ChildAnimatorState state in root.states)
                 root.RemoveState(state.state);
+
+            // Блендтри - подобъекты ассета, и RemoveState их не забирает: стейт уходит,
+            // дерево остаётся лежать в файле. Без этой уборки каждая пересборка добавляла бы
+            // в контроллер по мёртвому дереву, и заметно это стало бы только по размеру файла
+            foreach (Object asset in AssetDatabase.LoadAllAssetsAtPath(ControllerPath))
+                if (asset is BlendTree)
+                    Object.DestroyImmediate(asset, true);
 
             return controller;
         }
@@ -259,6 +296,107 @@ namespace CrateExpectations.EditorTools.Animation
             back.hasFixedDuration = true;
             back.duration = BlockBlend;
             back.AddCondition(AnimatorConditionMode.Equals, 0, BlockPhaseParameter);
+        }
+
+        /// <summary>
+        /// Ставит небоевые позы рук: переноску и листок заказа.
+        /// <para>
+        /// Вход - из Any State по занятости, как у блока: занятость меняется откуда угодно
+        /// (груз может выпасть сам, листок опуститься по событию шины), и перечислять
+        /// источники переходами значило бы держать связь от каждого состояния графа.
+        /// А вот ВЫХОД - явными переходами из самих поз, и это не симметрия ради симметрии:
+        /// переход Any State → Idle по "руки свободны" дрался бы с парой Idle ↔ CombatIdle,
+        /// которая живёт по IsArmed, и стойка дёргалась бы между ними.
+        /// </para>
+        /// <para>
+        /// Переход в себя у входов ЗАПРЕЩЁН. Условие здесь - равенство числа, истинное
+        /// каждый кадр, пока руки заняты; с разрешённым переходом в себя стейт
+        /// перезапускался бы вечно и анимация стояла бы на первом кадре. У ударов
+        /// переход в себя разрешён, и это не противоречие: там вход по триггеру,
+        /// который гаснет сам.
+        /// </para>
+        /// </summary>
+        private static bool AddHandsPoses(
+            AnimatorController controller, AnimatorStateMachine root,
+            AnimatorState idle, AnimatorState combatIdle)
+        {
+            var poses = AssetDatabase.LoadAssetAtPath<HandsPoseDefinition>(HandsPosePath);
+
+            if (poses == null)
+            {
+                Debug.LogError($"Нет ассета небоевых поз рук: '{HandsPosePath}'. " +
+                               "Стейтов переноски и листка в графе не будет.");
+                return false;
+            }
+
+            if (!poses.IsComplete)
+            {
+                Debug.LogError($"В '{poses.name}' назначены не все клипы. " +
+                               "Стейтов переноски и листка в графе не будет.", poses);
+                return false;
+            }
+
+            AnimatorState carry = root.AddState("Carry", new Vector3(440f, 0f, 0f));
+            carry.motion = CarryBlendTree(controller, poses);
+
+            AnimatorState contract = root.AddState("ContractHold", new Vector3(440f, 140f, 0f));
+            contract.motion = poses.ContractHold;
+
+            ByHandsMode(root.AddAnyStateTransition(carry), HandsAnimatorMode.Carrying);
+            ByHandsMode(root.AddAnyStateTransition(contract), HandsAnimatorMode.Reading);
+
+            // Возврат в ту стойку, которая соответствует состоянию оружия. Обе ветки нужны:
+            // руки освобождаются и в безоружную стойку, и в боевую - смотря что игрок
+            // держал до груза
+            ByHandsMode(carry.AddTransition(idle), HandsAnimatorMode.Free);
+            ByHandsMode(carry.AddTransition(combatIdle), HandsAnimatorMode.Combat);
+            ByHandsMode(contract.AddTransition(idle), HandsAnimatorMode.Free);
+            ByHandsMode(contract.AddTransition(combatIdle), HandsAnimatorMode.Combat);
+
+            return true;
+        }
+
+        /// <summary>
+        /// Переноска - это не одна поза, а отрезок между покоем и концом замаха, поэтому
+        /// одномерное дерево по заряду: игрок должен видеть, СКОЛЬКО он накопил, а не
+        /// «копит или нет».
+        /// <para>
+        /// Дерево кладётся подобъектом в ассет контроллера - иначе оно не переживёт
+        /// перезагрузку, и стейт останется с пустым motion. Молча
+        /// </para>
+        /// </summary>
+        private static BlendTree CarryBlendTree(AnimatorController controller, HandsPoseDefinition poses)
+        {
+            var tree = new BlendTree
+            {
+                name = "CarryCharge",
+                blendType = BlendTreeType.Simple1D,
+                blendParameter = ChargeTParameter,
+
+                // Пороги задаём руками: автоматические разложили бы клипы равномерно
+                // по числу детей, и края дерева перестали бы совпадать с краями заряда
+                useAutomaticThresholds = false,
+                hideFlags = HideFlags.HideInHierarchy,
+            };
+
+            tree.AddChild(poses.CarryIdle, 0f);
+            tree.AddChild(poses.CarryWindup, 1f);
+
+            AssetDatabase.AddObjectToAsset(tree, controller);
+
+            return tree;
+        }
+
+        private static void ByHandsMode(AnimatorStateTransition transition, int mode)
+        {
+            transition.hasExitTime = false;
+            transition.hasFixedDuration = true;
+            transition.duration = HandsBlend;
+
+            // Ловушка, ради которой этот хелпер и существует: условие истинно каждый кадр
+            transition.canTransitionToSelf = false;
+
+            transition.AddCondition(AnimatorConditionMode.Equals, mode, HandsModeParameter);
         }
 
         private static void Phase(AnimatorStateTransition transition, int phase)

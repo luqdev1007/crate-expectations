@@ -5,6 +5,7 @@
         "CrateExpectations.Core",
         "CrateExpectations.Cargo",
         "CrateExpectations.Combat",
+        "CrateExpectations.Player",
         "CrateExpectations.Inspection",
         "CrateExpectations.Contracts",
         "CrateExpectations.Economy",

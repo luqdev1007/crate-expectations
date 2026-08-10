@@ -21,6 +21,7 @@ using CrateExpectations.Persistence;
 using CrateExpectations.Platform;
 using CrateExpectations.Player;
 using CrateExpectations.Player.Combat;
+using CrateExpectations.Player.View;
 using CrateExpectations.UI;
 
 namespace CrateExpectations.Bootstrap
@@ -40,6 +41,11 @@ namespace CrateExpectations.Bootstrap
         [SerializeField] private CargoRegistryDefinition _cargoRegistry;
 
         [SerializeField] private InspectionDefinition _inspection;
+
+        [Tooltip("Живая вьюмодель рук. Ссылкой, а не поиском по типу: рядом с ней в сцене " +
+                 "лежат отключённые вьюмодели прежних сборок, и поиск по иерархии отдаёт " +
+                 "первую из них, то есть мёртвую")]
+        [SerializeField] private ViewModelBody _viewModelBody;
 
         protected override void Configure(IContainerBuilder builder)
         {
@@ -128,6 +134,10 @@ namespace CrateExpectations.Bootstrap
                     resolver.Resolve<ContractViewer>()),
                 Lifetime.Singleton);
 
+            // Водитель параметров рук. Источником занятости он не является, поэтому берёт
+            // модель обычной инъекцией - замкнуть граф ему нечем
+            builder.RegisterComponentInHierarchy<HandsAnimatorDriver>();
+
             builder.RegisterEntryPoint<GameFlow>();
 
             // Компоненты сцены резолвятся лениво
@@ -171,7 +181,32 @@ namespace CrateExpectations.Bootstrap
                 container.Resolve<Interactor>().BindHands(hands);
                 container.Resolve<PlayerWeaponController>().BindHands(hands);
                 container.Resolve<ContractViewer>().BindHands(hands);
+                BindViewModel(hands);
+
+                // Резолвится именно ЗДЕСЬ - после источников: его инъекция тянет ту же
+                // фабрику, и на непрогретом контейнере она ушла бы в рекурсию по тем же
+                // трём компонентам
+                container.Resolve<HandsAnimatorDriver>();
             });
+        }
+
+        /// <summary>
+        /// Отдаёт занятость рукам в кадре. Незаполненная ссылка - это ошибка сборки сцены,
+        /// а не «вьюмодели тут нет»: без неё руки просто никогда не появятся, и найти
+        /// причину по пустому кадру нельзя
+        /// </summary>
+        private void BindViewModel(HandsState hands)
+        {
+            if (_viewModelBody == null)
+            {
+                Debug.LogError(
+                    $"Сцене '{gameObject.scene.name}' не назначена вьюмодель рук " +
+                    "(GameLifetimeScope._viewModelBody) - руки в кадре не появятся.", this);
+
+                return;
+            }
+
+            _viewModelBody.BindHands(hands);
         }
     }
 }

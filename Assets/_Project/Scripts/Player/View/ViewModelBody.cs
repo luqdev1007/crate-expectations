@@ -1,4 +1,4 @@
-using CrateExpectations.Player.Combat;
+using CrateExpectations.Core.Hands;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -16,11 +16,16 @@ namespace CrateExpectations.Player.View
     /// тень сами.
     /// </para>
     /// <para>
-    /// Руки видны ровно тогда, когда в них есть сабля. Посадка вьюмодели подобрана под
-    /// боевую стойку (<see cref="ViewModelRig"/>), а безоружный клип разводит руки по
-    /// бокам - при той же посадке в кадр въезжает ладонь поперёк экрана. Отдельной
-    /// безоружной стойки от первого лица в проекте нет, поэтому без оружия рук в кадре
-    /// просто нет, ровно как было до появления вьюмодели.
+    /// Руки в кадре тогда, когда они ЧЕМ-ТО ЗАНЯТЫ, - с саблей, с грузом или с листком.
+    /// Раньше условие было одно: «сабля видна», - и руки появлялись строго вместе с ней.
+    /// Теперь спрашиваем занятость у <see cref="HandsState"/>, а не заводим второй список
+    /// условий: у переноски и листка своё состояние, и любая местная копия «а сейчас руки
+    /// нужны?» разъехалась бы с ним в первый же раз, когда груз выпадет сам.
+    /// </para>
+    /// <para>
+    /// Сабля к этому отношения не имеет: её показывает и прячет свой сокет по видимости
+    /// оружия. Руки и оружие теперь появляются по разным правилам - и это ровно то, ради
+    /// чего правило вынесено наружу
     /// </para>
     /// </summary>
     public sealed class ViewModelBody : MonoBehaviour
@@ -28,14 +33,25 @@ namespace CrateExpectations.Player.View
         [Tooltip("Единственный рендерер, который может оказаться в кадре - руки")]
         [SerializeField] private Renderer _armsRenderer;
 
-        [Tooltip("Чьё оружие держим в кадре. Руки появляются и исчезают вместе с саблей")]
-        [SerializeField] private PlayerWeaponController _weapon;
+        private HandsState _hands;
+
+        // Совпадает с тем, что сделал Awake: там погашены все рендереры, включая руки
+        private bool _visible;
+
+        /// <summary>
+        /// Отдаёт вьюмодели модель занятости. Ссылкой из <c>GameLifetimeScope</c>, а не
+        /// поиском по типу, и это не вкусовщина: вьюмоделей в сцене несколько - живая
+        /// и отключённые остатки прежних сборок, - а поиск по иерархии отдаёт ПЕРВУЮ,
+        /// то есть отключённую. Модель уехала бы в мёртвый объект, руки не появились бы
+        /// никогда, и в консоли при этом не было бы ни строчки
+        /// </summary>
+        public void BindHands(HandsState hands) => _hands = hands;
 
         private void Awake()
         {
-            if (_armsRenderer == null || _weapon == null)
+            if (_armsRenderer == null)
             {
-                Debug.LogError($"Вьюмодели '{name}' не назначен рендерер рук или оружие - показывать нечего.", this);
+                Debug.LogError($"Вьюмодели '{name}' не назначен рендерер рук - показывать нечего.", this);
                 enabled = false;
                 return;
             }
@@ -47,10 +63,23 @@ namespace CrateExpectations.Player.View
             }
         }
 
-        private void OnEnable() => _weapon.WeaponVisibilityChanged += OnWeaponVisibilityChanged;
+        /// <summary>
+        /// Занятость не «меняется», а вычисляется из трёх источников - события у неё нет,
+        /// и опрос здесь не лень, а единственный честный способ её узнать. Рендерер при этом
+        /// трогаем только на смене: <c>enabled</c> у Unity-объекта не бесплатный
+        /// </summary>
+        private void Update()
+        {
+            if (_hands == null)
+                return;
 
-        private void OnDisable() => _weapon.WeaponVisibilityChanged -= OnWeaponVisibilityChanged;
+            bool visible = _hands.Occupancy != HandsOccupancy.Free;
 
-        private void OnWeaponVisibilityChanged(bool visible) => _armsRenderer.enabled = visible;
+            if (visible == _visible)
+                return;
+
+            _visible = visible;
+            _armsRenderer.enabled = visible;
+        }
     }
 }
