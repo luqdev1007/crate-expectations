@@ -10,6 +10,7 @@
         "CrateExpectations.Inventory",
         "CrateExpectations.Persistence",
         "VContainer",
+        "UniTask",
         "Unity.TextMeshPro"
     ],
     "includePlatforms": [],

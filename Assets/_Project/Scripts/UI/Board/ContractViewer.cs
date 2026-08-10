@@ -1,3 +1,6 @@
+using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using CrateExpectations.Contracts;
 using CrateExpectations.Contracts.Events;
 using CrateExpectations.Core.Events;
@@ -10,33 +13,35 @@ using VContainer;
 namespace CrateExpectations.UI
 {
     /// <summary>
-    /// Листок текущего заказа в руках игрока. Тот же префаб, что висит на доске,
-    /// только на слое FirstPersonItem - его рисует отдельная наложенная камера,
-    /// поэтому листок не проваливается в стены и не режется геометрией
+    /// Листок текущего заказа в руках игрока. Тот же префаб, что висит на доске, только
+    /// на слое ViewModel - его рисует та же наложенная камера, что и руки.
+    /// <para>
+    /// Позы здесь нет и быть не должно: листок висит на сокете под костью кисти и едет
+    /// вместе с рукой, а поднимает и опускает его АНИМАЦИЯ, стейт <c>ContractHold</c>.
+    /// Раньше листок жил на камере и приезжал к ней процедурно, со своим качанием, -
+    /// теперь и то, и другое дала бы рука, а два источника движения дрались бы между собой.
+    /// </para>
+    /// <para>
+    /// От этого компонента осталось ровно одно решение: ХОЧЕТ ли игрок видеть листок.
+    /// Всё остальное - следствие
+    /// </para>
     /// </summary>
     public sealed class ContractViewer : MonoBehaviour, IContractViewSource
     {
         [SerializeField] private ContractViewDefinition _definition;
 
-        [Tooltip("Экземпляр листка под камерой от первого лица")]
+        [Tooltip("Экземпляр листка на сокете кисти. Куда он там встал - правится в сцене")]
         [SerializeField] private ContractPaperView _paper;
-
-        [Tooltip("Камера игрока: относительно неё считается поза и запаздывание")]
-        [SerializeField] private Transform _eye;
 
         private IInputReader _input;
         private IContractManager _manager;
         private IEventBus _bus;
 
         private Transform _sheet;
-        private Quaternion _heldRotation;
-        private Quaternion _stowedRotation;
-        private Quaternion _previousEyeRotation;
-        private Quaternion _sway = Quaternion.identity;
-
-        /// <summary>0 - листок убран, 1 - поднят</summary>
-        private float _raise;
         private bool _wanted;
+
+        // Живёт, только пока идёт задержка показа или скрытия
+        private CancellationTokenSource _visibility;
 
         /// <inheritdoc />
         public bool IsRaised => _wanted;
@@ -68,17 +73,10 @@ namespace CrateExpectations.UI
             }
 
             _sheet = _paper.transform;
-            _sheet.SetParent(_eye, worldPositionStays: false);
-            _sheet.localScale = Vector3.one * _definition.HeldScale;
 
-            _heldRotation = Quaternion.Euler(_definition.HeldEulerAngles);
-            _stowedRotation = _heldRotation * Quaternion.Euler(_definition.StowedEulerOffset);
+            ApplyLayer(_sheet.gameObject, _definition.ViewModelLayer);
 
-            ApplyLayer(_sheet.gameObject, _definition.FirstPersonLayer);
-
-            _previousEyeRotation = _eye.rotation;
-
-            Stow();
+            _sheet.gameObject.SetActive(false);
         }
 
         private void Start()
@@ -96,6 +94,8 @@ namespace CrateExpectations.UI
 
         private void OnDestroy()
         {
+            CancelPendingVisibility();
+
             if (_input != null)
                 _input.ViewContract -= OnViewContractPressed;
 
@@ -127,10 +127,13 @@ namespace CrateExpectations.UI
             if (!active.IsActive)
                 return;
 
+            // Перерисовываем ДО показа: листок ещё скрыт, и подстановка строк в него
+            // никому не видна. Компонент это переживает и на выключенном объекте -
+            // он ничего не кэширует в Awake
             _paper.Bind(active.Contract);
 
             _wanted = true;
-            _sheet.gameObject.SetActive(true);
+            ScheduleVisibility(show: true);
         }
 
         private void OnContractClosed(ContractCompleted _) => Lower();
@@ -139,79 +142,64 @@ namespace CrateExpectations.UI
 
         private void OnGameLoaded(GameLoaded _) => Lower();
 
-        private void Lower() => _wanted = false;
-
-        private void LateUpdate()
+        private void Lower()
         {
-            float deltaTime = Time.deltaTime;
-
-            if (!Raise(deltaTime))
+            // Опускать уже опущенное незачем: события шины приходят и тогда, когда листок
+            // и так убран, а каждый заход плодил бы задержку скрытия на пустом месте
+            if (!_wanted)
                 return;
 
-            Sway(deltaTime);
-
-            float eased = _raise * _raise * (3f - 2f * _raise);
-
-            _sheet.SetLocalPositionAndRotation(
-                Vector3.Lerp(_definition.HeldPosition + _definition.StowedOffset,
-                    _definition.HeldPosition, eased),
-                _sway * Quaternion.Slerp(_stowedRotation, _heldRotation, eased));
-        }
-
-        /// <summary>Двигает степень подъёма. Возвращает false, когда листок полностью убран</summary>
-        private bool Raise(float deltaTime)
-        {
-            float target = _wanted ? 1f : 0f;
-
-            if (_raise != target)
-            {
-                float duration = _wanted ? _definition.RaiseSeconds : _definition.LowerSeconds;
-
-                _raise = duration > 0f
-                    ? Mathf.MoveTowards(_raise, target, deltaTime / duration)
-                    : target;
-            }
-
-            if (_raise > 0f)
-                return true;
-
-            if (_sheet.gameObject.activeSelf)
-                Stow();
-
-            return false;
+            _wanted = false;
+            ScheduleVisibility(show: false);
         }
 
         /// <summary>
-        /// Листок догоняет камеру не мгновенно: копим поворот камеры за кадр и распускаем его обратно
+        /// Показ и скрытие ждут руку. Задержка берётся из ассета, а НЕ из длительности
+        /// перехода в аниматоре: аниматор про листок ничего не знает, и лезть в него за
+        /// числом значило бы завязать видимость на устройство графа
         /// </summary>
-        private void Sway(float deltaTime)
+        private void ScheduleVisibility(bool show)
         {
-            Quaternion eye = _eye.rotation;
+            // Быстрое двойное нажатие: прежнее намерение отменяется целиком, иначе его
+            // задержка дотикала бы и переключила листок уже после нового решения
+            CancelPendingVisibility();
 
-            if (_definition.SwayStiffness <= 0f || _definition.MaxSwayDegrees <= 0f)
+            float delay = show ? _definition.ShowDelay : _definition.HideDelay;
+
+            if (delay <= 0f)
             {
-                _previousEyeRotation = eye;
-                _sway = Quaternion.identity;
+                _sheet.gameObject.SetActive(show);
                 return;
             }
 
-            Quaternion lag = Quaternion.Inverse(eye) * _previousEyeRotation;
-            _previousEyeRotation = eye;
+            // Связан с токеном уничтожения: объект может умереть посреди задержки
+            // (выход из play mode, выгрузка сцены), и трогать его Transform после этого нельзя
+            _visibility = CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken);
 
-            _sway = Quaternion.Slerp(
-                _sway * lag, Quaternion.identity,
-                Mathf.Clamp01(_definition.SwayStiffness * deltaTime));
-
-            _sway = Quaternion.RotateTowards(
-                Quaternion.identity, _sway, _definition.MaxSwayDegrees);
+            ApplyVisibilityAsync(show, delay, _visibility.Token).Forget();
         }
 
-        private void Stow()
+        private async UniTaskVoid ApplyVisibilityAsync(bool show, float delay, CancellationToken token)
         {
-            _raise = 0f;
-            _sway = Quaternion.identity;
-            _previousEyeRotation = _eye.rotation;
-            _sheet.gameObject.SetActive(false);
+            bool canceled = await UniTask
+                .Delay(TimeSpan.FromSeconds(delay), cancellationToken: token)
+                .SuppressCancellationThrow();
+
+            // Передумали или объекта уже нет - это не ошибка, просто ничего не делаем
+            if (canceled)
+                return;
+
+            _sheet.gameObject.SetActive(show);
+        }
+
+        private void CancelPendingVisibility()
+        {
+            if (_visibility == null)
+                return;
+
+            _visibility.Cancel();
+            _visibility.Dispose();
+            _visibility = null;
         }
 
         private static void ApplyLayer(GameObject root, int layer)
@@ -232,13 +220,10 @@ namespace CrateExpectations.UI
             if (_paper == null)
                 return Missing("экземпляр листка (ContractPaperView)");
 
-            if (_eye == null)
-                return Missing("камера игрока");
-
-            int layer = _definition.FirstPersonLayer;
+            int layer = _definition.ViewModelLayer;
 
             if (layer < 0 || layer > 31)
-                return Missing($"слой первого лица: {layer} - это не индекс слоя");
+                return Missing($"слой вьюмодели: {layer} - это не индекс слоя");
 
             return true;
         }
