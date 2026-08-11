@@ -2241,6 +2241,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1209335336}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &248087854 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -5846270692196909274, guid: 135c29175f3ebe74391b5e21f9ba285a, type: 3}
+  m_PrefabInstance: {fileID: 1571989079}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &252584315
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -13674,6 +13679,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CrateExpectations.Player::CrateExpectations.Player.View.HandsAnimatorDriver
   _animator: {fileID: 1571989084}
+  _poses: {fileID: 11400000, guid: 88bc987ecf6b4fc47ac0e32d1150ec25, type: 2}
 --- !u!1001 &1586343775
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -15590,6 +15596,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: CrateExpectations.UI::CrateExpectations.UI.ContractViewer
   _definition: {fileID: 11400000, guid: f2c952bf4af00a64ba29005a94390db7, type: 2}
   _paper: {fileID: 1684908447}
+  _socket: {fileID: 2140650014}
 --- !u!1 &1746620530
 GameObject:
   m_ObjectHideFlags: 0
@@ -16163,11 +16170,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 654029583}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!4 &1809582419 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: -5846270692196909274, guid: 135c29175f3ebe74391b5e21f9ba285a, type: 3}
-  m_PrefabInstance: {fileID: 1571989079}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1814028163
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -18905,12 +18907,12 @@ Transform:
   m_GameObject: {fileID: 2140650013}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.05744, y: 0.00884, z: 0.00744}
+  m_LocalPosition: {x: -0.05743868, y: 0.008842228, z: 0.0074397805}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1684908448}
-  m_Father: {fileID: 1809582419}
+  m_Father: {fileID: 248087854}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &75992723908481822
 Transform:

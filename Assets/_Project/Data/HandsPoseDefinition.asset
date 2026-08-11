@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fae3d2d0377f3b146949be00f6533be1, type: 3}
   m_Name: HandsPoseDefinition
   m_EditorClassIdentifier: CrateExpectations.Player::CrateExpectations.Player.View.HandsPoseDefinition
-  <CarryIdle>k__BackingField: {fileID: 2886711361295093964, guid: 7ba1fb41cf430f9419ef86f7aa63ed3c, type: 3}
-  <CarryWindup>k__BackingField: {fileID: 2886711361295093964, guid: 7ba1fb41cf430f9419ef86f7aa63ed3c, type: 3}
+  <CarryGrab>k__BackingField: {fileID: 3060610079319413300, guid: cf2f5d2eaa6c2cd4fa18f045a9deefa4, type: 3}
+  <CarryIdle>k__BackingField: {fileID: -6004787696405322892, guid: cf2f5d2eaa6c2cd4fa18f045a9deefa4, type: 3}
+  <CarryWindup>k__BackingField: {fileID: 3060610079319413300, guid: 78e2d2ac7b098774cb442c17a3f6da46, type: 3}
+  <CarryThrow>k__BackingField: {fileID: -6004787696405322892, guid: 78e2d2ac7b098774cb442c17a3f6da46, type: 3}
   <ContractHold>k__BackingField: {fileID: 2886711361295093964, guid: 7ba1fb41cf430f9419ef86f7aa63ed3c, type: 3}

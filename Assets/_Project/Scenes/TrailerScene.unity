@@ -3939,6 +3939,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: CrateExpectations.UI::CrateExpectations.UI.ContractViewer
   _definition: {fileID: 11400000, guid: f2c952bf4af00a64ba29005a94390db7, type: 2}
   _paper: {fileID: 463765168}
+  _socket: {fileID: 1038203090}
 --- !u!1 &228847874
 GameObject:
   m_ObjectHideFlags: 0
@@ -5150,6 +5151,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CrateExpectations.Player::CrateExpectations.Player.View.HandsAnimatorDriver
   _animator: {fileID: 312458788}
+  _poses: {fileID: 0}
 --- !u!1 &331498206
 GameObject:
   m_ObjectHideFlags: 0
@@ -19525,7 +19527,7 @@ Transform:
   m_GameObject: {fileID: 1038203089}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.05744, y: 0.00884, z: 0.00744}
+  m_LocalPosition: {x: -0.05743868, y: 0.008842228, z: 0.0074397805}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

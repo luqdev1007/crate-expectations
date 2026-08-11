@@ -30,8 +30,12 @@ MonoBehaviour:
     RotationY: 0
     RotationZ: 180
     Scale: 0.7
-  <DrawDuration>k__BackingField: 0.25
-  <SheatheDuration>k__BackingField: 0.25
+  <DrawClip>k__BackingField: {fileID: 3060610079319413300, guid: 20f4e5a7e072bba4cb7e6e1ba7b77b8d, type: 3}
+  <SheatheClip>k__BackingField: {fileID: 3060610079319413300, guid: 6895fec468f6c0e48912b99c205248cf, type: 3}
+  <DrawDuration>k__BackingField: 0.65
+  <SheatheDuration>k__BackingField: 0.8
+  <DrawRevealFraction>k__BackingField: 0.54
+  <SheatheHideFraction>k__BackingField: 0.74
   <BlockRaiseDuration>k__BackingField: 0.883
   <BlockLowerDuration>k__BackingField: 1
   <Swing>k__BackingField: {fileID: 11400000, guid: 4b22761c949f95f40af919285fbf6491, type: 2}

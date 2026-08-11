@@ -67,7 +67,10 @@ namespace CrateExpectations.Combat
 
         /// <summary>
         /// Оружие пора показать (<c>true</c>) или спрятать (<c>false</c>). Срабатывает
-        /// на середине доставания и убирания, а не на их краях
+        /// не на краях доставания и убирания, а на доле, заданной в
+        /// <see cref="WeaponTimings.DrawRevealFraction"/> и
+        /// <see cref="WeaponTimings.SheatheHideFraction"/>: момент зависит от того,
+        /// когда кисть в клипе выходит из-за объектива, и подбирается глазами
         /// </summary>
         public event Action<bool> WeaponVisibilityChanged;
 
@@ -79,12 +82,14 @@ namespace CrateExpectations.Combat
             _drawing = new WeaponTimedState(
                 timings.DrawDuration,
                 () => SetWeaponVisible(true),
-                () => Enter(WeaponState.Ready));
+                () => Enter(WeaponState.Ready),
+                timings.DrawRevealFraction);
 
             _sheathing = new WeaponTimedState(
                 timings.SheatheDuration,
                 () => SetWeaponVisible(false),
-                () => Enter(WeaponState.Sheathed));
+                () => Enter(WeaponState.Sheathed),
+                timings.SheatheHideFraction);
 
             // Длительность удара ставится на каждый вход: она своя у каждого приёма
             _attacking = new WeaponTimedState(0f, null, () => Enter(WeaponState.Ready));

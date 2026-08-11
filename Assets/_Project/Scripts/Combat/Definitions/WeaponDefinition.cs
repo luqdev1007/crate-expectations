@@ -45,12 +45,37 @@ namespace CrateExpectations.Combat
         [Tooltip("Как сабля лежит в ладони модели под камерой. Видна в кадре, не в тени")]
         [field: SerializeField] public WeaponFit ViewModelSocket { get; private set; }
 
-        [Header("Тайминги")]
-        [Tooltip("Доставание, с. Оружие появляется в руке на середине этого времени")]
-        [field: SerializeField][Min(0f)] public float DrawDuration { get; private set; } = 0.25f;
+        // Клипы доставания и убирания лежат ЗДЕСЬ, а не в путях-константах генератора и не
+        // в наборе небоевых поз. Причина простая: рядом уже лежат их длительности, и держать
+        // «сколько длится» и «чем это показать» в разных ассетах значит гарантировать, что
+        // однажды их поменяют по отдельности. Приём устроен так же - свой клип возит с собой
+        [Header("Доставание и убирание")]
+        [Tooltip("Клип доставания. Длину диктует не он, а DrawDuration: клип ужимается " +
+                 "множителем скорости стейта")]
+        [field: SerializeField] public AnimationClip DrawClip { get; private set; }
 
-        [Tooltip("Убирание, с. Оружие исчезает из руки на середине этого времени")]
-        [field: SerializeField][Min(0f)] public float SheatheDuration { get; private set; } = 0.25f;
+        [Tooltip("Клип убирания. Длину диктует SheatheDuration")]
+        [field: SerializeField] public AnimationClip SheatheClip { get; private set; }
+
+        [Header("Тайминги")]
+        [Tooltip("Доставание, с")]
+        [field: SerializeField][Min(0f)] public float DrawDuration { get; private set; } = 0.65f;
+
+        [Tooltip("Убирание, с")]
+        [field: SerializeField][Min(0f)] public float SheatheDuration { get; private set; } = 0.8f;
+
+        // Доли, а не секунды: длительность фазы правится отдельно, и момент появления
+        // клинка обязан ехать вместе с ней, а не отставать на пересчёт
+        [Tooltip("На какой доле доставания клинок появляется в руке. Не середина: замер " +
+                 "по клипу показал, что кисть уходит ЗА объектив на кадрах 40-52 из 98, " +
+                 "и клинок, показанный раньше, дважды прошёл бы сквозь ближнюю плоскость. " +
+                 "Вперёд рука окончательно выходит на 54% клипа")]
+        [field: SerializeField][Range(0f, 1f)] public float DrawRevealFraction { get; private set; } = 0.54f;
+
+        [Tooltip("На какой доле убирания клинок исчезает из руки. Замер: кисть уходит " +
+                 "за объектив на 74% клипа и больше не возвращается - дальше клинка " +
+                 "в кадре нет, и гасить его можно в любой момент после этого")]
+        [field: SerializeField][Range(0f, 1f)] public float SheatheHideFraction { get; private set; } = 0.74f;
 
         [Header("Блок")]
         [Tooltip("Подъём клинка в блок, с. Держать равным длине клипа постановки, " +
@@ -99,6 +124,7 @@ namespace CrateExpectations.Combat
 
         /// <summary>Тайминги в виде значения - то, с чем работает <see cref="WeaponStateMachine"/></summary>
         public WeaponTimings Timings =>
-            new(DrawDuration, SheatheDuration, BlockRaiseDuration, BlockLowerDuration);
+            new(DrawDuration, SheatheDuration, BlockRaiseDuration, BlockLowerDuration,
+                DrawRevealFraction, SheatheHideFraction);
     }
 }

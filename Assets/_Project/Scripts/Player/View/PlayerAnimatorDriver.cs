@@ -27,6 +27,7 @@ namespace CrateExpectations.Player.View
     {
         private const string AttackIndexName = "AttackIndex";
         private const string BlockPhaseName = "BlockPhase";
+        private const string EquipPhaseName = "EquipPhase";
 
         private static readonly int IsArmedId = Animator.StringToHash("IsArmed");
         private static readonly int AttackId = Animator.StringToHash("Attack");
@@ -36,6 +37,11 @@ namespace CrateExpectations.Player.View
         // Одно число на три фазы вместо трёх флагов: фазы взаимоисключающие, и двумя
         // одновременно поднятыми флагами выбор стейта достался бы порядку переходов в графе
         private static readonly int BlockPhaseId = Animator.StringToHash(BlockPhaseName);
+
+        // Доставание и убирание - тем же приёмом. Числа объявлены в EquipAnimatorPhase,
+        // откуда их берёт и генератор графа
+        private static readonly int EquipPhaseId = Animator.StringToHash(EquipPhaseName);
+        private static readonly int EquipSpeedId = Animator.StringToHash("EquipSpeed");
 
         /// <summary>
         /// Аниматор и то, чем он отличается от соседа. Пара, а не два параллельных массива:
@@ -67,6 +73,12 @@ namespace CrateExpectations.Player.View
 
             /// <summary>Знает ли граф про блок. У тела клипов блока нет</summary>
             [NonSerialized] public bool SupportsBlock;
+
+            /// <summary>
+            /// Знает ли граф про доставание и убирание. У тела своих клипов на них нет:
+            /// оно так и переключает стойку одним кроссфейдом
+            /// </summary>
+            [NonSerialized] public bool SupportsEquip;
         }
 
         [Tooltip("Чьи состояния отыгрываем")]
@@ -109,6 +121,9 @@ namespace CrateExpectations.Player.View
 
                 _animators[i].SupportsBlock =
                     AnimatorParameters.Has(animator, BlockPhaseName);
+
+                _animators[i].SupportsEquip =
+                    AnimatorParameters.Has(animator, EquipPhaseName);
             }
         }
 
@@ -126,6 +141,7 @@ namespace CrateExpectations.Player.View
         {
             SetBool(IsArmedId, IsArmed(state));
             SetBlockPhase(state);
+            SetEquipPhase(state);
 
             if (state == WeaponState.Attacking)
             {
@@ -205,6 +221,63 @@ namespace CrateExpectations.Player.View
             foreach (AnimatorTarget target in _animators)
                 if (target.Animator != null && target.SupportsBlock)
                     target.Animator.SetInteger(BlockPhaseId, phase);
+        }
+
+        /// <summary>
+        /// Фаза доставания/убирания числом. Скорость обязана лечь РАНЬШЕ фазы: граф
+        /// читает её при входе в стейт, и выставленная следом досталась бы уже
+        /// следующему доставанию.
+        /// <para>
+        /// Темп задают <c>DrawDuration</c> и <c>SheatheDuration</c> из ассета оружия,
+        /// а не длина клипа: множитель скорости - ровно то число, которое уложит клип
+        /// в заказанное время. Тот же приём, что у <c>AttackSpeed</c>
+        /// </para>
+        /// </summary>
+        private void SetEquipPhase(WeaponState state)
+        {
+            int phase = EquipAnimatorPhase.Of(state);
+
+            foreach (AnimatorTarget target in _animators)
+            {
+                if (target.Animator == null || !target.SupportsEquip)
+                    continue;
+
+                ApplyEquipSpeed(target, state);
+                target.Animator.SetInteger(EquipPhaseId, phase);
+            }
+        }
+
+        private void ApplyEquipSpeed(AnimatorTarget target, WeaponState state)
+        {
+            WeaponDefinition weapon = _weapon.Weapon;
+
+            if (weapon == null)
+                return;
+
+            AnimationClip clip;
+            float duration;
+
+            if (state == WeaponState.Drawing)
+            {
+                clip = weapon.DrawClip;
+                duration = weapon.DrawDuration;
+            }
+            else if (state == WeaponState.Sheathing)
+            {
+                clip = weapon.SheatheClip;
+                duration = weapon.SheatheDuration;
+            }
+            else
+            {
+                // Вне обеих фаз множитель не трогаем: он пригодится следующему входу
+                // тем же, каким был, а лишняя запись только дёрнула бы параметр
+                return;
+            }
+
+            if (clip == null || duration <= 0f)
+                return;
+
+            target.Animator.SetFloat(EquipSpeedId, clip.length / duration);
         }
 
         private static int BlockPhase(WeaponState state)

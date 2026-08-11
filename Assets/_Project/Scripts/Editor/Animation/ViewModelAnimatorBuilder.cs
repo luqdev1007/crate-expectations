@@ -58,14 +58,30 @@ namespace CrateExpectations.EditorTools.Animation
         private const string AttackSpeedParameter = "AttackSpeed";
         private const string AttackIndexParameter = "AttackIndex";
         private const string BlockPhaseParameter = "BlockPhase";
+        private const string EquipPhaseParameter = "EquipPhase";
+        private const string EquipSpeedParameter = "EquipSpeed";
 
-        // Эти двое - от HandsAnimatorDriver, а не от PlayerAnimatorDriver: занятость рук
-        // и заряд броска приходят не от машины состояний оружия
+        // Эти - от HandsAnimatorDriver, а не от PlayerAnimatorDriver: занятость рук,
+        // заряд броска и оба разовых момента переноски приходят не от машины
+        // состояний оружия
         private const string HandsModeParameter = "HandsMode";
         private const string ChargeTParameter = "ChargeT";
+        private const string GrabParameter = "Grab";
+        private const string ThrowParameter = "Throw";
+        private const string CarryGrabSpeedParameter = "CarryGrabSpeed";
 
-        /// <summary>Длительность кроссфейда стойки, с. Держать равной DrawDuration оружия</summary>
+        /// <summary>
+        /// Длительность кроссфейда стойки, с. Остался для случая, когда клипов доставания
+        /// у оружия нет: тогда стойка по-прежнему переключается одним кроссфейдом,
+        /// и он же читается как «достал»
+        /// </summary>
         private const float StanceCrossfade = 0.25f;
+
+        /// <summary>
+        /// Вход в доставание/убирание и выход из них, с. Короче кроссфейда стойки: клип
+        /// начинается с той же позы, в которой стоит стойка, и размазывать этот стык нечего
+        /// </summary>
+        private const float EquipBlend = 0.1f;
 
         /// <summary>Вход во взмах, с. Короткий: удар должен начинаться по нажатию, а не после него</summary>
         private const float AttackBlendIn = 0.05f;
@@ -83,6 +99,21 @@ namespace CrateExpectations.EditorTools.Animation
         /// это не выпад, но и не смена стойки
         /// </summary>
         private const float HandsBlend = 0.12f;
+
+        /// <summary>
+        /// Вход в выброс, с. Коротко, как у удара: бросок обязан начинаться по отпусканию
+        /// кнопки, а не после него
+        /// </summary>
+        private const float ThrowBlendIn = 0.06f;
+
+        /// <summary>
+        /// Доля проводки взятия, после которой руки уходят в удержание. Не единица:
+        /// последние кадры проводки - это уже доводка кисти, и досматривать её значит
+        /// держать паузу между «взял» и «несу»
+        /// </summary>
+        private const float GrabExitTime = 0.9f;
+
+        private const float GrabBlendOut = 0.1f;
 
         [MenuItem("Tools/Crate Expectations/Rebuild View Model Animator")]
         public static void Rebuild()
@@ -132,6 +163,13 @@ namespace CrateExpectations.EditorTools.Animation
             // поднятых флага означали бы, что позу выбирает порядок переходов в графе
             controller.AddParameter(BlockPhaseParameter, AnimatorControllerParameterType.Int);
 
+            // Фаза доставания/убирания - тем же приёмом и по той же причине
+            controller.AddParameter(EquipPhaseParameter, AnimatorControllerParameterType.Int);
+
+            // Множитель скорости доставания и убирания. Единица по умолчанию: клип,
+            // которому забыли назначить скорость, должен идти как есть, а не стоять
+            AddFloat(controller, EquipSpeedParameter, 1f);
+
             // Занятость рук - тоже числом и по той же причине: занятость одна за раз,
             // и числа для неё объявлены в HandsAnimatorMode, откуда их берёт и рантайм
             controller.AddParameter(HandsModeParameter, AnimatorControllerParameterType.Int);
@@ -139,6 +177,16 @@ namespace CrateExpectations.EditorTools.Animation
             // Заряд броска. Ноль по умолчанию: незаряженная поза - это поза покоя,
             // и стартовать граф обязан именно с неё
             AddFloat(controller, ChargeTParameter, 0f);
+
+            // Взятие и выброс - разовые МОМЕНТЫ, а не состояния, поэтому триггеры.
+            // Занятость рук во время броска не меняется вовсе (её держит хвост
+            // переноски), и вычислить из неё момент выброса нельзя в принципе
+            controller.AddParameter(GrabParameter, AnimatorControllerParameterType.Trigger);
+            controller.AddParameter(ThrowParameter, AnimatorControllerParameterType.Trigger);
+
+            // Множитель скорости проводки взятия. Единица по умолчанию: клип, которому
+            // забыли назначить скорость, должен идти как есть, а не стоять на месте
+            AddFloat(controller, CarryGrabSpeedParameter, 1f);
 
             AnimatorStateMachine root = controller.layers[0].stateMachine;
             root.entryPosition = new Vector3(-260f, 0f, 0f);
@@ -154,12 +202,19 @@ namespace CrateExpectations.EditorTools.Animation
             root.defaultState = idle;
 
             // Стойка переключается сразу по флагу: ждать конца цикла idle означало бы
-            // задержку до четырёх с лишним секунд между нажатием и реакцией
-            Crossfade(idle, combatIdle, StanceCrossfade)
-                .AddCondition(AnimatorConditionMode.If, 0f, IsArmedParameter);
+            // задержку до четырёх с лишним секунд между нажатием и реакцией.
+            //
+            // Условие по фазе - обязательное, и вот почему. IsArmed поднимается уже
+            // в Drawing, то есть в тот же кадр, в который стартует стейт доставания.
+            // Без него кроссфейд стойки и вход в Draw сработали бы одновременно и
+            // подрались бы за одну и ту же модель. Пока идёт переход, стойки молчат
+            AnimatorStateTransition draw = Crossfade(idle, combatIdle, StanceCrossfade);
+            draw.AddCondition(AnimatorConditionMode.If, 0f, IsArmedParameter);
+            draw.AddCondition(AnimatorConditionMode.Equals, EquipAnimatorPhase.None, EquipPhaseParameter);
 
-            Crossfade(combatIdle, idle, StanceCrossfade)
-                .AddCondition(AnimatorConditionMode.IfNot, 0f, IsArmedParameter);
+            AnimatorStateTransition sheathe = Crossfade(combatIdle, idle, StanceCrossfade);
+            sheathe.AddCondition(AnimatorConditionMode.IfNot, 0f, IsArmedParameter);
+            sheathe.AddCondition(AnimatorConditionMode.Equals, EquipAnimatorPhase.None, EquipPhaseParameter);
 
             int built = 0;
 
@@ -169,6 +224,8 @@ namespace CrateExpectations.EditorTools.Animation
 
             AddBlock(root, combatIdle);
 
+            bool equipBuilt = AddEquip(root, weapon, idle, combatIdle);
+
             bool handsBuilt = AddHandsPoses(controller, root, idle, combatIdle);
 
             EditorUtility.SetDirty(controller);
@@ -177,7 +234,8 @@ namespace CrateExpectations.EditorTools.Animation
 
             Debug.Log($"Контроллер вьюмодели пересобран: {ControllerPath}. Приёмов в графе: {built} " +
                       $"из {attacks.Count} (раскладка '{weapon.Attacks.name}'). " +
-                      $"Небоевые позы рук: {(handsBuilt ? "собраны" : "НЕ собраны")}.",
+                      $"Небоевые позы рук: {(handsBuilt ? "собраны" : "НЕ собраны")}. " +
+                      $"Доставание и убирание: {(equipBuilt ? "собраны" : "НЕ собраны, стойка переключается кроссфейдом")}.",
                 AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath));
         }
 
@@ -299,6 +357,62 @@ namespace CrateExpectations.EditorTools.Animation
         }
 
         /// <summary>
+        /// Ставит доставание и убирание: два стейта между стойками.
+        /// <para>
+        /// Вход и выход описываются ОДНИМ параметром, и это принципиально отличается
+        /// от переноски, где вход пришлось увести на триггер. Там занятость <c>Carrying</c>
+        /// истинна во всех трёх фазах сразу, и переход из Any State по ней бил бы
+        /// из соседних стейтов. Здесь такой петли нет: пока <c>EquipPhase</c> равна
+        /// единице, мы находимся ровно в <c>Draw</c> и больше нигде - ни ударить,
+        /// ни поставить блок, ни взять груз в это время нельзя, это гарантирует
+        /// <c>IsBusy</c>. Стала нулём - вышли, и вернуться уже некуда: условие входа
+        /// перестало быть истинным. Условие по Int из Any State здесь корректно.
+        /// </para>
+        /// <para>
+        /// Клипы приходят из ассета оружия, а не из путей-констант: рядом с ними лежат
+        /// длительности обеих фаз, и разъехаться этим двум числам негде. Оружие без
+        /// клипов - не ошибка, а прежнее поведение: стойка переключается кроссфейдом,
+        /// и он же читается как «достал».
+        /// </para>
+        /// </summary>
+        private static bool AddEquip(
+            AnimatorStateMachine root, WeaponDefinition weapon,
+            AnimatorState idle, AnimatorState combatIdle)
+        {
+            if (weapon.DrawClip == null || weapon.SheatheClip == null)
+                return false;
+
+            AnimatorState draw = root.AddState("Draw", new Vector3(-40f, -140f, 0f));
+            draw.motion = weapon.DrawClip;
+            draw.speedParameterActive = true;
+            draw.speedParameter = EquipSpeedParameter;
+
+            AnimatorState sheathe = root.AddState("Sheathe", new Vector3(200f, -140f, 0f));
+            sheathe.motion = weapon.SheatheClip;
+            sheathe.speedParameterActive = true;
+            sheathe.speedParameter = EquipSpeedParameter;
+
+            EquipPhase(root.AddAnyStateTransition(draw), EquipAnimatorPhase.Drawing);
+            EquipPhase(root.AddAnyStateTransition(sheathe), EquipAnimatorPhase.Sheathing);
+
+            // Выход - по той же фазе, что и вход. Не по времени клипа: хозяин тайминга -
+            // машина состояний, и клип обязан уложиться в её длительность, а не наоборот
+            EquipPhase(draw.AddTransition(combatIdle), EquipAnimatorPhase.None);
+            EquipPhase(sheathe.AddTransition(idle), EquipAnimatorPhase.None);
+
+            return true;
+        }
+
+        private static void EquipPhase(AnimatorStateTransition transition, int phase)
+        {
+            transition.hasExitTime = false;
+            transition.hasFixedDuration = true;
+            transition.duration = EquipBlend;
+            transition.canTransitionToSelf = false;
+            transition.AddCondition(AnimatorConditionMode.Equals, phase, EquipPhaseParameter);
+        }
+
+        /// <summary>
         /// Ставит небоевые позы рук: переноску и листок заказа.
         /// <para>
         /// Вход - из Any State по занятости, как у блока: занятость меняется откуда угодно
@@ -314,6 +428,17 @@ namespace CrateExpectations.EditorTools.Animation
         /// перезапускался бы вечно и анимация стояла бы на первом кадре. У ударов
         /// переход в себя разрешён, и это не противоречие: там вход по триггеру,
         /// который гаснет сам.
+        /// </para>
+        /// <para>
+        /// А вот переноска этим правилом уже НЕ описывается, и вход в неё по занятости
+        /// пришлось убрать. Причина: у переноски теперь три стейта - проводка взятия,
+        /// удержание и выброс, - и занятость <c>Carrying</c> истинна во всех трёх.
+        /// Переход из Any State по этому числу срабатывал бы и из удержания, и из
+        /// выброса, то есть проводка взятия перезапускалась бы вечно (запрет перехода
+        /// в себя ловит только сам стейт, но не соседей). Поэтому вход в проводку - по
+        /// триггеру, а дальше цепочка идёт своими переходами: проводка → удержание
+        /// по времени клипа, удержание → выброс по второму триггеру. Занятость осталась
+        /// только на ВЫХОДЕ, где она однозначна.
         /// </para>
         /// </summary>
         private static bool AddHandsPoses(
@@ -336,24 +461,70 @@ namespace CrateExpectations.EditorTools.Animation
                 return false;
             }
 
+            AnimatorState grab = root.AddState("Carry_Grab", new Vector3(680f, -140f, 0f));
+            grab.motion = poses.CarryGrab;
+            grab.speedParameterActive = true;
+            grab.speedParameter = CarryGrabSpeedParameter;
+
             AnimatorState carry = root.AddState("Carry", new Vector3(440f, 0f, 0f));
             carry.motion = CarryBlendTree(controller, poses);
+
+            AnimatorState throwState = root.AddState("Carry_Throw", new Vector3(680f, 0f, 0f));
+            throwState.motion = poses.CarryThrow;
 
             AnimatorState contract = root.AddState("ContractHold", new Vector3(440f, 140f, 0f));
             contract.motion = poses.ContractHold;
 
-            ByHandsMode(root.AddAnyStateTransition(carry), HandsAnimatorMode.Carrying);
+            // Вход в переноску - через проводку взятия, по триггеру. Прямого входа
+            // в удержание нет намеренно: он перебивал бы проводку в тот же кадр,
+            // потому что занятость Carrying истинна уже на её первом кадре
+            ByTrigger(root.AddAnyStateTransition(grab), GrabParameter, HandsBlend);
+
+            // Проводка отыграла - руки переходят в удержание. По времени клипа, а не по
+            // занятости: занятость всё это время не менялась и сообщить об окончании
+            // проводки не может
+            AnimatorStateTransition settled = grab.AddTransition(carry);
+            settled.hasExitTime = true;
+            settled.exitTime = GrabExitTime;
+            settled.hasFixedDuration = true;
+            settled.duration = GrabBlendOut;
+
+            // Выброс - из Any State, а не из удержания: бросок можно начать и посреди
+            // проводки взятия, если игрок зажал кнопку сразу же
+            ByTrigger(root.AddAnyStateTransition(throwState), ThrowParameter, ThrowBlendIn);
+
             ByHandsMode(root.AddAnyStateTransition(contract), HandsAnimatorMode.Reading);
 
             // Возврат в ту стойку, которая соответствует состоянию оружия. Обе ветки нужны:
             // руки освобождаются и в безоружную стойку, и в боевую - смотря что игрок
-            // держал до груза
+            // держал до груза.
+            // Выход у всех трёх стейтов переноски одинаковый: занятость на выходе
+            // однозначна, и груз может пропасть из рук в любой из фаз - выпасть
+            // по BreakDistance прямо посреди проводки в том числе
+            ByHandsMode(grab.AddTransition(idle), HandsAnimatorMode.Free);
+            ByHandsMode(grab.AddTransition(combatIdle), HandsAnimatorMode.Combat);
             ByHandsMode(carry.AddTransition(idle), HandsAnimatorMode.Free);
             ByHandsMode(carry.AddTransition(combatIdle), HandsAnimatorMode.Combat);
+            ByHandsMode(throwState.AddTransition(idle), HandsAnimatorMode.Free);
+            ByHandsMode(throwState.AddTransition(combatIdle), HandsAnimatorMode.Combat);
             ByHandsMode(contract.AddTransition(idle), HandsAnimatorMode.Free);
             ByHandsMode(contract.AddTransition(combatIdle), HandsAnimatorMode.Combat);
 
             return true;
+        }
+
+        /// <summary>
+        /// Вход по разовому триггеру. Переход в себя РАЗРЕШЁН, в отличие от входов
+        /// по занятости: триггер гаснет сам, вечного перезапуска он не даёт, а два
+        /// броска подряд обязаны начинаться каждый с начала
+        /// </summary>
+        private static void ByTrigger(AnimatorStateTransition transition, string parameter, float blend)
+        {
+            transition.hasExitTime = false;
+            transition.hasFixedDuration = true;
+            transition.duration = blend;
+            transition.canTransitionToSelf = true;
+            transition.AddCondition(AnimatorConditionMode.If, 0f, parameter);
         }
 
         /// <summary>

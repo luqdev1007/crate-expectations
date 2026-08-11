@@ -23,15 +23,24 @@ namespace CrateExpectations.UI
     /// </para>
     /// <para>
     /// От этого компонента осталось ровно одно решение: ХОЧЕТ ли игрок видеть листок.
-    /// Всё остальное - следствие
+    /// Всё остальное - следствие.
+    /// </para>
+    /// <para>
+    /// Плюс одна механическая обязанность: держать сокет в той посадке, которую задал ассет.
+    /// Числа посадки подбираются на глаз и в play mode, поэтому они и не в трансформе сцены -
+    /// сцена такие правки не переживает
     /// </para>
     /// </summary>
     public sealed class ContractViewer : MonoBehaviour, IContractViewSource
     {
         [SerializeField] private ContractViewDefinition _definition;
 
-        [Tooltip("Экземпляр листка на сокете кисти. Куда он там встал - правится в сцене")]
+        [Tooltip("Экземпляр листка на сокете кисти")]
         [SerializeField] private ContractPaperView _paper;
+
+        [Tooltip("Сокет под костью кисти, на котором висит листок. Его локальный трансформ " +
+                 "задаёт ассет - здесь только ссылка на то, к чему это применять")]
+        [SerializeField] private Transform _socket;
 
         private IInputReader _input;
         private IContractManager _manager;
@@ -105,6 +114,31 @@ namespace CrateExpectations.UI
             _bus.Unsubscribe<ContractCompleted>(OnContractClosed);
             _bus.Unsubscribe<ContractFailed>(OnContractFailed);
             _bus.Unsubscribe<GameLoaded>(OnGameLoaded);
+        }
+
+        /// <summary>
+        /// Посадка листка в кисть - каждый кадр и именно в <c>LateUpdate</c>: кость кисти
+        /// анимируется, а при <see cref="AnimatorUpdateMode"/> Normal аниматор пишет позу между
+        /// <c>Update</c> и <c>LateUpdate</c>. Сокет - ребёнок кости, и своих локальных чисел
+        /// клип ему не пишет, но порядок здесь тот же, что у доворотов рук: всё, что правит
+        /// иерархию кисти, обязано идти после аниматора, иначе один кадр правки видно,
+        /// а следующий - уже нет.
+        /// <para>
+        /// Покадрово, а не один раз при подъёме, потому что числа подбираются вживую:
+        /// правка ассета в play mode должна быть видна в тот же кадр, а не со следующего
+        /// нажатия кнопки
+        /// </para>
+        /// </summary>
+        private void LateUpdate()
+        {
+            // Опущенный листок скрыт, и двигать под ним сокет незачем: кисть в это время
+            // занята чем угодно другим, и лишняя запись в её иерархию - просто шум
+            if (!_wanted)
+                return;
+
+            _socket.SetLocalPositionAndRotation(
+                _definition.SocketPosition,
+                Quaternion.Euler(_definition.SocketRotation));
         }
 
         private void OnViewContractPressed()
@@ -219,6 +253,9 @@ namespace CrateExpectations.UI
 
             if (_paper == null)
                 return Missing("экземпляр листка (ContractPaperView)");
+
+            if (_socket == null)
+                return Missing("сокет кисти, на котором висит листок");
 
             int layer = _definition.ViewModelLayer;
 

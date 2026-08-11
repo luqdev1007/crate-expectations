@@ -21,6 +21,12 @@ namespace CrateExpectations.Interaction
         [Tooltip("Дистанция точки удержания перед камерой, м")]
         [field: SerializeField] public float HoldDistance { get; private set; } = 2f;
 
+        [Tooltip("Доводка точки удержания в пространстве камеры: вправо/вверх/вперёд. " +
+                 "Живёт здесь, а не в трансформе сцены, потому что подбирается в play mode: " +
+                 "правка ассета переживает выход из него, правка сцены - нет. " +
+                 "Ноль по умолчанию - точка стоит ровно перед прицелом, как и раньше")]
+        [field: SerializeField] public Vector3 HoldOffset { get; private set; }
+
         [Tooltip("Ближе этого к камере точку удержания не подтягиваем, м")]
         [field: SerializeField] public float MinHoldDistance { get; private set; } = 0.6f;
 
@@ -30,6 +36,11 @@ namespace CrateExpectations.Interaction
 
         [Tooltip("Дальность луча захвата, м")]
         [field: SerializeField] public float GrabDistance { get; private set; } = 3f;
+
+        [Tooltip("Сколько длится проводка руками к грузу, с. Физика её НЕ ждёт: груз " +
+                 "прилипает к рукам в тот же кадр, а клип взятия просто ужимается " +
+                 "до этого числа множителем скорости - тот же размен, что у ударов")]
+        [field: SerializeField][Min(0.01f)] public float GrabDuration { get; private set; } = 0.3f;
 
         [Tooltip("Насколько объект может отстать от точки удержания, прежде чем выпасть из рук, м")]
         [field: SerializeField] public float BreakDistance { get; private set; } = 3f;
@@ -83,9 +94,17 @@ namespace CrateExpectations.Interaction
         [field: SerializeField]
         public Vector3 WindupOffset { get; private set; } = new Vector3(0f, -0.15f, -0.5f);
 
-        [Tooltip("Пауза между отпусканием кнопки и вылетом груза, с. Задел под анимацию " +
-                 "броска: ноль - груз уходит в тот же кадр")]
-        [field: SerializeField] public float ReleaseDelay { get; private set; }
+        [Tooltip("Пауза между началом анимации броска и вылетом груза, с. Больше не задел: " +
+                 "анимация есть, и груз обязан уходить не по кнопке, а тогда, когда руки " +
+                 "дошли до апекса выброса. Замер по клипу: апекс на 20-м кадре из 48, " +
+                 "то есть 0.33 с от начала. Ноль вернёт прежнее «улетает в тот же кадр»")]
+        [field: SerializeField][Min(0f)] public float ReleaseDelay { get; private set; } = 0.33f;
+
+        [Tooltip("Хвост занятости после вылета груза, с. Руки в кадре живут занятостью, " +
+                 "и без хвоста они гасли бы в тот же кадр, когда стартует проводка броска - " +
+                 "то есть анимацию броска не увидели бы ни разу. Держать так, чтобы " +
+                 "ReleaseDelay + хвост накрывали клип выброса (0.80 с)")]
+        [field: SerializeField][Min(0f)] public float ThrowTailDuration { get; private set; } = 0.47f;
 
         /// <summary>
         /// Заряд, пропущенный через кривую. Кламп здесь, а не у вызывающих: заряд приходит

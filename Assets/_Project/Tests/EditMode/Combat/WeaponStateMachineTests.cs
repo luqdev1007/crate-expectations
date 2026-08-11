@@ -222,5 +222,76 @@ namespace CrateExpectations.Combat.Tests
 
             Assert.That(seen, Is.EqualTo(new[] { true }));
         }
+
+        /// <summary>
+        /// Момент появления клинка задаёт ассет, а не половина фазы. Середина была
+        /// догадкой и для клипов FPP-пака оказалась неверной: там кисть уходит ЗА
+        /// объектив ровно в середине доставания, и показанный тогда клинок прошёл бы
+        /// сквозь ближнюю плоскость
+        /// </summary>
+        [Test]
+        public void The_reveal_moment_of_the_draw_comes_from_the_asset_not_from_the_midpoint()
+        {
+            WeaponStateMachine machine = new(new WeaponTimings(
+                Draw, Sheathe, drawRevealFraction: 0.8f));
+
+            machine.ToggleWeapon();
+
+            // Середина уже позади, а клинка нет - значит момент берётся не из неё
+            machine.Tick(Draw * 0.8f - 0.01f);
+            Assert.That(machine.IsWeaponVisible, Is.False, "показалось раньше своей доли");
+
+            machine.Tick(0.02f);
+            Assert.That(machine.IsWeaponVisible, Is.True, "не показалось на своей доле");
+        }
+
+        [Test]
+        public void The_hide_moment_of_the_sheathe_comes_from_the_asset_not_from_the_midpoint()
+        {
+            WeaponStateMachine machine = new(new WeaponTimings(
+                Draw, Sheathe, sheatheHideFraction: 0.9f));
+
+            machine.ToggleWeapon();
+            machine.Tick(Draw);
+            machine.ToggleWeapon();
+
+            machine.Tick(Sheathe * 0.9f - 0.01f);
+            Assert.That(machine.IsWeaponVisible, Is.True, "спряталось раньше своей доли");
+
+            machine.Tick(0.02f);
+            Assert.That(machine.IsWeaponVisible, Is.False, "не спряталось на своей доле");
+        }
+
+        /// <summary>
+        /// Нулевая доля - легальный случай («в тот же кадр»), и отработать она обязана
+        /// на входе, а не на первом тике: между ними кадр, за который клинка в руке нет
+        /// </summary>
+        [Test]
+        public void A_zero_reveal_fraction_shows_the_weapon_on_entry_not_a_frame_later()
+        {
+            WeaponStateMachine machine = new(new WeaponTimings(
+                Draw, Sheathe, drawRevealFraction: 0f));
+
+            machine.ToggleWeapon();
+
+            Assert.That(machine.IsWeaponVisible, Is.True);
+        }
+
+        /// <summary>
+        /// Доля, до которой фаза не дожила, всё равно обязана отработать: иначе клинок
+        /// остался бы в прежней видимости навсегда
+        /// </summary>
+        [Test]
+        public void A_reveal_fraction_at_the_very_end_still_fires_when_the_draw_finishes()
+        {
+            WeaponStateMachine machine = new(new WeaponTimings(
+                Draw, Sheathe, drawRevealFraction: 1f));
+
+            machine.ToggleWeapon();
+            machine.Tick(Draw);
+
+            Assert.That(machine.State, Is.EqualTo(WeaponState.Ready));
+            Assert.That(machine.IsWeaponVisible, Is.True);
+        }
     }
 }

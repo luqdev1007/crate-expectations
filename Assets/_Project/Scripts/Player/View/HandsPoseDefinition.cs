@@ -19,6 +19,10 @@ namespace CrateExpectations.Player.View
     public sealed class HandsPoseDefinition : ScriptableObject
     {
         [Header("Переноска")]
+        [Tooltip("Проводка руками к грузу. Одноразовая, играется на входе в переноску " +
+                 "и ужимается до CarryDefinition.GrabDuration множителем скорости")]
+        [field: SerializeField] public AnimationClip CarryGrab { get; private set; }
+
         [Tooltip("Груз в руках, замаха нет. Нижний край блендтри переноски (ChargeT = 0)")]
         [field: SerializeField] public AnimationClip CarryIdle { get; private set; }
 
@@ -26,15 +30,23 @@ namespace CrateExpectations.Player.View
                  "Между этими двумя позами игрок и видит набор заряда")]
         [field: SerializeField] public AnimationClip CarryWindup { get; private set; }
 
+        [Tooltip("Выброс. Одноразовый: играется по событию броска, а не по занятости - " +
+                 "занятость всё это время одна и та же")]
+        [field: SerializeField] public AnimationClip CarryThrow { get; private set; }
+
         [Header("Листок заказа")]
         [Tooltip("Листок поднят и читается. Одна поза без blend tree: заряжать тут нечего")]
         [field: SerializeField] public AnimationClip ContractHold { get; private set; }
 
         /// <summary>
-        /// Все три клипа назначены. Проверка живёт здесь, а не в генераторе: это условие
+        /// Все клипы назначены. Проверка живёт здесь, а не в генераторе: это условие
         /// целостности САМИХ ДАННЫХ, и знать его должен тот, кто их держит
         /// </summary>
         public bool IsComplete =>
-            CarryIdle != null && CarryWindup != null && ContractHold != null;
+            CarryGrab != null &&
+            CarryIdle != null &&
+            CarryWindup != null &&
+            CarryThrow != null &&
+            ContractHold != null;
     }
 }

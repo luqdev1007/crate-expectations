@@ -13,11 +13,13 @@ MonoBehaviour:
   m_Name: CarryDefinition
   m_EditorClassIdentifier: CrateExpectations.Interaction::CrateExpectations.Interaction.CarryDefinition
   <HoldDistance>k__BackingField: 1.8
+  <HoldOffset>k__BackingField: {x: 0, y: 0, z: 0}
   <MinHoldDistance>k__BackingField: 0.6
   <HoldBlockingMask>k__BackingField:
     serializedVersion: 2
     m_Bits: 1847
   <GrabDistance>k__BackingField: 3
+  <GrabDuration>k__BackingField: 0.3
   <BreakDistance>k__BackingField: 2.5
   <FollowSpeed>k__BackingField: 12
   <MaxVelocity>k__BackingField: 8
@@ -57,5 +59,6 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   <WindupOffset>k__BackingField: {x: 0, y: -0.15, z: -0.5}
-  <ReleaseDelay>k__BackingField: 0
+  <ReleaseDelay>k__BackingField: 0.33
+  <ThrowTailDuration>k__BackingField: 0.47
   <CarriedLayer>k__BackingField: 12

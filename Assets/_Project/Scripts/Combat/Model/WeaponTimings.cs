@@ -14,12 +14,15 @@ namespace CrateExpectations.Combat
     {
         public WeaponTimings(
             float drawDuration, float sheatheDuration,
-            float blockRaiseDuration = 0.2f, float blockLowerDuration = 0.2f)
+            float blockRaiseDuration = 0.2f, float blockLowerDuration = 0.2f,
+            float drawRevealFraction = 0.5f, float sheatheHideFraction = 0.5f)
         {
             DrawDuration = drawDuration;
             SheatheDuration = sheatheDuration;
             BlockRaiseDuration = blockRaiseDuration;
             BlockLowerDuration = blockLowerDuration;
+            DrawRevealFraction = drawRevealFraction;
+            SheatheHideFraction = sheatheHideFraction;
         }
 
         /// <summary>Сколько длится доставание, с</summary>
@@ -33,5 +36,14 @@ namespace CrateExpectations.Combat
 
         /// <summary>Сколько длится опускание клинка из блока, с</summary>
         public float BlockLowerDuration { get; }
+
+        /// <summary>
+        /// На какой доле доставания клинок появляется в руке, 0..1. Доля, а не секунды:
+        /// момент должен ехать вместе с длительностью фазы, а не отставать на пересчёт
+        /// </summary>
+        public float DrawRevealFraction { get; }
+
+        /// <summary>На какой доле убирания клинок исчезает из руки, 0..1</summary>
+        public float SheatheHideFraction { get; }
     }
 }

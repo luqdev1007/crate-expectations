@@ -27,6 +27,10 @@ namespace CrateExpectations.Interaction
     /// </summary>
     public sealed class Carrier : MonoBehaviour, ICarryStateSource
     {
+        // Короче этого вектор «до точки удержания» считается вырожденным: направления у него
+        // уже нет, а нормализация даёт NaN
+        private const float MinHoldDirectionLength = 0.0001f;
+
         [SerializeField] private CarryDefinition _definition;
 
         [Tooltip("Опора точки удержания и направление броска (обычно камера)")]
@@ -53,8 +57,40 @@ namespace CrateExpectations.Interaction
         // уехали бы из Carrying в Combat
         private readonly HoldCharge _throwCharge = new();
 
-        /// <inheritdoc />
-        public bool IsCarrying => _held != null;
+        // Груз уже отпущен кнопкой, но ещё не вылетел: ждём, пока руки дойдут до апекса
+        private Vector3 _pendingImpulse;
+        private float _releaseTimer;
+        private bool _throwPending;
+
+        // Остаток хвоста занятости после вылета груза
+        private float _throwTail;
+
+        /// <summary>
+        /// Груз в руках ФИЗИЧЕСКИ. Не то же самое, что <see cref="IsCarrying"/>: после
+        /// вылета груза руки ещё доигрывают бросок, и заняты они, а держат - уже ничего
+        /// </summary>
+        private bool IsHolding => _held != null;
+
+        /// <summary>
+        /// Руки заняты переноской. Шире, чем «груз в руках»: сюда входит и хвост после
+        /// броска.
+        /// <para>
+        /// Хвост нужен не переноске, а КАДРУ. Руки вьюмодели видно ровно пока занятость
+        /// не <c>Free</c>, а груз улетает мгновенно - без хвоста руки гасли бы в тот же
+        /// кадр, в который стартует проводка броска, и саму проводку не увидели бы ни разу.
+        /// Занятость, а не отдельный флаг «идёт анимация»: всё, что запрещено с грузом
+        /// в руках, должно быть запрещено и посреди броска, а это уже описано занятостью -
+        /// заводить второе правило значило бы держать две копии одного запрета
+        /// </para>
+        /// </summary>
+        public bool IsCarrying => IsHolding || _throwTail > 0f;
+
+        /// <summary>
+        /// Груз пошёл в бросок: кнопку отпустили, анимация выброса должна стартовать.
+        /// Момент НЕ совпадает с вылетом груза - тот отложен на <see cref="CarryDefinition.ReleaseDelay"/>,
+        /// потому что руки к апексу выброса приходят не сразу
+        /// </summary>
+        public event System.Action Thrown;
 
         /// <summary>
         /// Замах уже копится (мёртвая зона пройдена). Пригодится аниматору,
@@ -74,6 +110,13 @@ namespace CrateExpectations.Interaction
         /// дистанции груз считается досягаемым, знает ассет переноски
         /// </summary>
         public float GrabDistance => _definition.GrabDistance;
+
+        /// <summary>
+        /// Сколько длится проводка взятия, с. Наружу по той же причине, что и
+        /// <see cref="GrabDistance"/>: число живёт в ассете переноски, а нужно оно тому,
+        /// кто ужимает клип взятия до этой длительности
+        /// </summary>
+        public float GrabDuration => _definition.GrabDuration;
 
         [Inject]
         public void Construct(IInputReader input) => _input = input;
@@ -129,6 +172,8 @@ namespace CrateExpectations.Interaction
         /// </summary>
         public void Grab(Carriable carriable)
         {
+            // Проверка идёт по IsCarrying, а не по «груз в руках»: посреди хвоста броска
+            // руки ещё доигрывают выброс, и подсунуть в них следующий ящик нельзя
             if (IsCarrying || carriable == null)
                 return;
 
@@ -138,7 +183,7 @@ namespace CrateExpectations.Interaction
         /// <summary>Положить груз там, где он висит. Без импульса - это не бросок</summary>
         public void Drop()
         {
-            if (!IsCarrying)
+            if (!IsHolding)
                 return;
 
             Release(Vector3.zero);
@@ -176,7 +221,10 @@ namespace CrateExpectations.Interaction
         /// </summary>
         private void OnAttackPressed()
         {
-            if (!IsCarrying)
+            // Копить замах можно только тем, что реально в руках. Посреди уже начатого
+            // броска - нельзя: там груз либо ждёт вылета, либо уже улетел, и второй
+            // замах поверх первого означал бы бросок неизвестно чего
+            if (!IsHolding || _throwPending)
                 return;
 
             _throwCharge.Begin(_definition.ChargeDuration, _definition.ActivationThreshold);
@@ -189,16 +237,33 @@ namespace CrateExpectations.Interaction
         /// </summary>
         private void OnAttackReleased()
         {
-            if (!IsCarrying || !_throwCharge.IsCharging)
+            if (!IsHolding || _throwPending || !_throwCharge.IsCharging)
             {
                 _throwCharge.Cancel();
                 return;
             }
 
-            // Второго пути броска нет: сила считается по заряду, а дальше это тот же
-            // Release, что и у броска с руки. Заряд гасится внутри него - вместе
-            // со всеми остальными способами лишиться груза
-            Release(_rayOrigin.forward * _definition.ThrowForceAt(_throwCharge.ChargeT));
+            Vector3 impulse = _rayOrigin.forward * _definition.ThrowForceAt(_throwCharge.ChargeT);
+
+            // Анимация выброса стартует ЗДЕСЬ, а груз улетает позже: событие поднимается
+            // до вылета, иначе клип начинался бы с уже пустых рук
+            Thrown?.Invoke();
+
+            // Замах отыгран. Гасим его сразу, не дожидаясь вылета: точка удержания
+            // возвращается из-за плеча вперёд, и груз едет туда сам, обычным следованием.
+            // Именно это и читается как «руки вынесли ящик вперёд» - отдельной проводки
+            // для груза не нужно
+            _throwCharge.Cancel();
+
+            if (_definition.ReleaseDelay <= 0f)
+            {
+                Release(impulse);
+                return;
+            }
+
+            _pendingImpulse = impulse;
+            _releaseTimer = _definition.ReleaseDelay;
+            _throwPending = true;
         }
 
         private void Update()
@@ -206,11 +271,50 @@ namespace CrateExpectations.Interaction
             // Возврат Tick тут не нужен: полный замах никуда сам не улетает, он ждёт
             // отпускания кнопки, стоя на единице. Этим бросок и отличается от удара
             _throwCharge.Tick(Time.deltaTime);
+
+            // Хвост тикает ПЕРЕД отложенным вылетом: иначе хвост, заведённый вылетом
+            // в этом же кадре, тут же потерял бы свой первый кадр
+            TickThrowTail(Time.deltaTime);
+            TickPendingThrow(Time.deltaTime);
+        }
+
+        /// <summary>
+        /// Отложенный вылет груза. Груз всё это время ещё в руках и едет за точкой
+        /// удержания - к моменту импульса он уже движется вперёд, а не стартует с места
+        /// </summary>
+        private void TickPendingThrow(float deltaTime)
+        {
+            if (!_throwPending)
+                return;
+
+            _releaseTimer -= deltaTime;
+
+            if (_releaseTimer > 0f)
+                return;
+
+            // Груз могли отобрать за время задержки - положить кнопкой или оторвать
+            // по BreakDistance. Тогда бросать уже нечего, и Release это уже сделал
+            if (IsHolding)
+                Release(_pendingImpulse);
+        }
+
+        /// <summary>
+        /// Хвост занятости после вылета. Обычное поле со временем, а не отложенная задача:
+        /// уничтожение объекта не требует отмены, а выход из play mode не оставляет
+        /// висящего продолжения
+        /// </summary>
+        private void TickThrowTail(float deltaTime)
+        {
+            if (_throwTail <= 0f)
+                return;
+
+            _throwTail = Mathf.Max(0f, _throwTail - deltaTime);
         }
 
         private void FixedUpdate()
         {
-            if (!IsCarrying)
+            // Хвост броска сюда не пускаем: вести за точкой удержания уже нечего
+            if (!IsHolding)
                 return;
 
             Vector3 holdPoint = GetHoldPoint();
@@ -256,13 +360,34 @@ namespace CrateExpectations.Interaction
         /// <summary>
         /// Точка удержания перед камерой, подтянутая до первого препятствия: без этой проверки
         /// взгляд вниз уводит её под пол, груз получает вечную команду «вниз», упирается в землю
-        /// и дребезжит прямо посреди экрана
+        /// и дребезжит прямо посреди экрана.
+        /// <para>
+        /// Доводка <see cref="CarryDefinition.HoldOffset"/> входит ДО подтяжки, а замах - ПОСЛЕ.
+        /// Разница принципиальная: доводка задаёт, где груз висит в спокойном состоянии, и
+        /// обязана считаться «нормальным местом», от которого стены его отодвигают; замах же
+        /// уводит груз к плечу намеренно, и подтягивать его обратно к стене нельзя
+        /// </para>
+        /// <para>
+        /// Числа читаются из ассета каждый физшаг и нигде не кэшируются - иначе правку
+        /// в play mode пришлось бы ждать до следующего захвата
+        /// </para>
         /// </summary>
         private Vector3 GetHoldPoint()
         {
             Vector3 origin = _rayOrigin.position;
-            Vector3 direction = _rayOrigin.forward;
-            float distance = _definition.HoldDistance;
+            Quaternion rotation = _rayOrigin.rotation;
+
+            // Доводка камерная, поэтому она меняет не только длину, но и НАПРАВЛЕНИЕ луча
+            // подтяжки: проверять препятствия вдоль forward, а держать груз сбоку от него -
+            // значит проверять не то место, где груз висит
+            Vector3 toHold = rotation * (Vector3.forward * _definition.HoldDistance + _definition.HoldOffset);
+            float distance = toHold.magnitude;
+
+            // Доводка может погасить дистанцию целиком - направления у нулевого вектора нет,
+            // и падать в NaN из-за подобранного «в ноль» смещения точка удержания не должна
+            Vector3 direction = distance > MinHoldDirectionLength
+                ? toHold / distance
+                : _rayOrigin.forward;
 
             RaycastHit hit;
 
@@ -286,7 +411,7 @@ namespace CrateExpectations.Interaction
             // Смещение камерное, а не мировое: замах должен уводить груз к плечу игрока,
             // куда бы он ни смотрел. Груз при этом едет НА игрока и может влезть
             // в геометрию за спиной - это принято осознанно
-            return point + _rayOrigin.rotation * _definition.WindupOffsetAt(_throwCharge.ChargeT);
+            return point + rotation * _definition.WindupOffsetAt(_throwCharge.ChargeT);
         }
 
         /// <summary>Половина наименьшего габарита груза - радиус для проверки точки удержания</summary>
@@ -359,6 +484,15 @@ namespace CrateExpectations.Interaction
             // Release проходят ВСЕ способы лишиться груза (кнопка, бросок, отрыв
             // по BreakDistance), и заряд не может пережить ни один из них
             _throwCharge.Cancel();
+
+            // По той же причине здесь снимается и отложенный вылет: груз, отобранный
+            // за время задержки, не должен получить импульс задним числом
+            _throwPending = false;
+            _releaseTimer = 0f;
+
+            // Хвост занятости - только настоящему броску. Положенный на пол ящик
+            // никакой анимации не доигрывает, и держать под него руки в кадре незачем
+            _throwTail = impulse != Vector3.zero ? _definition.ThrowTailDuration : 0f;
         }
 
         private void AttachJoint()
