@@ -34,8 +34,8 @@ ModelImporter:
       name: Carry_Windup
       takeName: 
       internalID: 3060610079319413300
-      firstFrame: 3
-      lastFrame: 4
+      firstFrame: 2
+      lastFrame: 3
       wrapMode: 0
       orientationOffsetY: 0
       level: 0

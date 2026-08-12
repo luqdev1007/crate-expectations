@@ -59,6 +59,6 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   <WindupOffset>k__BackingField: {x: 0, y: 0.45, z: 0}
-  <ReleaseDelay>k__BackingField: 0.33
-  <ThrowTailDuration>k__BackingField: 0.47
+  <ReleaseDelay>k__BackingField: 0.47
+  <ThrowTailDuration>k__BackingField: 0.1966667
   <CarriedLayer>k__BackingField: 12
