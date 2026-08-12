@@ -17,20 +17,27 @@ namespace CrateExpectations.Player.View
     /// Друг о друге они не знают, синхронными их держит то, что источник состояния один.
     /// </para>
     /// <para>
-    /// Приёмов у вьюмодели восемь, у тела один: TPS-пак разных ударов не даёт. Поэтому
-    /// номер приёма получает только тот аниматор, чей граф про него знает, а темп -
-    /// оба, каждый по длине СВОЕГО клипа. Общий множитель уложил бы в тайминг
-    /// только один из них.
+    /// Приёмов у вьюмодели восемь, у тела НИ ОДНОГО. Раньше был один общий TPS-взмах,
+    /// но с тех пор, как тело стало видно из собственных глаз, он заносил телесные руки
+    /// прямо в кадр - поверх вьюмодельных, которые тот же удар в это время и отыгрывают.
+    /// Удар остался там, где он для кадра и сделан. Плата известна: тень на земле
+    /// саблей больше не машет, силуэт бьёт «из стойки».
+    /// </para>
+    /// <para>
+    /// Поэтому и удар, и номер приёма, и темп получает только тот аниматор, чей граф
+    /// про них знает. Спрашивать несуществующий параметр нельзя - это варнинг в консоль
+    /// на каждое нажатие.
     /// </para>
     /// </summary>
     public sealed class PlayerAnimatorDriver : MonoBehaviour
     {
+        private const string AttackName = "Attack";
         private const string AttackIndexName = "AttackIndex";
         private const string BlockPhaseName = "BlockPhase";
         private const string EquipPhaseName = "EquipPhase";
 
         private static readonly int IsArmedId = Animator.StringToHash("IsArmed");
-        private static readonly int AttackId = Animator.StringToHash("Attack");
+        private static readonly int AttackId = Animator.StringToHash(AttackName);
         private static readonly int AttackSpeedId = Animator.StringToHash("AttackSpeed");
         private static readonly int AttackIndexId = Animator.StringToHash(AttackIndexName);
 
@@ -63,6 +70,13 @@ namespace CrateExpectations.Player.View
                      "по этой длине. Граф вьюмодели берёт длину из самого приёма, " +
                      "и поле ему не нужно")]
             public AnimationClip AttackClip;
+
+            /// <summary>
+            /// Знает ли граф про удар вообще. У тела его больше нет: TPS-клип взмаха
+            /// заносил руки прямо в кадр от первого лица, с тех пор как тело стало
+            /// видимым. Удар остался только у вьюмодели - её руки для кадра и сделаны
+            /// </summary>
+            [NonSerialized] public bool SupportsAttack;
 
             /// <summary>
             /// Умеет ли граф выбирать приём номером. Разрешаем один раз в <c>Awake</c>:
@@ -116,6 +130,9 @@ namespace CrateExpectations.Player.View
                 // мимо своей физики, а руки уползли бы из кадра
                 animator.applyRootMotion = false;
 
+                _animators[i].SupportsAttack =
+                    AnimatorParameters.Has(animator, AttackName);
+
                 _animators[i].SupportsAttackIndex =
                     AnimatorParameters.Has(animator, AttackIndexName);
 
@@ -151,7 +168,7 @@ namespace CrateExpectations.Player.View
 
             // Триггер живёт до первого срабатывания. Не выстрелив, он дождался бы следующего
             // доставания и махнул саблей в тот момент, когда игрок только достал её из-за пояса
-            ResetTrigger(AttackId);
+            ResetAttackTrigger();
         }
 
         /// <summary>
@@ -172,7 +189,7 @@ namespace CrateExpectations.Player.View
 
             foreach (AnimatorTarget target in _animators)
             {
-                if (target.Animator == null)
+                if (target.Animator == null || !target.SupportsAttack)
                     continue;
 
                 if (target.SwingDrawnProcedurally && procedural)
@@ -298,11 +315,16 @@ namespace CrateExpectations.Player.View
                     target.Animator.SetBool(id, value);
         }
 
-        private void ResetTrigger(int id)
+        /// <summary>
+        /// Гасит взведённый триггер удара у тех, кто про удар знает. Тело в этот список
+        /// больше не входит, и спрашивать у него несуществующий триггер нельзя: это
+        /// варнинг в консоль на каждый выход из атаки
+        /// </summary>
+        private void ResetAttackTrigger()
         {
             foreach (AnimatorTarget target in _animators)
-                if (target.Animator != null)
-                    target.Animator.ResetTrigger(id);
+                if (target.Animator != null && target.SupportsAttack)
+                    target.Animator.ResetTrigger(AttackId);
         }
 
         /// <summary>

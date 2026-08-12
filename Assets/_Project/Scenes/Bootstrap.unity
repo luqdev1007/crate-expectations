@@ -3897,6 +3897,7 @@ MonoBehaviour:
   _inspection: {fileID: 11400000, guid: 72b220ae886298b44972791a57c3beab, type: 2}
   _viewModelBody: {fileID: 1571989085}
   _viewModelStance: {fileID: 1738822062}
+  _playerBody: {fileID: 816844112}
 --- !u!4 &538882588
 Transform:
   m_ObjectHideFlags: 0
@@ -4259,6 +4260,11 @@ PrefabInstance:
 Transform:
   m_CorrespondingSourceObject: {fileID: 738694336361655293, guid: a178e3ddd4a467d4090e2b4a7a5e394f, type: 3}
   m_PrefabInstance: {fileID: 588584780}
+  m_PrefabAsset: {fileID: 0}
+--- !u!137 &589321630 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 1052647457345337837, guid: 1c8950e890f8de640b645d9ccc90ffa4, type: 3}
+  m_PrefabInstance: {fileID: 816844106}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &600699924
 GameObject:
@@ -6316,7 +6322,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CrateExpectations.Player::CrateExpectations.Player.View.PlayerBodyView
   _cameraPivot: {fileID: 1242737595798173650}
-  _cameraHeight: 1.55
+  _cameraHeight: 1.7
+  _cameraForward: 0.1
+  _hiddenRenderers:
+  - {fileID: 918236057}
+  _chestBone: {fileID: 1264118186}
+  _chestFollow: 1
+  _chestSmoothTime: 0.05
+  _armsRenderer: {fileID: 589321630}
 --- !u!95 &816844113 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 9015651193053095870, guid: 1c8950e890f8de640b645d9ccc90ffa4, type: 3}
@@ -7013,6 +7026,11 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 911260150}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!137 &918236057 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 2202511488190872733, guid: 1c8950e890f8de640b645d9ccc90ffa4, type: 3}
+  m_PrefabInstance: {fileID: 816844106}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &930686579
 GameObject:
   m_ObjectHideFlags: 0
@@ -9712,6 +9730,11 @@ PrefabInstance:
 Transform:
   m_CorrespondingSourceObject: {fileID: 8599792117849368541, guid: 112473a489e4f4e47b0127b8a56f8582, type: 3}
   m_PrefabInstance: {fileID: 1261962287}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1264118186 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6122829465325541132, guid: 1c8950e890f8de640b645d9ccc90ffa4, type: 3}
+  m_PrefabInstance: {fileID: 816844106}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1265869156
 PrefabInstance:
@@ -19567,6 +19590,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 41644859058766404, guid: da8d2305c5c846c4dabe978420eedcaf, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1242737595798173657}
+    - targetCorrespondingSourceObject: {fileID: 41644859058766404, guid: da8d2305c5c846c4dabe978420eedcaf, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1242737595798173666}
     - targetCorrespondingSourceObject: {fileID: 4927037552141917284, guid: da8d2305c5c846c4dabe978420eedcaf, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1242737595798173655}
@@ -19791,6 +19817,20 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &1242737595798173666
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1242737595798173651}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a35638cf1374b124481a4b4f95b0be92, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CrateExpectations.Player::CrateExpectations.Player.View.PlayerLocomotionAnimator
+  _body: {fileID: 816844113}
+  _definition: {fileID: 11400000, guid: 883b97609036d6848b06075efd6803ab, type: 2}
 --- !u!1 &1247619218556058891
 GameObject:
   m_ObjectHideFlags: 0

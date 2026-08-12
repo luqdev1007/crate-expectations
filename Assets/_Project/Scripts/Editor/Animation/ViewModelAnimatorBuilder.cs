@@ -145,7 +145,7 @@ namespace CrateExpectations.EditorTools.Animation
             // заново нельзя: у нового файла новый GUID, и аниматор в сцене после этого
             // остаётся с пустым контроллером. Молча: ошибок нет, просто вьюмодель перестаёт
             // шевелиться, и ищется это долго
-            AnimatorController controller = LoadOrCreate();
+            AnimatorController controller = AnimatorControllerRebuild.LoadOrCreate(ControllerPath);
 
             controller.AddParameter(IsArmedParameter, AnimatorControllerParameterType.Bool);
             controller.AddParameter(AttackParameter, AnimatorControllerParameterType.Trigger);
@@ -237,40 +237,6 @@ namespace CrateExpectations.EditorTools.Animation
                       $"Небоевые позы рук: {(handsBuilt ? "собраны" : "НЕ собраны")}. " +
                       $"Доставание и убирание: {(equipBuilt ? "собраны" : "НЕ собраны, стойка переключается кроссфейдом")}.",
                 AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath));
-        }
-
-        /// <summary>
-        /// Отдаёт контроллер по постоянному пути, вычищенный до пустого. Существующий -
-        /// опустошённый, но тот же самый: ссылки на него из сцен и префабов должны пережить
-        /// пересборку
-        /// </summary>
-        private static AnimatorController LoadOrCreate()
-        {
-            var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath);
-
-            if (controller == null)
-                return AnimatorController.CreateAnimatorControllerAtPath(ControllerPath);
-
-            while (controller.parameters.Length > 0)
-                controller.RemoveParameter(0);
-
-            AnimatorStateMachine root = controller.layers[0].stateMachine;
-
-            // Переходы из Any State живут на самой машине, а не на стейтах, и удалением
-            // стейтов не подчищаются
-            root.anyStateTransitions = new AnimatorStateTransition[0];
-
-            foreach (ChildAnimatorState state in root.states)
-                root.RemoveState(state.state);
-
-            // Блендтри - подобъекты ассета, и RemoveState их не забирает: стейт уходит,
-            // дерево остаётся лежать в файле. Без этой уборки каждая пересборка добавляла бы
-            // в контроллер по мёртвому дереву, и заметно это стало бы только по размеру файла
-            foreach (Object asset in AssetDatabase.LoadAllAssetsAtPath(ControllerPath))
-                if (asset is BlendTree)
-                    Object.DestroyImmediate(asset, true);
-
-            return controller;
         }
 
         /// <summary>
@@ -606,15 +572,8 @@ namespace CrateExpectations.EditorTools.Animation
             return transition;
         }
 
-        private static void AddFloat(AnimatorController controller, string name, float defaultValue)
-        {
-            controller.AddParameter(new AnimatorControllerParameter
-            {
-                name = name,
-                type = AnimatorControllerParameterType.Float,
-                defaultFloat = defaultValue,
-            });
-        }
+        private static void AddFloat(AnimatorController controller, string name, float defaultValue) =>
+            AnimatorControllerRebuild.AddFloat(controller, name, defaultValue);
 
         /// <summary>
         /// Достаёт единственный клип из FBX. В FPP-паке на файл приходится ровно одна

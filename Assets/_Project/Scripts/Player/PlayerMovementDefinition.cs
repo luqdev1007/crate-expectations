@@ -15,6 +15,19 @@ namespace CrateExpectations.Player
         [Tooltip("Как быстро скорость приближается к целевой, м/с²")]
         [field: SerializeField] public float Acceleration { get; private set; } = 40f;
 
+        [Header("Локомоция в анимации")]
+        [Tooltip("За сколько примерно секунд ноги догоняют скорость, с. Разгон физики " +
+                 "и разгон походки - разные вещи: скорость набирается за доли кадра " +
+                 "по Acceleration, и без этого сглаживания ноги переключались бы " +
+                 "с покоя на полный бег одним кадром")]
+        [field: SerializeField][Min(0f)] public float LocomotionSmoothTime { get; private set; } = 0.12f;
+
+        [Tooltip("Ниже какой доли от MoveSpeed скорость считается нулевой. Стоящего " +
+                 "игрока толкают ящики и сползание с уклона; без мёртвой зоны ноги " +
+                 "перебирали бы на месте всё время, пока он просто стоит. " +
+                 "Живёт рядом с MoveSpeed намеренно: это доля именно от него")]
+        [field: SerializeField][Range(0f, 0.5f)] public float LocomotionDeadband { get; private set; } = 0.05f;
+
         [Header("Прыжок")]
         [Tooltip("Высота прыжка в метрах (импульс считается из неё и гравитации)")]
         [field: SerializeField] public float JumpHeight { get; private set; } = 1.2f;
@@ -32,8 +45,14 @@ namespace CrateExpectations.Player
         [Tooltip("Минимальный угол наклона камеры (вниз)")]
         [field: SerializeField] public float PitchMin { get; private set; } = -85f;
 
-        [Tooltip("Максимальный угол наклона камеры (вверх)")]
-        [field: SerializeField] public float PitchMax { get; private set; } = 85f;
+        [Tooltip("Максимальный угол наклона камеры (вниз). Не 85, как было: тело теперь видно " +
+                 "из собственных глаз, и ниже этого угла игрок начинает заглядывать " +
+                 "в собственную горловину - голова скрыта, отверстие под неё открыто, " +
+                 "и сквозь него виден торс изнутри. Замер на худшей фазе цикла при высоте " +
+                 "глаза 1.70: 58° и 64° чисто, на 70° горловина просматривается. " +
+                 "Число связано с CameraHeight у тела: опустите глаз к анатомическим 1.55 - " +
+                 "и никакой предел уже не спасёт, там камера внутри самой ткани")]
+        [field: SerializeField] public float PitchMax { get; private set; } = 65f;
 
         [Header("Скольжение вдоль стен")]
         [Tooltip("Максимальный |y| нормали контакта, при котором поверхность считается стеной, " +

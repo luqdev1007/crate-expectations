@@ -14,6 +14,24 @@ namespace CrateExpectations.EditorTools.Animation
     /// <c>DrawDuration</c> / <c>SheatheDuration</c> в ассете оружия - иначе оружие появится
     /// в руке раньше или позже, чем рука дойдёт до стойки.
     /// </para>
+    /// <para>
+    /// Стоек две, и каждая - не поза, а ДЕРЕВО: покой в центре и бег по кругу. С тех пор,
+    /// как тело видно из-под собственного подбородка, ноги перестали быть чужой заботой -
+    /// игрок смотрит на них сам. Двумерное дерево, а не одномерное «стоит-бежит»:
+    /// в шутере ходят боком не реже, чем вперёд, и бег вперёд, отыгранный при движении
+    /// вбок, читается как скольжение.
+    /// </para>
+    /// <para>
+    /// Боевые клипы бега в паке отсутствуют, поэтому обе стойки бегут одними и теми же
+    /// клипами и различаются только позой покоя в центре. В кадре это не видно вовсе:
+    /// оружие живёт на вьюмодели, у физического тела руки всегда пустые.
+    /// </para>
+    /// <para>
+    /// УДАРА В ЭТОМ ГРАФЕ НЕТ, и это не забыли. TPS-взмах заносил телесные руки прямо
+    /// в кадр от первого лица - поверх вьюмодельных, которые тот же удар в это время
+    /// и отыгрывают. Тело осталось со стойками и бегом; удар живёт там, где он для кадра
+    /// и сделан. Плата: тень на земле саблей больше не машет.
+    /// </para>
     /// </summary>
     public static class PlayerAnimatorBuilder
     {
@@ -22,95 +40,174 @@ namespace CrateExpectations.EditorTools.Animation
 
         private const string IdleClipPath = AnimationsFolder + "/HumanM@Idle01.fbx";
         private const string CombatIdleClipPath = AnimationsFolder + "/HumanM@CombatIdle1H01.fbx";
-        private const string AttackClipPath = AnimationsFolder + "/HumanM@Attack1H01_R.fbx";
 
-        // Имена параметров дублируются в PlayerAnimatorDriver: там они хешируются,
-        // здесь - объявляются. Третьего места, где они встречаются, быть не должно
+        // Имена параметров дублируются в драйверах: там они хешируются, здесь -
+        // объявляются. Третьего места, где они встречаются, быть не должно
         private const string IsArmedParameter = "IsArmed";
-        private const string AttackParameter = "Attack";
-        private const string SpeedParameter = "Speed";
-        private const string AttackSpeedParameter = "AttackSpeed";
+
+        // Скорость в осях тела, в долях от максимальной: X - вбок, Z - вперёд.
+        // Двумя числами, а не одним «Speed»: одно число знает, КАК БЫСТРО едет игрок,
+        // но не знает, КУДА, - и на нём разворот боком отыгрывался бы бегом вперёд
+        private const string MoveXParameter = "MoveX";
+        private const string MoveZParameter = "MoveZ";
 
         /// <summary>Длительность кроссфейда стойки, с. Держать равной DrawDuration оружия</summary>
         private const float StanceCrossfade = 0.25f;
 
-        /// <summary>Вход во взмах, с. Короткий: удар должен начинаться по нажатию, а не после него</summary>
-        private const float AttackBlendIn = 0.05f;
+        /// <summary>
+        /// Диагональ единичного круга. Диагональные клипы стоят именно на нём, а не
+        /// в углах квадрата: дерево смешивает по НАПРАВЛЕНИЮ, и точка (1,1) означала бы
+        /// то же направление, но вдвое дальше от центра, чем прямые
+        /// </summary>
+        private const float Diagonal = 0.70710678f;
 
-        /// <summary>Выход из взмаха: доля клипа, после которой начинается возврат в стойку</summary>
-        private const float AttackExitTime = 0.85f;
+        /// <summary>
+        /// Клип бега и направление, которому он соответствует. Пара, а не два массива:
+        /// разъехавшись на один элемент, они молча поставили бы бег вбок на движение вперёд
+        /// </summary>
+        private readonly struct RunClip
+        {
+            public readonly string Path;
+            public readonly Vector2 Direction;
 
-        private const float AttackBlendOut = 0.15f;
+            public RunClip(string fileName, float x, float z)
+            {
+                Path = AnimationsFolder + "/" + fileName + ".fbx";
+                Direction = new Vector2(x, z);
+            }
+        }
+
+        /// <summary>
+        /// Круг бега. Вперёд и назад - обычный бег, вбок и по диагонали - строевой:
+        /// в обычном теле разворачивается по ходу движения, а тело игрока всегда
+        /// развёрнуто по взгляду, и разворот из клипа увёл бы его от направления взгляда
+        /// </summary>
+        private static readonly RunClip[] Run =
+        {
+            new RunClip("HumanM@Run01_Forward", 0f, 1f),
+            new RunClip("HumanM@Run01_Backward", 0f, -1f),
+            new RunClip("HumanM@StrafeRun01_Left", -1f, 0f),
+            new RunClip("HumanM@StrafeRun01_Right", 1f, 0f),
+            new RunClip("HumanM@StrafeRun01_ForwardLeft", -Diagonal, Diagonal),
+            new RunClip("HumanM@StrafeRun01_ForwardRight", Diagonal, Diagonal),
+            new RunClip("HumanM@StrafeRun01_BackwardLeft", -Diagonal, -Diagonal),
+            new RunClip("HumanM@StrafeRun01_BackwardRight", Diagonal, -Diagonal),
+        };
 
         [MenuItem("Tools/Crate Expectations/Rebuild Player Animator")]
         public static void Rebuild()
         {
             AnimationClip idleClip = LoadClip(IdleClipPath);
             AnimationClip combatIdleClip = LoadClip(CombatIdleClipPath);
-            AnimationClip attackClip = LoadClip(AttackClipPath);
 
-            if (idleClip == null || combatIdleClip == null || attackClip == null)
+            if (idleClip == null || combatIdleClip == null)
                 return;
 
-            // Пересобираем с нуля, а не правим существующий: иначе в графе копились бы
-            // переходы, которых в этом коде уже нет
-            AssetDatabase.DeleteAsset(ControllerPath);
+            AnimationClip[] runClips = LoadRunClips();
 
-            AnimatorController controller = AnimatorController.CreateAnimatorControllerAtPath(ControllerPath);
+            if (runClips == null)
+                return;
+
+            // Содержимое собирается с нуля, но сам ассет переживает пересборку -
+            // см. AnimatorControllerRebuild о том, чем это заканчивается иначе
+            AnimatorController controller = AnimatorControllerRebuild.LoadOrCreate(ControllerPath);
 
             controller.AddParameter(IsArmedParameter, AnimatorControllerParameterType.Bool);
-            controller.AddParameter(AttackParameter, AnimatorControllerParameterType.Trigger);
 
-            // Speed на шаге 1 никто не пишет - это заготовка под локомоцию шага 2.
-            // Объявлен сразу, чтобы блендтри ног встал в готовый контроллер, а не потребовал
-            // переучивать драйвер
-            AddFloat(controller, SpeedParameter, 0f);
-
-            // Множитель скорости стейта Attack. Единственный способ подчинить длину клипа
-            // числу из ассета, не трогая сам ассет контроллера в рантайме
-            AddFloat(controller, AttackSpeedParameter, 1f);
+            // Ноль по умолчанию для обоих: граф обязан стартовать в покое, а не
+            // на полном ходу в случайную сторону
+            AnimatorControllerRebuild.AddFloat(controller, MoveXParameter, 0f);
+            AnimatorControllerRebuild.AddFloat(controller, MoveZParameter, 0f);
 
             AnimatorStateMachine root = controller.layers[0].stateMachine;
             root.entryPosition = new Vector3(-260f, 0f, 0f);
             root.anyStatePosition = new Vector3(-260f, 120f, 0f);
             root.exitPosition = new Vector3(420f, 120f, 0f);
 
-            AnimatorState idle = root.AddState("Idle", new Vector3(-40f, 0f, 0f));
-            idle.motion = idleClip;
+            AnimatorState locomotion = root.AddState("Locomotion", new Vector3(-40f, 0f, 0f));
+            locomotion.motion = RunTree(controller, "Locomotion", idleClip, runClips);
 
-            AnimatorState combatIdle = root.AddState("CombatIdle", new Vector3(200f, 0f, 0f));
-            combatIdle.motion = combatIdleClip;
+            AnimatorState combatLocomotion =
+                root.AddState("CombatLocomotion", new Vector3(200f, 0f, 0f));
+            combatLocomotion.motion = RunTree(controller, "CombatLocomotion", combatIdleClip, runClips);
 
-            AnimatorState attack = root.AddState("Attack", new Vector3(200f, 140f, 0f));
-            attack.motion = attackClip;
-            attack.speedParameterActive = true;
-            attack.speedParameter = AttackSpeedParameter;
+            root.defaultState = locomotion;
 
-            root.defaultState = idle;
-
-            // Стойка переключается сразу по флагу: ждать конца цикла idle означало бы
+            // Стойка переключается сразу по флагу: ждать конца цикла покоя означало бы
             // задержку до двух с половиной секунд между нажатием и реакцией
-            Crossfade(idle, combatIdle, StanceCrossfade)
+            Crossfade(locomotion, combatLocomotion, StanceCrossfade)
                 .AddCondition(AnimatorConditionMode.If, 0f, IsArmedParameter);
 
-            Crossfade(combatIdle, idle, StanceCrossfade)
+            Crossfade(combatLocomotion, locomotion, StanceCrossfade)
                 .AddCondition(AnimatorConditionMode.IfNot, 0f, IsArmedParameter);
-
-            Crossfade(combatIdle, attack, AttackBlendIn)
-                .AddCondition(AnimatorConditionMode.If, 0f, AttackParameter);
-
-            AnimatorStateTransition back = attack.AddTransition(combatIdle);
-            back.hasExitTime = true;
-            back.exitTime = AttackExitTime;
-            back.hasFixedDuration = true;
-            back.duration = AttackBlendOut;
 
             EditorUtility.SetDirty(controller);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
-            Debug.Log($"Контроллер игрока пересобран: {ControllerPath}",
+            Debug.Log($"Контроллер игрока пересобран: {ControllerPath}. " +
+                      $"Клипов бега в каждой стойке: {runClips.Length}.",
                 AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath));
+        }
+
+        /// <summary>
+        /// Дерево локомоции: поза покоя в центре, бег по кругу единичного радиуса.
+        /// <para>
+        /// Тип - Freeform Directional, а не Simple Directional: у первого центральная
+        /// поза - штатная часть раскладки, и переход от покоя к бегу он смешивает
+        /// по радиусу, а не только по направлению. Это ровно тот случай, ради которого
+        /// он и сделан.
+        /// </para>
+        /// <para>
+        /// Дерево кладётся подобъектом в ассет контроллера - иначе оно не переживёт
+        /// перезагрузку, и стейт останется с пустым motion. Молча
+        /// </para>
+        /// </summary>
+        private static BlendTree RunTree(
+            AnimatorController controller, string name, AnimationClip standing, AnimationClip[] runClips)
+        {
+            var tree = new BlendTree
+            {
+                name = name,
+                blendType = BlendTreeType.FreeformDirectional2D,
+                blendParameter = MoveXParameter,
+                blendParameterY = MoveZParameter,
+
+                // Пороги задаём руками: автоматические разложили бы клипы равномерно
+                // по числу детей, и направления перестали бы совпадать с клипами
+                useAutomaticThresholds = false,
+                hideFlags = HideFlags.HideInHierarchy,
+            };
+
+            tree.AddChild(standing, Vector2.zero);
+
+            for (int i = 0; i < runClips.Length; i++)
+                tree.AddChild(runClips[i], Run[i].Direction);
+
+            AssetDatabase.AddObjectToAsset(tree, controller);
+
+            return tree;
+        }
+
+        /// <summary>
+        /// Клипы бега в том же порядке, в каком объявлены направления. Отсутствие
+        /// ЛЮБОГО из них отменяет пересборку целиком: дерево с дырой в круге - это
+        /// направление, в котором игрок скользит, не перебирая ногами, и найдётся
+        /// такая дыра уже в игре
+        /// </summary>
+        private static AnimationClip[] LoadRunClips()
+        {
+            var clips = new AnimationClip[Run.Length];
+
+            for (int i = 0; i < Run.Length; i++)
+            {
+                clips[i] = LoadClip(Run[i].Path);
+
+                if (clips[i] == null)
+                    return null;
+            }
+
+            return clips;
         }
 
         private static AnimatorStateTransition Crossfade(AnimatorState from, AnimatorState to, float seconds)
@@ -124,16 +221,6 @@ namespace CrateExpectations.EditorTools.Animation
             transition.duration = seconds;
 
             return transition;
-        }
-
-        private static void AddFloat(AnimatorController controller, string name, float defaultValue)
-        {
-            controller.AddParameter(new AnimatorControllerParameter
-            {
-                name = name,
-                type = AnimatorControllerParameterType.Float,
-                defaultFloat = defaultValue,
-            });
         }
 
         /// <summary>
