@@ -48,6 +48,12 @@ namespace CrateExpectations.Bootstrap
                  "а если её забыть - это видно сразу")]
         [SerializeField] private ViewModelBody _viewModelBody;
 
+        [Tooltip("Стойка вьюмодели по занятости рук. Отдельной ссылкой, а не поиском " +
+                 "рядом с вьюмоделью: слой живёт на корне вьюмодели, а рендерер рук - " +
+                 "на модели под ним, и связывать их местоположением значит запретить " +
+                 "их когда-либо разнести")]
+        [SerializeField] private ViewModelStance _viewModelStance;
+
         protected override void Configure(IContainerBuilder builder)
         {
             // events
@@ -194,7 +200,12 @@ namespace CrateExpectations.Bootstrap
         /// <summary>
         /// Отдаёт занятость рукам в кадре. Незаполненная ссылка - это ошибка сборки сцены,
         /// а не «вьюмодели тут нет»: без неё руки просто никогда не появятся, и найти
-        /// причину по пустому кадру нельзя
+        /// причину по пустому кадру нельзя.
+        /// <para>
+        /// Получателей двое, и проверяются они по отдельности: без рендерера рук не будет
+        /// видно ничего, без стойки руки появятся, но в переноске уедут под нижнюю кромку.
+        /// Второй отказ гораздо тише первого, поэтому и сообщение у него своё
+        /// </para>
         /// </summary>
         private void BindViewModel(HandsState hands)
         {
@@ -203,11 +214,23 @@ namespace CrateExpectations.Bootstrap
                 Debug.LogError(
                     $"Сцене '{gameObject.scene.name}' не назначена вьюмодель рук " +
                     "(GameLifetimeScope._viewModelBody) - руки в кадре не появятся.", this);
+            }
+            else
+            {
+                _viewModelBody.BindHands(hands);
+            }
+
+            if (_viewModelStance == null)
+            {
+                Debug.LogError(
+                    $"Сцене '{gameObject.scene.name}' не назначена стойка вьюмодели " +
+                    "(GameLifetimeScope._viewModelStance) - кадрирование перестанет " +
+                    "различать занятость, и в переноске кисти уйдут под кромку кадра.", this);
 
                 return;
             }
 
-            _viewModelBody.BindHands(hands);
+            _viewModelStance.BindHands(hands);
         }
     }
 }

@@ -19,4 +19,21 @@ MonoBehaviour:
   _rootYaw: 0
   _rootRoll: 0
   _fieldOfView: 60
+  _freeStance:
+    X: 0
+    Y: 0
+    Z: 0
+  _carryingStance:
+    X: 0
+    Y: 0
+    Z: 0
+  _readingStance:
+    X: 0
+    Y: 0
+    Z: 0
+  _combatStance:
+    X: 0
+    Y: 0
+    Z: 0
+  _stanceBlend: 0.15
   _bones: []

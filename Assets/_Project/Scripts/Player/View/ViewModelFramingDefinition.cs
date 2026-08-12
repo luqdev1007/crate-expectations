@@ -1,4 +1,5 @@
 using System;
+using CrateExpectations.Core.Hands;
 using UnityEngine;
 
 namespace CrateExpectations.Player.View
@@ -48,6 +49,22 @@ namespace CrateExpectations.Player.View
             public Vector3 Euler => new(Pitch, Yaw, Roll);
         }
 
+        /// <summary>
+        /// Смещение корня для одной занятости рук. Оси отдельными полями по той же причине,
+        /// что и углы в <see cref="BoneOverride"/>: <c>Range</c> на <see cref="Vector3"/>
+        /// не работает, а эти числа подбирают мышью в play mode
+        /// </summary>
+        [Serializable]
+        public struct StanceOffset
+        {
+            [Range(-1f, 1f)] public float X;
+            [Range(-1f, 1f)] public float Y;
+            [Range(-1f, 1f)] public float Z;
+
+            /// <summary>Смещение в пространстве камеры: X вправо, Y вверх, Z вперёд от глаза</summary>
+            public Vector3 Value => new(X, Y, Z);
+        }
+
         [Header("Корень вьюмодели (мелкая доводка)")]
         [Tooltip("Смещение корня модели относительно камеры, м. " +
                  "X вправо, Y вверх, Z вперёд от глаза")]
@@ -71,6 +88,29 @@ namespace CrateExpectations.Player.View
                  "без влияния на то, как широко видно порт")]
         [SerializeField][Range(20f, 90f)] private float _fieldOfView = 50f;
 
+        [Header("Стойка по занятости рук")]
+        [Tooltip("Добавка к корню, когда руки свободны. Ноль - базовая компоновка")]
+        [SerializeField] private StanceOffset _freeStance;
+
+        [Tooltip("Добавка к корню, когда в руках груз. Клипы переноски авторены для вида " +
+                 "от третьего лица и держат кисти ниже нижней кромки кадра - поднимаем " +
+                 "всю стойку. Ориентир 0.30 по Y: при нём кисть левой руки в кадре, " +
+                 "а пальцы обеих - уверенно в кадре")]
+        [SerializeField] private StanceOffset _carryingStance = new() { Y = 0.30f };
+
+        [Tooltip("Добавка к корню, когда в руках листок заказа. Ноль - компоновка чтения " +
+                 "подобрана без подъёма")]
+        [SerializeField] private StanceOffset _readingStance;
+
+        [Tooltip("Добавка к корню, когда в руке оружие. Ноль, и менять это без нужды нельзя: " +
+                 "вся боевая композиция - дуги ударов, посадка клинка, блок - подобрана " +
+                 "относительно базового корня")]
+        [SerializeField] private StanceOffset _combatStance;
+
+        [Tooltip("За сколько секунд стойка переезжает на новое место при смене занятости. " +
+                 "Ноль дал бы скачок кадра ровно в тот момент, когда груз прилипает к рукам")]
+        [SerializeField][Range(0f, 1f)] private float _stanceBlend = 0.15f;
+
         [Header("Доворот костей (основной инструмент)")]
         [Tooltip("Применяется поверх любого клипа, поэтому замах остаётся замахом - " +
                  "просто из смещённой стартовой позы")]
@@ -87,5 +127,33 @@ namespace CrateExpectations.Player.View
 
         /// <summary>Довороты костей в порядке применения</summary>
         public BoneOverride[] Bones => _bones;
+
+        /// <summary>За сколько секунд стойка переезжает при смене занятости рук</summary>
+        public float StanceBlend => _stanceBlend;
+
+        /// <summary>
+        /// Добавка к <see cref="RootPosition"/> для текущей занятости рук. Ассет только
+        /// отвечает числом на вопрос «какая занятость» - решает, какая она, по-прежнему
+        /// <see cref="HandsState"/>, а накладывает добавку слой вьюмодели.
+        /// <para>
+        /// Зачем это вообще нужно: <see cref="RootPosition"/> и <see cref="Bones"/> одни на
+        /// всю вьюмодель, то есть поднять руки «только на время переноски» ими нельзя -
+        /// тот же подъём уехал бы в бой и сломал бы подобранные там дуги. Занятость - это
+        /// первое, что у кадрирования вообще есть для различения состояний, и различать
+        /// им надо ровно композицию, а не поведение.
+        /// </para>
+        /// <para>
+        /// Неизвестная занятость - это ноль, а не исключение: новое значение перечисления
+        /// не должно ронять кадр, оно должно означать «стойка не подобрана»
+        /// </para>
+        /// </summary>
+        public Vector3 StanceOffsetFor(HandsOccupancy occupancy) => occupancy switch
+        {
+            HandsOccupancy.Carrying => _carryingStance.Value,
+            HandsOccupancy.Reading => _readingStance.Value,
+            HandsOccupancy.Combat => _combatStance.Value,
+            HandsOccupancy.Free => _freeStance.Value,
+            _ => Vector3.zero,
+        };
     }
 }

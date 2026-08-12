@@ -11099,6 +11099,7 @@ MonoBehaviour:
   _cargoRegistry: {fileID: 11400000, guid: 3a85b2781a87b304b98155c5dc9aec4c, type: 2}
   _inspection: {fileID: 11400000, guid: 72b220ae886298b44972791a57c3beab, type: 2}
   _viewModelBody: {fileID: 312458787}
+  _viewModelStance: {fileID: 950371651}
 --- !u!1 &628099092
 GameObject:
   m_ObjectHideFlags: 0
@@ -17902,6 +17903,7 @@ GameObject:
   - component: {fileID: 950371650}
   - component: {fileID: 950371649}
   - component: {fileID: 950371648}
+  - component: {fileID: 950371651}
   m_Layer: 14
   m_Name: ViewModel
   m_TagString: Untagged
@@ -17966,6 +17968,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: CrateExpectations.Player::CrateExpectations.Player.View.ViewModelRig
   _root: {fileID: 312458786}
   _camera: {fileID: 1358820858}
+  _framing: {fileID: 11400000, guid: 431fa747139cf994c9c7f07d9c6e89a3, type: 2}
+--- !u!114 &950371651
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 950371646}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b1ecee239468cd4d8869a928c76fede, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CrateExpectations.Player::CrateExpectations.Player.View.ViewModelStance
   _framing: {fileID: 11400000, guid: 431fa747139cf994c9c7f07d9c6e89a3, type: 2}
 --- !u!1 &955643478
 GameObject:

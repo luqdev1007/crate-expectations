@@ -82,12 +82,25 @@ namespace CrateExpectations.Interaction.Tests
         }
 
         [Test]
-        public void The_windup_pulls_the_cargo_down_and_back_towards_the_player()
+        public void The_windup_lifts_the_cargo_up()
         {
-            // Знаки важнее величин: замах, уводящий груз вперёд-вверх, был бы не замахом,
-            // а подачей на блюде - и на экране это читалось бы как рывок к прицелу
-            Assert.That(_definition.WindupOffset.y, Is.LessThan(0f), "замах не тянет груз вниз");
-            Assert.That(_definition.WindupOffset.z, Is.LessThan(0f), "замах не тянет груз назад");
+            // Знак важнее величины. Раньше замах уводил груз вниз-назад, к плечу, - и это
+            // оказалось ошибкой: за камерой груза не видно, и заряд читался только по тому,
+            // что ящик пропал из кадра. Подъём виден весь, от начала до конца
+            Assert.That(_definition.WindupOffset.y, Is.GreaterThan(0f), "замах не поднимает груз");
+        }
+
+        [Test]
+        public void The_windup_never_brings_the_cargo_closer_to_the_eye()
+        {
+            // Груз на замахе обязан оставаться не ближе, чем висел: подтяжка к камере -
+            // это путь в ближнюю плоскость отсечения, и увидел бы её игрок ровно в тот
+            // момент, когда целится
+            float hold = _definition.HoldDistance;
+            Vector3 charged = new Vector3(0f, 0f, hold) + _definition.WindupOffsetAt(1f);
+
+            Assert.That(charged.magnitude, Is.GreaterThanOrEqualTo(hold - 1e-4f),
+                "полный замах подтягивает груз к глазу");
         }
     }
 }

@@ -3896,6 +3896,7 @@ MonoBehaviour:
   _cargoRegistry: {fileID: 11400000, guid: 3a85b2781a87b304b98155c5dc9aec4c, type: 2}
   _inspection: {fileID: 11400000, guid: 72b220ae886298b44972791a57c3beab, type: 2}
   _viewModelBody: {fileID: 1571989085}
+  _viewModelStance: {fileID: 1738822062}
 --- !u!4 &538882588
 Transform:
   m_ObjectHideFlags: 0
@@ -15377,6 +15378,7 @@ GameObject:
   - component: {fileID: 1738822059}
   - component: {fileID: 1738822060}
   - component: {fileID: 1738822061}
+  - component: {fileID: 1738822062}
   m_Layer: 14
   m_Name: ViewModel
   m_TagString: Untagged
@@ -15442,6 +15444,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: CrateExpectations.Player::CrateExpectations.Player.View.ViewModelImpact
   _attack: {fileID: 1242737595798173656}
   _weapon: {fileID: 1242737595798173652}
+--- !u!114 &1738822062
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1738822057}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b1ecee239468cd4d8869a928c76fede, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CrateExpectations.Player::CrateExpectations.Player.View.ViewModelStance
+  _framing: {fileID: 11400000, guid: 431fa747139cf994c9c7f07d9c6e89a3, type: 2}
 --- !u!1001 &1739360610
 PrefabInstance:
   m_ObjectHideFlags: 0
