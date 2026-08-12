@@ -6322,13 +6322,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CrateExpectations.Player::CrateExpectations.Player.View.PlayerBodyView
   _cameraPivot: {fileID: 1242737595798173650}
-  _cameraHeight: 1.7
-  _cameraForward: 0.1
+  _camera: {fileID: 11400000, guid: 166d779f61bf25245a32df22307d77d9, type: 2}
   _hiddenRenderers:
   - {fileID: 918236057}
   _chestBone: {fileID: 1264118186}
-  _chestFollow: 1
-  _chestSmoothTime: 0.05
   _armsRenderer: {fileID: 589321630}
 --- !u!95 &816844113 stripped
 Animator:
@@ -14539,11 +14536,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2957605001161146320, guid: 6978fff613090774584eb67036563d5e, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -0.36302832
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2957605001161146320, guid: 6978fff613090774584eb67036563d5e, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 1.1724395
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2957605001161146320, guid: 6978fff613090774584eb67036563d5e, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x

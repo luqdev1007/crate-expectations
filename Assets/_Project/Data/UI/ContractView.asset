@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: ContractView
   m_EditorClassIdentifier: CrateExpectations.UI::CrateExpectations.UI.ContractViewDefinition
   <ViewModelLayer>k__BackingField: 14
-  <SocketPosition>k__BackingField: {x: -0.05744, y: 0.00884, z: 0.00744}
-  <SocketRotation>k__BackingField: {x: 0, y: 0, z: 0}
+  <SocketPosition>k__BackingField: {x: -0.07403639, y: 0.2531399, z: -0.45155156}
+  <SocketRotation>k__BackingField: {x: 301.65924, y: 280.61844, z: 108.137695}
   <ShowDelay>k__BackingField: 0.12
   <HideDelay>k__BackingField: 0.12

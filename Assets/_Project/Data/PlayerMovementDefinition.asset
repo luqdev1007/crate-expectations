@@ -20,7 +20,7 @@ MonoBehaviour:
   <JumpAirborneGrace>k__BackingField: 0.2
   <LookSensitivity>k__BackingField: 0.12
   <PitchMin>k__BackingField: -85
-  <PitchMax>k__BackingField: 65
+  <PitchMax>k__BackingField: 85
   <WallNormalMaxY>k__BackingField: 0.4
   <GroundCheckRadius>k__BackingField: 0.3
   <GroundCheckDistance>k__BackingField: 0.15
