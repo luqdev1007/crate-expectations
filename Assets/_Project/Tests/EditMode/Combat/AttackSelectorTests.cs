@@ -226,5 +226,112 @@ namespace CrateExpectations.Combat.Tests
             Assert.That(selector.Select(AttackDirection.Left, 5f).name, Is.EqualTo("left1"));
             Assert.That(selector.Select(AttackDirection.Left, 5f).name, Is.EqualTo("left2"));
         }
+
+        // --- боевая раскладка сабли ---
+        //
+        // Всё, что выше, проверяет ПРАВИЛА выбора и потому идёт на FakeAttackTable:
+        // от перестановки двух приёмов местами те тесты падать не должны.
+        // Всё, что ниже, наоборот, проверяет СОДЕРЖИМОЕ отгружаемого ассета - то,
+        // что игрок реально получит на кнопку. Такой тест обязан падать при правке
+        // раскладки: ступени заряда у Left/Right/Neutral - это игровое обещание,
+        // а не деталь реализации. Держим их рядом, но не путаем.
+
+        private const string SabreAttackSetPath =
+            "Assets/_Project/Data/Combat/SabreAttackSet.asset";
+
+        private static AttackSelector SabreSelector()
+        {
+            var set = UnityEditor.AssetDatabase.LoadAssetAtPath<AttackSet>(SabreAttackSetPath);
+
+            Assert.That(set, Is.Not.Null, $"не нашлась боевая раскладка '{SabreAttackSetPath}'");
+
+            return new AttackSelector(set);
+        }
+
+        /// <summary>Порог заряда, общий для всех заряженных приёмов сабли</summary>
+        private const float SabreHold = 0.25f;
+
+        /// <summary>Чуть меньше порога: самый долгий тап, который обязан остаться тапом</summary>
+        private const float SabreTap = SabreHold - 0.01f;
+
+        [Test]
+        public void Holding_a_sideways_or_standing_attack_gets_the_sabres_heavy_tier()
+        {
+            AttackSelector selector = SabreSelector();
+
+            Assert.That(selector.Select(AttackDirection.Left, SabreHold).name,
+                Is.EqualTo("Sabre_Left_Heavy"));
+
+            Assert.That(selector.Select(AttackDirection.Right, SabreHold).name,
+                Is.EqualTo("Sabre_Right_Heavy"));
+
+            Assert.That(selector.Select(AttackDirection.Neutral, SabreHold).name,
+                Is.EqualTo("Sabre_Neutral_Heavy"));
+        }
+
+        [Test]
+        public void Tapping_the_same_directions_stays_on_the_light_tier()
+        {
+            AttackSelector selector = SabreSelector();
+
+            Assert.That(selector.Select(AttackDirection.Left, SabreTap).name,
+                Is.EqualTo("Attack_SlashLD"));
+
+            Assert.That(selector.Select(AttackDirection.Right, SabreTap).name,
+                Is.EqualTo("Attack_SlashRU"));
+
+            // Neutral - единственное направление с двумя лёгкими вариациями,
+            // поэтому проверяем обе: заряженный приём не должен влезть между ними
+            Assert.That(selector.Select(AttackDirection.Neutral, SabreTap).name,
+                Is.EqualTo("Attack_SlashLD"));
+
+            Assert.That(selector.Select(AttackDirection.Neutral, SabreTap).name,
+                Is.EqualTo("Attack_SlashRD"));
+        }
+
+        [Test]
+        public void The_standing_attack_alternates_between_exactly_two_light_variations()
+        {
+            AttackSelector selector = SabreSelector();
+
+            // Третьей ячейкой в ряду стоит заряженный приём, и чередование обязано
+            // перешагнуть её, а не выдать заряженный удар за короткое нажатие
+            Assert.That(selector.Select(AttackDirection.Neutral, 0f).name, Is.EqualTo("Attack_SlashLD"));
+            Assert.That(selector.Select(AttackDirection.Neutral, 0f).name, Is.EqualTo("Attack_SlashRD"));
+            Assert.That(selector.Select(AttackDirection.Neutral, 0f).name, Is.EqualTo("Attack_SlashLD"),
+                "чередование удара стоя не закольцевалось на двух вариациях");
+            Assert.That(selector.Select(AttackDirection.Neutral, 0f).name, Is.EqualTo("Attack_SlashRD"));
+        }
+
+        [Test]
+        public void Stepping_back_has_no_charged_tier_and_ignores_the_hold_entirely()
+        {
+            AttackSelector selector = SabreSelector();
+
+            Assert.That(selector.ChargeTime(AttackDirection.Backward), Is.EqualTo(0f).Within(1e-5f),
+                "у отступления завёлся заряд - нажатие перестанет уходить в удар сразу");
+
+            Assert.That(selector.Select(AttackDirection.Backward, 0f).name, Is.EqualTo("Attack_ThrustF"));
+            Assert.That(selector.Select(AttackDirection.Backward, SabreHold).name, Is.EqualTo("Attack_ThrustF"));
+            Assert.That(selector.Select(AttackDirection.Backward, 5f).name, Is.EqualTo("Attack_ThrustF"),
+                "передержали - и отступление отдало не тот приём");
+        }
+
+        [Test]
+        public void One_attack_standing_in_two_rows_keeps_a_counter_for_each_of_them()
+        {
+            // Attack_SlashLD стоит и в Neutral, и в Left - намеренно, одним ассетом.
+            // Счётчик вариаций при этом свой у каждого направления, и удары вбок
+            // не должны сдвигать очередь удара стоя
+            AttackSelector selector = SabreSelector();
+
+            Assert.That(selector.Select(AttackDirection.Neutral, 0f).name, Is.EqualTo("Attack_SlashLD"));
+
+            selector.Select(AttackDirection.Left, 0f);
+            selector.Select(AttackDirection.Left, SabreHold);
+
+            Assert.That(selector.Select(AttackDirection.Neutral, 0f).name, Is.EqualTo("Attack_SlashRD"),
+                "удары влево сбили очередь удара стоя - счётчик вариаций оказался общим");
+        }
     }
 }

@@ -10,18 +10,22 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1f228cf6a9c79f145a9653e3ea14dfbe, type: 3}
-  m_Name: Attack_SlashLD_Stand
+  m_Name: Sabre_Right_Heavy
   m_EditorClassIdentifier: CrateExpectations.Combat::CrateExpectations.Combat.AttackDefinition
-  <Clip>k__BackingField: {fileID: -5850029485061197639, guid: db8c689e989a7d94bab363b252b0ec8e, type: 3}
-  <Duration>k__BackingField: 1.1153847
-  <SweepStart>k__BackingField: 0.41
-  <SweepEnd>k__BackingField: 0.45
+  <HoldTime>k__BackingField: 0.25
+  <Clip>k__BackingField: {fileID: -3418165190604470723, guid: 09103bcfd09f5274590120022977853c, type: 3}
+  <Duration>k__BackingField: 1.7
+  <SweepStart>k__BackingField: 0.44
+  <SweepEnd>k__BackingField: 0.53
   <SweepSamples>k__BackingField: 8
   <SweepRadius>k__BackingField: 0.45
   <SweepDistance>k__BackingField: 2
   <SweepHeight>k__BackingField: 1
+  <LungeSpeed>k__BackingField: 0
+  <LungeDuration>k__BackingField: 0.2
+  <LungeDelay>k__BackingField: 0
   <Damage>k__BackingField: 2
-  <Impulse>k__BackingField: 9
-  _impulseDirection: {x: 0.35, y: -0.45, z: 1}
-  <HitStopMultiplier>k__BackingField: 1.4
-  <CameraPunchMultiplier>k__BackingField: 1.3
+  <Impulse>k__BackingField: 8
+  _impulseDirection: {x: -0.35, y: -0.45, z: 1}
+  <HitStopMultiplier>k__BackingField: 1.3
+  <CameraPunchMultiplier>k__BackingField: 1.25

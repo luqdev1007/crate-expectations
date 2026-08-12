@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f228cf6a9c79f145a9653e3ea14dfbe, type: 3}
+  m_Name: Sabre_Neutral_Heavy
+  m_EditorClassIdentifier: CrateExpectations.Combat::CrateExpectations.Combat.AttackDefinition
+  <HoldTime>k__BackingField: 0.25
+  <Clip>k__BackingField: {fileID: 2997438166869188983, guid: f38a5b52efc741745913e518d906a224, type: 3}
+  <Duration>k__BackingField: 1.25
+  <SweepStart>k__BackingField: 0.46
+  <SweepEnd>k__BackingField: 0.5
+  <SweepSamples>k__BackingField: 8
+  <SweepRadius>k__BackingField: 0.45
+  <SweepDistance>k__BackingField: 2.2
+  <SweepHeight>k__BackingField: 1.2
+  <LungeSpeed>k__BackingField: 0
+  <LungeDuration>k__BackingField: 0.2
+  <LungeDelay>k__BackingField: 0
+  <Damage>k__BackingField: 2
+  <Impulse>k__BackingField: 10
+  _impulseDirection: {x: 0, y: -0.5, z: 1}
+  <HitStopMultiplier>k__BackingField: 1.6
+  <CameraPunchMultiplier>k__BackingField: 1.5
