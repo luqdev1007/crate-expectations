@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using CrateExpectations.Combat;
 using CrateExpectations.Core.Hands;
 using CrateExpectations.Core.Input;
@@ -101,6 +102,46 @@ namespace CrateExpectations.Player.Combat
         public bool IsBusy =>
             _charge.IsCharging ||
             (State != WeaponState.Sheathed && State != WeaponState.Ready);
+
+        // Заряд наружу выведен ТОЛЬКО на чтение и только тремя величинами: идёт ли он,
+        // насколько полон и каким приёмом кончится. Отдавать сам HoldCharge нельзя -
+        // у него есть Release и Cancel, то есть подписчик картинки смог бы выстрелить
+        // ударом или погасить заряд, просто читая его для отвода рук
+
+        /// <summary>
+        /// Заряд копится прямо сейчас. Это ровно тот же флаг, что участвует в
+        /// <see cref="IsBusy"/>, - «игрок держит кнопку удара и целится приёмом»
+        /// </summary>
+        public bool IsCharging => _charge.IsCharging;
+
+        /// <summary>
+        /// Насколько заряд полон, 0..1. Вне заряда - ноль, а не последнее накопленное:
+        /// сам <see cref="HoldCharge.ChargeT"/> переживает отпускание намеренно, но
+        /// показывать отвод рук после того, как удар уже ушёл, нечего
+        /// </summary>
+        public float ChargeProgress => _charge.IsCharging ? _charge.ChargeT : 0f;
+
+        /// <summary>
+        /// Направление, которое заряжается. Снято в момент нажатия и до конца цепочки
+        /// не меняется - см. <see cref="_pendingDirection"/>. Вне заряда значение
+        /// осмысленного смысла не имеет: спрашивать его надо вместе с
+        /// <see cref="IsCharging"/>
+        /// </summary>
+        public AttackDirection ChargingDirection => _pendingDirection;
+
+        /// <summary>
+        /// Приём, которым кончится текущий заряд, или <c>null</c>, если заряда нет либо
+        /// у направления нет заряженной ступени.
+        /// <para>
+        /// Читается без побочных эффектов: <see cref="AttackSet.Get"/> отдаёт строку
+        /// раскладки как есть, а чередование вариаций живёт в <see cref="AttackSelector"/>
+        /// и сдвигается только настоящим ударом. Спросить «чем кончится» ради картинки
+        /// и сдвинуть этим очередь вариаций было бы худшим видом побочного эффекта -
+        /// невидимым
+        /// </para>
+        /// </summary>
+        public AttackDefinition ChargingAttack =>
+            _charge.IsCharging ? ChargedAttackOf(_pendingDirection) : null;
 
         /// <summary>
         /// Состояние сменилось. Событие своё, а не проброшенное из машины напрямую: подписчик
@@ -309,6 +350,41 @@ namespace CrateExpectations.Player.Combat
             // направление, снятое здесь - на нажатии, - к моменту выпада уже устарело бы
             if (_body != null)
                 _body.Lunge(attack.LungeSpeed, attack.LungeDuration, attack.LungeDelay);
+        }
+
+        /// <summary>
+        /// Заряженный приём строки направления - тот, у которого <c>HoldTime</c> самый
+        /// большой. То же правило, по которому <see cref="AttackSelector.ChargeTime"/>
+        /// считает длительность заряда, только здесь нужен сам приём, а не число.
+        /// <para>
+        /// Копии строки не делаем и ничего не аллоцируем: <see cref="AttackSet.Get"/>
+        /// отдаёт внутренний массив, а обход идёт индексом
+        /// </para>
+        /// </summary>
+        private AttackDefinition ChargedAttackOf(AttackDirection direction)
+        {
+            if (_weapon == null || _weapon.Attacks == null)
+                return null;
+
+            IReadOnlyList<AttackDefinition> attacks = _weapon.Attacks.Get(direction);
+
+            if (attacks == null)
+                return null;
+
+            AttackDefinition charged = null;
+
+            for (int i = 0; i < attacks.Count; i++)
+            {
+                AttackDefinition attack = attacks[i];
+
+                if (attack == null || attack.HoldTime <= 0f)
+                    continue;
+
+                if (charged == null || attack.HoldTime > charged.HoldTime)
+                    charged = attack;
+            }
+
+            return charged;
         }
 
         private bool IsAirborne() => _body != null && _body.IsAirborne;

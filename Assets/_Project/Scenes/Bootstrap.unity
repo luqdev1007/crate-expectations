@@ -15398,6 +15398,7 @@ GameObject:
   - component: {fileID: 1738822059}
   - component: {fileID: 1738822060}
   - component: {fileID: 1738822061}
+  - component: {fileID: 1738822063}
   - component: {fileID: 1738822062}
   m_Layer: 14
   m_Name: ViewModel
@@ -15477,6 +15478,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CrateExpectations.Player::CrateExpectations.Player.View.ViewModelStance
   _framing: {fileID: 11400000, guid: 431fa747139cf994c9c7f07d9c6e89a3, type: 2}
+--- !u!114 &1738822063
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1738822057}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4eadbebce7f21ac4fa2eeb4e96b35c3b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CrateExpectations.Player::CrateExpectations.Player.View.ViewModelChargeWindup
+  _weapon: {fileID: 1242737595798173652}
 --- !u!1001 &1739360610
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c8e79b1a8ea74b48a42828db9eded30, type: 3}
+  m_Name: ChargeWindupDefinition
+  m_EditorClassIdentifier: CrateExpectations.Combat::CrateExpectations.Combat.ChargeWindupDefinition
+  _forward:
+    OffsetX: 0
+    OffsetY: 0
+    OffsetZ: -0.08
+    Pitch: 0
+    Yaw: 0
+    Roll: 0
+    SnapBackTime: 0.05
+  _right:
+    OffsetX: -0.1
+    OffsetY: 0.03
+    OffsetZ: -0.03
+    Pitch: 0
+    Yaw: 0
+    Roll: -8
+    SnapBackTime: 0.05
+  _left:
+    OffsetX: 0.1
+    OffsetY: 0.03
+    OffsetZ: -0.03
+    Pitch: 0
+    Yaw: 0
+    Roll: 8
+    SnapBackTime: 0.05
+  _neutral:
+    OffsetX: 0
+    OffsetY: 0.08
+    OffsetZ: -0.05
+    Pitch: -10
+    Yaw: 0
+    Roll: 0
+    SnapBackTime: 0.05
