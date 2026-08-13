@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1f228cf6a9c79f145a9653e3ea14dfbe, type: 3}
   m_Name: Attack_SlashRD
   m_EditorClassIdentifier: CrateExpectations.Combat::CrateExpectations.Combat.AttackDefinition
+  <HoldTime>k__BackingField: 0
   <Clip>k__BackingField: {fileID: 317076415866883248, guid: 212b0603ebb4f5e44af075f6ed81f848, type: 3}
   <Duration>k__BackingField: 1
   <SweepStart>k__BackingField: 0.15
@@ -20,7 +21,11 @@ MonoBehaviour:
   <SweepRadius>k__BackingField: 0.4
   <SweepDistance>k__BackingField: 2
   <SweepHeight>k__BackingField: 0.9
+  <LungeSpeed>k__BackingField: 0
+  <LungeDuration>k__BackingField: 0.2
+  <LungeDelay>k__BackingField: 0
   <Damage>k__BackingField: 1
+  <Tier>k__BackingField: 0
   <Impulse>k__BackingField: 6
   _impulseDirection: {x: -0.3, y: -0.45, z: 1}
   <HitStopMultiplier>k__BackingField: 1

@@ -196,7 +196,7 @@ namespace CrateExpectations.Player.Combat
             // Направление задано в пространстве камеры и здесь разворачивается в мировое
             Vector3 push = _origin.TransformDirection(_attack.ImpulseDirection);
 
-            var info = new HitInfo(point, normal, push, _attack.Impulse, _attack.Damage);
+            var info = new HitInfo(point, normal, push, _attack.Impulse, _attack.Damage, _attack.Tier);
 
             // Ищем вверх по иерархии, а не только на самом коллайдере: у ящика коллайдер
             // лежит на корне, а у составной цели окажется на отдельной части.

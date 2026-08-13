@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1f228cf6a9c79f145a9653e3ea14dfbe, type: 3}
   m_Name: Attack_ThrustF
   m_EditorClassIdentifier: CrateExpectations.Combat::CrateExpectations.Combat.AttackDefinition
+  <HoldTime>k__BackingField: 0
   <Clip>k__BackingField: {fileID: 7976329640714303274, guid: 3fd53d9efaa8369498b0e93a338e9ad1, type: 3}
   <Duration>k__BackingField: 0.65
   <SweepStart>k__BackingField: 0.14
@@ -24,6 +25,7 @@ MonoBehaviour:
   <LungeDuration>k__BackingField: 0.2
   <LungeDelay>k__BackingField: 0
   <Damage>k__BackingField: 1
+  <Tier>k__BackingField: 0
   <Impulse>k__BackingField: 5
   _impulseDirection: {x: 0, y: 0, z: 1}
   <HitStopMultiplier>k__BackingField: 0.9

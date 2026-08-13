@@ -90,6 +90,14 @@ namespace CrateExpectations.Combat
         [Header("Удар")]
         [field: SerializeField][Min(0)] public int Damage { get; private set; } = 1;
 
+        // Тир - свойство приёма, а не производная от урона: цели важно не «сколько сняли»,
+        // а «сбило ли с ног». Разводить эти два числа обязательно, иначе первый же баланс
+        // урона начнёт незаметно менять то, какие удары прерывают противника
+        [Tooltip("Насколько тяжёлым удар ощущается целью. Light - цель чувствует удар, " +
+                 "но своего занятия не бросает; Heavy - прерывает и заставляет отыграть " +
+                 "реакцию. С уроном не связан: это про отдачу, а не про снятые очки")]
+        [field: SerializeField] public AttackTier Tier { get; private set; } = AttackTier.Light;
+
         [Tooltip("Импульс отбрасывания, Н·с. Замерено: ящик 4 кг от 6 Н·с трогается " +
                  "с 1.75 м/с и проезжает 0.7 м")]
         [field: SerializeField][Min(0f)] public float Impulse { get; private set; } = 6f;

@@ -25,6 +25,7 @@ MonoBehaviour:
   <LungeDuration>k__BackingField: 0.12
   <LungeDelay>k__BackingField: 0.52
   <Damage>k__BackingField: 2
+  <Tier>k__BackingField: 1
   <Impulse>k__BackingField: 9
   _impulseDirection: {x: 0, y: -0.05, z: 1}
   <HitStopMultiplier>k__BackingField: 1.5

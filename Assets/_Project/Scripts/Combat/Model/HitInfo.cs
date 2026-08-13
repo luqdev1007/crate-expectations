@@ -30,13 +30,22 @@ namespace CrateExpectations.Combat
         /// <summary>Урон</summary>
         public readonly int Damage;
 
-        public HitInfo(Vector3 point, Vector3 normal, Vector3 direction, float impulse, int damage)
+        /// <summary>
+        /// Насколько тяжёлым удар ощущается целью. Отдельно от <see cref="Damage"/>:
+        /// сколько сняли и сбило ли с ног - разные вопросы, и цель отвечает на них
+        /// по-разному. Ящику тир безразличен, живой цели - нет
+        /// </summary>
+        public readonly AttackTier Tier;
+
+        public HitInfo(Vector3 point, Vector3 normal, Vector3 direction, float impulse, int damage,
+                       AttackTier tier = AttackTier.Light)
         {
             Point = point;
             Normal = normal;
             Direction = direction;
             Impulse = impulse;
             Damage = damage;
+            Tier = tier;
         }
     }
 }
