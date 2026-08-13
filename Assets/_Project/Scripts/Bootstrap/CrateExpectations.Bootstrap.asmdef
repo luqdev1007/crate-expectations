@@ -8,6 +8,7 @@
         "CrateExpectations.Interaction",
         "CrateExpectations.Cargo",
         "CrateExpectations.Inspection",
+        "CrateExpectations.Guards",
         "CrateExpectations.Inventory",
         "CrateExpectations.Economy",
         "CrateExpectations.Contracts",

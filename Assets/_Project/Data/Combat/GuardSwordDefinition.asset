@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6fb09435758d30f4997e2bca36a66c56, type: 3}
+  m_Name: GuardSwordDefinition
+  m_EditorClassIdentifier: CrateExpectations.Combat::CrateExpectations.Combat.WeaponDefinition
+  <Prefab>k__BackingField: {fileID: 8872748202819767915, guid: 188c6c177fece324cb1f95e3d8580187, type: 3}
+  <Attacks>k__BackingField: {fileID: 0}
+  <BodySocket>k__BackingField:
+    PositionX: 0
+    PositionY: 0
+    PositionZ: 0
+    RotationX: 0
+    RotationY: 0
+    RotationZ: 0
+    Scale: 0.56
+  <ViewModelSocket>k__BackingField:
+    PositionX: 0
+    PositionY: 0
+    PositionZ: 0
+    RotationX: 0
+    RotationY: 0
+    RotationZ: 0
+    Scale: 0.56
+  <DrawClip>k__BackingField: {fileID: 0}
+  <SheatheClip>k__BackingField: {fileID: 0}
+  <DrawDuration>k__BackingField: 0.65
+  <SheatheDuration>k__BackingField: 0.8
+  <DrawRevealFraction>k__BackingField: 0.54
+  <SheatheHideFraction>k__BackingField: 0.74
+  <BlockRaiseDuration>k__BackingField: 0.25
+  <BlockLowerDuration>k__BackingField: 0.25
+  <Swing>k__BackingField: {fileID: 0}
+  <ChargeWindup>k__BackingField: {fileID: 0}
+  <HitMask>k__BackingField:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  <SwingSound>k__BackingField: {fileID: 0}
+  <HitSound>k__BackingField: {fileID: 0}
+  <Feedback>k__BackingField: {fileID: 0}
+  <BladeLength>k__BackingField: 0.76

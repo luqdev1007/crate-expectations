@@ -10,6 +10,7 @@ using CrateExpectations.Core.Input;
 using CrateExpectations.Core.Services;
 using CrateExpectations.Core.Timing;
 using CrateExpectations.Economy;
+using CrateExpectations.Guards;
 using CrateExpectations.Inspection;
 using CrateExpectations.Inspection.AI;
 using CrateExpectations.Inspection.UI;
@@ -195,11 +196,38 @@ namespace CrateExpectations.Bootstrap
                 container.Resolve<ContractViewer>().BindHands(hands);
                 BindViewModel(hands);
 
+                InjectGuards(container);
+
                 // Резолвится именно ЗДЕСЬ - после источников: его инъекция тянет ту же
                 // фабрику, и на непрогретом контейнере она ушла бы в рекурсию по тем же
                 // трём компонентам
                 container.Resolve<HandsAnimatorDriver>();
             });
+        }
+
+        /// <summary>
+        /// Инъецирует ВСЕХ стражников сцены поимённо.
+        /// <para>
+        /// Единственное место, где схема регистрации отличается от остальной сцены, и
+        /// отличается вынужденно. <c>RegisterComponentInHierarchy</c> находит РОВНО ОДИН
+        /// компонент типа - первый в иерархии; вся сцена на этом и стоит, потому что
+        /// игрок, инспектор и доска существуют в единственном числе. Стражников будет
+        /// несколько, и второй с третьим получили бы пустые поля БЕЗ ошибки в консоли:
+        /// контейнер про них просто не узнал бы.
+        /// </para>
+        /// <para>
+        /// Поиск по сцене здесь оправдан ровно потому, что число объектов заранее
+        /// неизвестно - ссылкой в инспекторе такое не выражается. Разовый, в момент
+        /// сборки контейнера, не в кадре. Выключённые стражники тоже инъецируются:
+        /// объект могли погасить до старта и зажечь по ходу смены.
+        /// </para>
+        /// </summary>
+        private static void InjectGuards(IObjectResolver container)
+        {
+            GuardAI[] guards = FindObjectsByType<GuardAI>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+
+            foreach (GuardAI guard in guards)
+                container.InjectGameObject(guard.gameObject);
         }
 
         /// <summary>
