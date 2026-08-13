@@ -1,12 +1,17 @@
 using CrateExpectations.Core.Events;
+using CrateExpectations.Core.StateMachine;
 using UnityEngine;
+using UnityEngine.AI;
 using VContainer;
 
 namespace CrateExpectations.Guards
 {
     /// <summary>
-    /// Стражник порта. Пока - только точка входа зависимостей: поведение, здоровье
-    /// и бой приедут отдельными фазами.
+    /// Стражник порта. Сам он почти ничего не делает: спрашивает у <see cref="GuardBrain"/>,
+    /// чем заниматься, держит generic <see cref="StateMachine"/> из <c>Core</c> и раздаёт
+    /// состояниям то, что им нужно, через <see cref="IGuardStateContext"/>. Поведение живёт
+    /// в состояниях, решение - в мозге, числа - в ассетах. Тонкий слой ввода/вывода,
+    /// как и положено <see cref="MonoBehaviour"/>.
     /// <para>
     /// Зависимости приходят НЕ через <c>RegisterComponentInHierarchy</c>, как у всех
     /// остальных компонентов сцены, и это не отступление от принятой схемы, а
@@ -18,9 +23,39 @@ namespace CrateExpectations.Guards
     /// Поэтому <c>GameLifetimeScope</c> обходит их всех и инъецирует каждого поимённо.
     /// </para>
     /// </summary>
-    public sealed class GuardAI : MonoBehaviour
+    [RequireComponent(typeof(NavMeshAgent))]
+    [RequireComponent(typeof(Animator))]
+    public sealed class GuardAI : MonoBehaviour, IGuardStateContext
     {
+        [Tooltip("Темп обхода: длина пауз и частота оглядываний. Один ассет на всех стражников")]
+        [SerializeField] private GuardMovementDefinition _movement;
+
+        [Tooltip("Маршрут обхода. Пусто - стражник стоит на посту: маршрут привязан " +
+                 "к месту на доке, а не к типу NPC")]
+        [SerializeField] private PatrolRoute _patrolRoute;
+
+        private readonly StateMachine _machine = new();
+
+        private GuardBrain _brain;
+        private GuardHoldPostState _holdPost;
+        private GuardPatrolState _patrol;
+
         private IEventBus _bus;
+
+        /// <summary>Чем стражник занят - для отладки и будущего UI</summary>
+        public GuardIntent Intent { get; private set; }
+
+        /// <inheritdoc />
+        public NavMeshAgent Agent { get; private set; }
+
+        /// <inheritdoc />
+        public Animator Animator { get; private set; }
+
+        /// <inheritdoc />
+        public GuardMovementDefinition Movement => _movement;
+
+        /// <inheritdoc />
+        public PatrolRoute Route => _patrolRoute;
 
         /// <summary>
         /// Шина событий. Стражник пока в неё ничего не пишет и ни на что не подписан -
@@ -30,13 +65,47 @@ namespace CrateExpectations.Guards
         [Inject]
         public void Construct(IEventBus bus) => _bus = bus;
 
-        private void Start()
+        private void Awake()
         {
-            // TODO remove: временная диагностика DI-спайка (фаза B, блок 2).
-            // Снимается в блоке 8, когда путь инъекции подтверждён на реальных префабах
-            Debug.Log($"[GuardAI/DI] '{name}' (id {GetInstanceID()}): bus={(_bus == null ? "NULL" : "ok")}, " +
-                      $"тип={(_bus == null ? "-" : _bus.GetType().Name)}, " +
-                      $"хеш инстанса шины={(_bus == null ? 0 : _bus.GetHashCode())}", this);
+            Agent = GetComponent<NavMeshAgent>();
+            Animator = GetComponent<Animator>();
+
+            if (_movement == null)
+            {
+                Debug.LogError($"Стражнику '{name}' не назначен GuardMovementDefinition - " +
+                               "обходить маршрут будет нечем.", this);
+                enabled = false;
+                return;
+            }
+
+            _brain = new GuardBrain();
+            _holdPost = new GuardHoldPostState(this);
+            _patrol = new GuardPatrolState(this);
         }
+
+        private void Update()
+        {
+            // Намерение пересчитывается каждый кадр, а не один раз на старте: маршрут
+            // могут снять или выдать по ходу смены, и стражник обязан это заметить сам.
+            // Аллокаций тут нет - GuardContext это структура
+            Intent = _brain.Decide(new GuardContext(HasRoute));
+
+            // ChangeState сам отсекает переход в то же состояние по ссылке,
+            // так что сравнивать намерения вручную незачем
+            _machine.ChangeState(StateFor(Intent));
+            _machine.Tick(Time.deltaTime);
+        }
+
+        /// <summary>
+        /// Маршрут без единой точки - это не маршрут: стражник ушёл бы в обход,
+        /// которого нет, и застыл бы посреди дока без единой строчки в консоли
+        /// </summary>
+        private bool HasRoute => _patrolRoute != null && _patrolRoute.Points.Count > 0;
+
+        private IState StateFor(GuardIntent intent) => intent switch
+        {
+            GuardIntent.Patrol => _patrol,
+            _ => _holdPost,
+        };
     }
 }

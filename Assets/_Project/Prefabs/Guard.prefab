@@ -2925,6 +2925,7 @@ GameObject:
   - component: {fileID: 2855248144773179599}
   - component: {fileID: 209887393448599740}
   - component: {fileID: 3537915057447284732}
+  - component: {fileID: 4882226953169064494}
   m_Layer: 0
   m_Name: Guard
   m_TagString: Untagged
@@ -3070,6 +3071,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2ae5c3b824681bb49834fee5e7563d90, type: 3}
   m_Name: 
   m_EditorClassIdentifier: CrateExpectations.Guards::CrateExpectations.Guards.GuardAI
+  _movement: {fileID: 11400000, guid: a55fd3d419b19994e82cb24d8af2512d, type: 2}
+  _patrolRoute: {fileID: 0}
+--- !u!114 &4882226953169064494
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6937005220049641034}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6cf31054403c5c14f8beaba469ca4de0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CrateExpectations.Guards::CrateExpectations.Guards.GuardAnimatorDriver
 --- !u!1 &7158958595683047736
 GameObject:
   m_ObjectHideFlags: 0
