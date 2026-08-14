@@ -28,5 +28,42 @@ namespace CrateExpectations.Guards.Tests
             Assert.That(brain.Decide(new GuardContext(hasPatrolRoute: false)),
                         Is.EqualTo(GuardIntent.HoldPost));
         }
+
+        /// <summary>
+        /// Главное правило удара: он ПЕРЕБИВАЕТ обход, а не ждёт своей очереди.
+        /// Стражник с маршрутом - это тот случай, в котором приоритет и проверяется:
+        /// без него оба намерения совпали бы и тест ничего не доказывал
+        /// </summary>
+        [Test]
+        public void A_hit_interrupts_the_patrol_instead_of_waiting_its_turn()
+        {
+            var brain = new GuardBrain();
+
+            Assert.That(brain.Decide(new GuardContext(hasPatrolRoute: true, isStaggered: true)),
+                        Is.EqualTo(GuardIntent.Stagger));
+        }
+
+        [Test]
+        public void A_hit_stops_a_guard_who_was_standing_his_post_too()
+        {
+            var brain = new GuardBrain();
+
+            Assert.That(brain.Decide(new GuardContext(hasPatrolRoute: false, isStaggered: true)),
+                        Is.EqualTo(GuardIntent.Stagger));
+        }
+
+        /// <summary>
+        /// Обратная сторона того же правила: как только вздрагивание кончилось,
+        /// стражник обязан вернуться к обходу САМ. Оглушение, из которого нет выхода, -
+        /// это молчаливо зависший NPC, а не поломка, которую видно в консоли
+        /// </summary>
+        [Test]
+        public void When_the_flinch_is_over_the_guard_goes_back_to_walking()
+        {
+            var brain = new GuardBrain();
+
+            Assert.That(brain.Decide(new GuardContext(hasPatrolRoute: true, isStaggered: false)),
+                        Is.EqualTo(GuardIntent.Patrol));
+        }
     }
 }

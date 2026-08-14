@@ -3,6 +3,7 @@ using VContainer;
 using VContainer.Unity;
 using CrateExpectations.Cargo.Catalog;
 using CrateExpectations.Cargo.UI;
+using CrateExpectations.Combat;
 using CrateExpectations.Contracts;
 using CrateExpectations.Core.Events;
 using CrateExpectations.Core.Hands;
@@ -108,6 +109,12 @@ namespace CrateExpectations.Bootstrap
 
             // Точки входа сцены
             builder.RegisterComponentInHierarchy<PlayerController>();
+
+            // Заглушка смерти игрока. В отличие от его же здоровья, регистрируется
+            // обычным способом: PlayerDeath в сцене ровно один, стражники такого
+            // компонента не носят - им смерть отыгрывает GuardDeath
+            builder.RegisterComponentInHierarchy<PlayerDeath>();
+
             builder.RegisterComponentInHierarchy<PlayerWeaponController>();
             builder.RegisterComponentInHierarchy<MeleeHitStop>();
             builder.RegisterComponentInHierarchy<Interactor>();
@@ -157,6 +164,7 @@ namespace CrateExpectations.Bootstrap
             builder.RegisterBuildCallback(container =>
             {
                 container.Resolve<PlayerController>();
+                container.Resolve<PlayerDeath>();
                 container.Resolve<PlayerWeaponController>();
                 container.Resolve<MeleeHitStop>();
                 container.Resolve<Interactor>();
@@ -197,6 +205,7 @@ namespace CrateExpectations.Bootstrap
                 BindViewModel(hands);
 
                 InjectGuards(container);
+                InjectPlayerHealth(container);
 
                 // Резолвится именно ЗДЕСЬ - после источников: его инъекция тянет ту же
                 // фабрику, и на непрогретом контейнере она ушла бы в рекурсию по тем же
@@ -228,6 +237,41 @@ namespace CrateExpectations.Bootstrap
 
             foreach (GuardAI guard in guards)
                 container.InjectGameObject(guard.gameObject);
+        }
+
+        /// <summary>
+        /// Инъецирует здоровье игрока - точечно, одним компонентом.
+        /// <para>
+        /// <c>RegisterComponentInHierarchy</c> тут не годится ровно по той же причине,
+        /// что и у стражников: <see cref="HealthComponent"/> в сцене теперь не один -
+        /// он у игрока и у каждого стражника, - а регистрация «первый найденный»
+        /// молча отдала бы контейнеру случайного из них.
+        /// </para>
+        /// <para>
+        /// Инъецировать объект игрока целиком, как стражника, тоже нельзя, и это
+        /// несимметрично намеренно: <c>InjectGameObject</c> идёт по ВСЕМ детям, а среди
+        /// детей игрока есть компоненты, чей <c>Construct</c> не только раскладывает
+        /// ссылки, но и подписывается на события (<c>HandsAnimatorDriver</c> на бросок
+        /// переноски). Повторная инъекция подписала бы их вторым разом, и бросок
+        /// отыгрался бы дважды. У стражника таких нет, поэтому там объект целиком безопасен.
+        /// </para>
+        /// </summary>
+        private static void InjectPlayerHealth(IObjectResolver container)
+        {
+            // От контроллера, а не поиском по сцене: здоровье игрока лежит на том же
+            // корне, и связывать их этим фактом честнее, чем брать первое совпадение
+            var health = container.Resolve<PlayerController>().GetComponent<HealthComponent>();
+
+            if (health == null)
+            {
+                Debug.LogError(
+                    "На игроке нет HealthComponent - боевые события в шину не пойдут, " +
+                    "и убить игрока будет нечем.");
+
+                return;
+            }
+
+            container.Inject(health);
         }
 
         /// <summary>

@@ -3,6 +3,7 @@
     "rootNamespace": "CrateExpectations.Bootstrap",
     "references": [
         "CrateExpectations.Core",
+        "CrateExpectations.Combat",
         "CrateExpectations.Platform",
         "CrateExpectations.Player",
         "CrateExpectations.Interaction",

@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a52b30a1e1f6d94d8a4edb58f90016b, type: 3}
   m_Name: GuardHealthDefinition
   m_EditorClassIdentifier: CrateExpectations.Combat::CrateExpectations.Combat.HealthDefinition
-  <MaxHp>k__BackingField: 60
+  <MaxHp>k__BackingField: 8

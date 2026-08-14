@@ -17,7 +17,16 @@ namespace CrateExpectations.Guards
     {
         /// <summary>Чем заняться при таких вводных</summary>
         /// <param name="context">Снимок того, что о стражнике известно</param>
-        public GuardIntent Decide(in GuardContext context) =>
-            context.HasPatrolRoute ? GuardIntent.Patrol : GuardIntent.HoldPost;
+        public GuardIntent Decide(in GuardContext context)
+        {
+            // Удар бьёт всё остальное: стражник, которого рубят, не продолжает обход
+            // как ни в чём не бывало. Проверка стоит первой, а не последней, - порядок
+            // веток здесь и есть приоритет намерений, и когда их станет шесть,
+            // читаться он должен сверху вниз
+            if (context.IsStaggered)
+                return GuardIntent.Stagger;
+
+            return context.HasPatrolRoute ? GuardIntent.Patrol : GuardIntent.HoldPost;
+        }
     }
 }

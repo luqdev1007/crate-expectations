@@ -39,6 +39,11 @@ namespace CrateExpectations.Guards
         private GuardBrain _brain;
         private GuardHoldPostState _holdPost;
         private GuardPatrolState _patrol;
+        private GuardStaggerState _stagger;
+
+        // Необязательный сосед: снимут реакцию с префаба - стражник просто перестанет
+        // вздрагивать. Ссылка берётся один раз в Awake, а не GetComponent в кадре
+        private GuardHitReaction _hitReaction;
 
         private IEventBus _bus;
 
@@ -69,6 +74,7 @@ namespace CrateExpectations.Guards
         {
             Agent = GetComponent<NavMeshAgent>();
             Animator = GetComponent<Animator>();
+            _hitReaction = GetComponent<GuardHitReaction>();
 
             if (_movement == null)
             {
@@ -81,6 +87,7 @@ namespace CrateExpectations.Guards
             _brain = new GuardBrain();
             _holdPost = new GuardHoldPostState(this);
             _patrol = new GuardPatrolState(this);
+            _stagger = new GuardStaggerState(this);
         }
 
         private void Update()
@@ -88,7 +95,7 @@ namespace CrateExpectations.Guards
             // Намерение пересчитывается каждый кадр, а не один раз на старте: маршрут
             // могут снять или выдать по ходу смены, и стражник обязан это заметить сам.
             // Аллокаций тут нет - GuardContext это структура
-            Intent = _brain.Decide(new GuardContext(HasRoute));
+            Intent = _brain.Decide(new GuardContext(HasRoute, IsStaggered));
 
             // ChangeState сам отсекает переход в то же состояние по ссылке,
             // так что сравнивать намерения вручную незачем
@@ -102,8 +109,16 @@ namespace CrateExpectations.Guards
         /// </summary>
         private bool HasRoute => _patrolRoute != null && _patrolRoute.Points.Count > 0;
 
+        /// <summary>
+        /// Не оправился ли от удара. Без компонента реакции - никогда: стражник без
+        /// вздрагивания и не оглушается, иначе он замирал бы без единого признака,
+        /// почему именно
+        /// </summary>
+        private bool IsStaggered => _hitReaction != null && _hitReaction.IsStaggered;
+
         private IState StateFor(GuardIntent intent) => intent switch
         {
+            GuardIntent.Stagger => _stagger,
             GuardIntent.Patrol => _patrol,
             _ => _holdPost,
         };

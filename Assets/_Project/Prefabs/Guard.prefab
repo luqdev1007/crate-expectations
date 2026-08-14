@@ -2927,6 +2927,8 @@ GameObject:
   - component: {fileID: 3537915057447284732}
   - component: {fileID: 4882226953169064494}
   - component: {fileID: 721554995317901171}
+  - component: {fileID: 2493539557203276155}
+  - component: {fileID: 3114487644348335168}
   m_Layer: 0
   m_Name: Guard
   m_TagString: Untagged
@@ -3099,6 +3101,33 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CrateExpectations.Combat::CrateExpectations.Combat.HealthComponent
   _definition: {fileID: 11400000, guid: b1d60066c77736341b1a861413d49587, type: 2}
+--- !u!114 &2493539557203276155
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6937005220049641034}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6797cec905451ff40a999f618301bcc7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CrateExpectations.Guards::CrateExpectations.Guards.GuardHitReaction
+  _reaction: {fileID: 11400000, guid: 64465f00a2c694242891c13882be7f9d, type: 2}
+--- !u!114 &3114487644348335168
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6937005220049641034}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d56ff3e76aaae645a977d42fd0423c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CrateExpectations.Guards::CrateExpectations.Guards.GuardDeath
+  _reaction: {fileID: 11400000, guid: 64465f00a2c694242891c13882be7f9d, type: 2}
+  _socket: {fileID: 482905759603468912}
 --- !u!1 &7158958595683047736
 GameObject:
   m_ObjectHideFlags: 0

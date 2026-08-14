@@ -36,7 +36,26 @@ namespace CrateExpectations.Player
             _controls.Player.SetCallbacks(this);
         }
 
-        void IStartable.Start() => _controls.Player.Enable();
+        void IStartable.Start() => SetEnabled(true);
+
+        /// <inheritdoc />
+        public void SetEnabled(bool enabled)
+        {
+            if (enabled)
+            {
+                _controls.Player.Enable();
+                return;
+            }
+
+            _controls.Player.Disable();
+
+            // Обнуляем явно, а не полагаемся на отмену действий при выключении карты.
+            // Оси читаются ОПРОСОМ из полей, а не событием: выключенная карта просто
+            // перестаёт их обновлять, и последнее значение осталось бы жить.
+            // Мёртвый игрок продолжил бы бежать в ту сторону, куда бежал
+            MoveInput = Vector2.zero;
+            LookInput = Vector2.zero;
+        }
 
         void PlayerControls.IPlayerActions.OnMove(InputAction.CallbackContext context)
             => MoveInput = context.ReadValue<Vector2>();
