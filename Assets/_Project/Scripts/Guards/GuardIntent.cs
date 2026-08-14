@@ -19,5 +19,11 @@ namespace CrateExpectations.Guards
         /// это данные, и вставка в середину переставила бы значения у остальных
         /// </summary>
         Stagger,
+
+        /// <summary>Догонять игрока. Дописано в конец по той же причине, что <see cref="Stagger"/></summary>
+        Chase,
+
+        /// <summary>Бить. Дописано в конец по той же причине, что <see cref="Stagger"/></summary>
+        Attack,
     }
 }

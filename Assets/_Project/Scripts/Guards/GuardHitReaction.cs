@@ -38,6 +38,10 @@ namespace CrateExpectations.Guards
         private Animator _animator;
         private HealthComponent _health;
 
+        // Через интерфейс, а не через конкретный GuardAI: реакции нужно ровно одно
+        // свойство контекста, и знать, кто именно его держит, ей незачем
+        private IGuardStateContext _context;
+
         private float _recoveryTimer;
 
         /// <summary>
@@ -47,10 +51,30 @@ namespace CrateExpectations.Guards
         /// </summary>
         public bool IsStaggered => _recoveryTimer > 0f;
 
+        /// <summary>
+        /// Можно ли сбить стражника прямо сейчас. Нельзя ровно в активной фазе его
+        /// собственного удара: клинок уже идёт, и остановить его встречным попаданием
+        /// значило бы, что размен ударами всегда выигрывает тот, кто нажал позже.
+        /// <para>
+        /// Гипер-армор проверяется ЗДЕСЬ, а не в <see cref="GuardBrain"/>, и это
+        /// не мелочь: мозг отвечает на вопрос «чего стражник хочет», а неуязвимость -
+        /// это «что с ним можно сделать». Заведи её флагом в <see cref="GuardContext"/> -
+        /// и пришлось бы объяснять, почему намерение зависит от того, бьют ли по нему
+        /// прямо сейчас. Здесь же вздрагивание просто не взводится, и до мозга дело
+        /// не доходит вовсе
+        /// </para>
+        /// <para>
+        /// Без контекста - можно всегда: стражник без <see cref="GuardAI"/> не атакует,
+        /// а значит и защищать ему нечего
+        /// </para>
+        /// </summary>
+        public bool CanBeInterrupted => _context == null || !_context.IsHyperArmored;
+
         private void Awake()
         {
             _animator = GetComponent<Animator>();
             _health = GetComponent<HealthComponent>();
+            _context = GetComponent<IGuardStateContext>();
 
             if (_reaction != null)
                 return;
@@ -80,6 +104,12 @@ namespace CrateExpectations.Guards
             // Смертельный удар не вздрагивают: следом придёт Died, и тело уйдёт в регдол.
             // Без этой проверки труп успел бы дёрнуться за кадр до падения
             if (result.Died)
+                return;
+
+            // Гипер-армор: урон засчитан (здоровье его уже сняло), а реакции нет.
+            // Стражник доводит свой удар, и внешне это читается как «он не дрогнул»,
+            // а не как «попадание не прошло»
+            if (!CanBeInterrupted)
                 return;
 
             _animator.SetInteger(HitIndexId, _reaction.IndexFor(hit.Tier));

@@ -44,6 +44,16 @@ namespace CrateExpectations.Inspection
         [field: SerializeField][Min(0f)] public float VerdictHoldSeconds { get; private set; } = 6f;
         [field: SerializeField] public float CargoHandoffSeconds { get; private set; } = 6f;
 
+        // Число живёт ЗДЕСЬ, а не в ассете восприятия стражника, и это решение:
+        // громкость - свойство кричащего, а не уха. Держи его слушатель, стражники
+        // с разными ассетами слышали бы один и тот же зов по-разному. Ориентир -
+        // заметно больше слуха (6) и дальности зрения (10) стражника: крик специально
+        // для стражи обязан доставать дальше, чем обычный шум драки
+        [Tooltip("На сколько метров вокруг слышен зов стражи при задержании груза. " +
+                 "Больше слуха стражника намеренно: кричат громко и адресно. " +
+                 "Ноль - инспектор никого не зовёт")]
+        [field: SerializeField][Min(0f)] public float AlarmRadius { get; private set; } = 8f;
+
         [Header("Пузырь реплик")]
         [Tooltip("Сколько плашка над головой проявляется")]
         [field: SerializeField][Min(0f)] public float SpeechFadeInSeconds { get; private set; } = 0.15f;

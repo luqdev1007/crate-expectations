@@ -110,6 +110,15 @@ namespace CrateExpectations.Bootstrap
             // Точки входа сцены
             builder.RegisterComponentInHierarchy<PlayerController>();
 
+            // Где игрок - для тех, кто на него реагирует. Фабрикой, а не типом:
+            // адаптер живёт в Core и про модуль Player ничего не знает, поэтому
+            // трансформ ему подаём здесь - в единственном месте проекта, которое
+            // имеет право знать обе стороны. Стражники получают ИНТЕРФЕЙС и остаются
+            // без ссылки на PlayerController, которого их сборка всё равно не видит
+            builder.Register<IPlayerTarget>(
+                resolver => new PlayerTarget(resolver.Resolve<PlayerController>().transform),
+                Lifetime.Singleton);
+
             // Заглушка смерти игрока. В отличие от его же здоровья, регистрируется
             // обычным способом: PlayerDeath в сцене ровно один, стражники такого
             // компонента не носят - им смерть отыгрывает GuardDeath
@@ -121,6 +130,11 @@ namespace CrateExpectations.Bootstrap
             builder.RegisterComponentInHierarchy<Carrier>();
             builder.RegisterComponentInHierarchy<InteractionPromptView>();
             builder.RegisterComponentInHierarchy<CargoSpawner>();
+
+            // Отдача от ударов стражников по игроку. Один на сцену: слушателю шины
+            // незачем размножаться по стражникам, а пул эффектов - объект сцены,
+            // который префаб всё равно не смог бы сохранить ссылкой
+            builder.RegisterComponentInHierarchy<GuardAttackFeedback>();
 
             // Карточка груза: цель ей даёт Interactor, поэтому своего луча она не пускает
             builder.RegisterComponentInHierarchy<CargoInfoCard>();
@@ -136,6 +150,11 @@ namespace CrateExpectations.Bootstrap
                 Lifetime.Singleton);
 
             builder.RegisterComponentInHierarchy<InspectorAI>();
+
+            // Зов стражи. Отдельно от InspectorAI, а не внутри него: досмотр объявляет
+            // вердикт, а звать ли на него стражу - дело подписчика. Инспектор в сцене
+            // один, поэтому ловушка «первый найденный» из InjectGuards тут не срабатывает
+            builder.RegisterComponentInHierarchy<InspectorAlarm>();
 
             // Доска и HUD
             builder.RegisterComponentInHierarchy<ContractBoard>();
@@ -171,8 +190,13 @@ namespace CrateExpectations.Bootstrap
                 container.Resolve<Carrier>();
                 container.Resolve<InteractionPromptView>();
                 container.Resolve<CargoSpawner>();
+                container.Resolve<GuardAttackFeedback>();
                 container.Resolve<CargoInfoCard>();
                 container.Resolve<InspectorAI>();
+
+                // Слушатель шины: подписаться он обязан до первого вердикта, поэтому
+                // резолвится сразу, а не лениво при первом обращении
+                container.Resolve<InspectorAlarm>();
                 container.Resolve<ContractBoard>();
                 container.Resolve<BalanceView>();
                 container.Resolve<ContractViewer>();

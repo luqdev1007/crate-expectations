@@ -894,6 +894,7 @@ GameObject:
   - component: {fileID: 102356177}
   - component: {fileID: 102356175}
   - component: {fileID: 102356174}
+  - component: {fileID: 102356180}
   m_Layer: 0
   m_Name: Inspector
   m_TagString: Untagged
@@ -990,6 +991,19 @@ Transform:
   - {fileID: 754389029}
   m_Father: {fileID: 32665960}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &102356180
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 102356173}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f19b84fc05190654f97fc8b6a5aef596, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CrateExpectations.Inspection::CrateExpectations.Inspection.AI.InspectorAlarm
+  _definition: {fileID: 11400000, guid: 72b220ae886298b44972791a57c3beab, type: 2}
 --- !u!1 &118370392
 GameObject:
   m_ObjectHideFlags: 0
@@ -4406,6 +4420,7 @@ GameObject:
   m_Component:
   - component: {fileID: 602276356}
   - component: {fileID: 602276355}
+  - component: {fileID: 602276357}
   m_Layer: 0
   m_Name: ImpactEffects
   m_TagString: Untagged
@@ -4441,6 +4456,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &602276357
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 602276354}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 11d202aa26131ce4bac957f078b24a40, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CrateExpectations.Guards::CrateExpectations.Guards.GuardAttackFeedback
+  _pool: {fileID: 602276355}
+  _guardWeapon: {fileID: 11400000, guid: 56e2090fc6b10ca4d9b61751ed730b5c, type: 2}
 --- !u!1 &603454136
 GameObject:
   m_ObjectHideFlags: 0

@@ -2929,6 +2929,9 @@ GameObject:
   - component: {fileID: 721554995317901171}
   - component: {fileID: 2493539557203276155}
   - component: {fileID: 3114487644348335168}
+  - component: {fileID: 5803607217129327090}
+  - component: {fileID: 3199757799255642334}
+  - component: {fileID: 6912002100627861662}
   m_Layer: 0
   m_Name: Guard
   m_TagString: Untagged
@@ -3075,6 +3078,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CrateExpectations.Guards::CrateExpectations.Guards.GuardAI
   _movement: {fileID: 11400000, guid: a55fd3d419b19994e82cb24d8af2512d, type: 2}
+  _combat: {fileID: 11400000, guid: 29990465f6ed8e54bb4042f10038d2df, type: 2}
   _patrolRoute: {fileID: 0}
 --- !u!114 &4882226953169064494
 MonoBehaviour:
@@ -3128,6 +3132,45 @@ MonoBehaviour:
   m_EditorClassIdentifier: CrateExpectations.Guards::CrateExpectations.Guards.GuardDeath
   _reaction: {fileID: 11400000, guid: 64465f00a2c694242891c13882be7f9d, type: 2}
   _socket: {fileID: 482905759603468912}
+--- !u!114 &5803607217129327090
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6937005220049641034}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0c4f2f11f5dd3b4fa8462e89045e0ad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CrateExpectations.Guards::CrateExpectations.Guards.GuardMeleeAttack
+  _combat: {fileID: 11400000, guid: 29990465f6ed8e54bb4042f10038d2df, type: 2}
+  _socket: {fileID: 482905759603468912}
+--- !u!114 &3199757799255642334
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6937005220049641034}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d0b615b5fab2c74c8ae7fc953c7a1df, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CrateExpectations.Guards::CrateExpectations.Guards.GuardWitness
+  _perception: {fileID: 11400000, guid: 715d77d8ffb9c444c92a61205fab2ff6, type: 2}
+--- !u!114 &6912002100627861662
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6937005220049641034}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f002224305912824898fc09ea094d31b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CrateExpectations.Guards::CrateExpectations.Guards.GuardAlertResponder
 --- !u!1 &7158958595683047736
 GameObject:
   m_ObjectHideFlags: 0

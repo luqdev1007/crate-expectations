@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3c9758a19e41ecf40bfefe425677d7cc, type: 3}
   m_Name: GuardMovementDefinition
   m_EditorClassIdentifier: CrateExpectations.Guards::CrateExpectations.Guards.GuardMovementDefinition
+  <PatrolSpeed>k__BackingField: 1.17
   <PauseDurationMin>k__BackingField: 2
   <PauseDurationMax>k__BackingField: 5
   <LookAroundChance>k__BackingField: 0.4

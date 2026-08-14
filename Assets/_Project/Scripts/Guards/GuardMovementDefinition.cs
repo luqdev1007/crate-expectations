@@ -17,6 +17,18 @@ namespace CrateExpectations.Guards
         menuName = "CrateExpectations/Guards/Guard Movement Definition")]
     public sealed class GuardMovementDefinition : ScriptableObject
     {
+        // Число обязано СОВПАДАТЬ с порогом шага в блендтри Move графа Guard.controller
+        // (пороги: 0 idle / 1.17 шаг / 2.78 бег) - ровно как ChaseSpeed совпадает
+        // с порогом бега. GuardAnimatorDriver пишет в Speed фактическую скорость агента
+        // в м/с без нормировки, поэтому расхождение даёт стражника, который едет
+        // с одной скоростью в анимации другой. Крутить только парой с блендтри
+        [Header("Темп")]
+        [Tooltip("Скорость обхода, м/с. ОБЯЗАНА совпадать с порогом шага в блендтри " +
+                 "Move графа Guard.controller (сейчас 1.17). Отсюда же её берёт " +
+                 "GuardChaseState, возвращая агенту патрульный темп после погони: " +
+                 "состояние не имеет права оставить на агенте чужую скорость")]
+        [field: SerializeField][Min(0f)] public float PatrolSpeed { get; private set; } = 1.17f;
+
         [Header("Пауза на точке маршрута")]
         [Tooltip("Нижняя граница паузы, с")]
         [field: SerializeField][Min(0f)] public float PauseDurationMin { get; private set; } = 2f;
